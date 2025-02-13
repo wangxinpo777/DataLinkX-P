@@ -22,6 +22,7 @@ import logo from '@/assets/logo.svg?inline'
 import systemManagement from '@/assets/icons/system-management.svg?inline'
 import menuManagement from '@/assets/icons/menu-management.svg?inline'
 import roleManagement from '@/assets/icons/role-management.svg?inline'
+import visualAnalysis from '@/assets/icons/visual-analysis.svg?inline'
 
 export {
   bxAnaalyse,
@@ -38,7 +39,8 @@ export {
   kafkaPng,
   logo,
   systemManagement,
-  menuManagement
+  menuManagement,
+  visualAnalysis
 }
 
 export const icons = {
@@ -57,5 +59,6 @@ export const icons = {
   logo: logo,
   systemManagement: systemManagement,
   menuManagement: menuManagement,
-  roleManagement: roleManagement
+  roleManagement: roleManagement,
+  visualAnalysis: visualAnalysis
 }
