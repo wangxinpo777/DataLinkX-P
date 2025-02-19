@@ -28,7 +28,7 @@
     <template v-slot:headerContentRender>
       <div>
         <a-tooltip title="刷新页面">
-          <a-icon type="reload" style="font-size: 18px;cursor: pointer;" @click="() => { $message.info('已刷新') }" />
+          <a-icon type="reload" style="font-size: 18px;cursor: pointer;" @click="() => { reload();$message.success('刷新成功') }" />
         </a-tooltip>
       </div>
     </template>
@@ -68,6 +68,7 @@ export default {
     GlobalFooter,
     Ads
   },
+  inject: ['reload'],
   data () {
     return {
       // preview.pro.antdv.com only use.

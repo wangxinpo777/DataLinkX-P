@@ -1,7 +1,7 @@
 <template>
   <a-config-provider :locale="locale">
     <div id="app">
-      <router-view/>
+      <router-view v-if="ifRouterAlive" />
       <div class="chat-container">
         <beautiful-chat
           :participants="participants"
@@ -38,8 +38,14 @@ import EVA from '@/assets/eva.png'
 import TitleImg from '@/assets/titleImg.png'
 
 export default {
+  provide () {
+    return {
+      reload: this.reload
+    }
+  },
   data () {
     return {
+      ifRouterAlive: true,
       msg: '聊天浮球',
       participants: [
         {
@@ -85,6 +91,12 @@ export default {
     }
   },
   methods: {
+    reload () {
+      this.ifRouterAlive = false
+      this.$nextTick(() => {
+        this.ifRouterAlive = true
+      })
+    },
     onMessageWasSent (message) {
       // called when the user sends a message
       this.messageList = [ ...this.messageList, message ]
