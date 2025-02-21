@@ -41,6 +41,13 @@ export function fetchTables (id) {
     method: 'get'
   })
 }
+
+export function getTableData ({ dsId, tableName }) {
+  return axios({
+    url: `/api/ds/tables/${dsId}/${tableName}`,
+    method: 'GET'
+  })
+}
 export function delObj (id) {
   return axios({
     url: `/api/ds/delete/${id}`,

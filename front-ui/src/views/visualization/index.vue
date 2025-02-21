@@ -9,9 +9,40 @@
       >
         <a-button> <a-icon type="upload" /> 上传数据 </a-button>
       </a-upload>
-      <a-button @click="() => { showTable = !showTable;initializeHandsontable() }">{{ showTable ? '隐藏数据表格' : '显示数据表格' }}</a-button>
+      <a-button @click="() => { showDataSource = !showDataSource;fetchDsList() }">{{ showDataSource ? '取消':'从数据源获取数据' }}</a-button>
+      <a-button @click="() => { showTable = !showTable;initializeHandsontable() }">{{ showTable ? '隐藏数据表格' : '显示数据表格' }}
+      </a-button>
     </template>
-    <div style="display: flex;">
+    <div class="data-source" :class="{'show-data-source': showDataSource}">
+      <div class="data-source-header" v-show="showDataSource">
+        <a-card title="数据源设置" style="margin-bottom: 10px;">
+          <a-form :form="form" layout="inline">
+            <a-form-item label="来源数据源" class="data-source-item" :wrapper-col="{span: 12 }" :label-col="{span: 6}">
+              <a-select
+                @change="handleFromChange"
+                v-decorator="['selectedDataSource', {rules: [{required: true, message: '请选择来源数据源'}]}]">
+                <a-select-option v-for="table in fromDsList" :value="table.dsId" :key="table.name">
+                  <div>
+                    <span class="ds-icon">
+                      <img :src="dsImgObj[table.type]" alt="">
+                    </span>
+                    <span>{{ table.name }}</span>
+                  </div>
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+            <a-form-item label="来源数据源表" class="data-source-item" :wrapper-col="{span: 12 }" :label-col="{span: 6}">
+              <a-select @change="handleFromTbChange" v-decorator="['selectedSourceTable', {rules: [{required: true, message: '请选择来源数据源表'}]}]">
+                <a-select-option v-for="table in sourceTables" :value="table" :key="table">
+                  {{ table }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </a-form>
+        </a-card>
+      </div>
+    </div>
+    <div style="display: flex;" class="chart-div">
       <div class="left-sidebar">
         <div v-for="type in chartTypes" :key="type.type" class="icon-div" :class="{ activeChartType: chartType === type.type }" @click="chartType = type.type">
           <a-icon :type="type['icon-type']" class="sidebar-icon"/>
@@ -46,10 +77,18 @@
           </a-tabs>
           <div v-show="activeKey === 'Y-Index'">
             <a-input v-model="yAxisTitle" placeholder="Y轴标题" style="margin-bottom: 10px;"/>
-            <a-checkbox v-model="yAxisSplitLine">显示网格线</a-checkbox>
-            <div style="display: flex; gap: 10px; margin: 10px 0;">
+            <div style="display: flex; gap: 10px;margin-bottom: 10px;">
               <a-input-number v-model="yMin" placeholder="最小值" style="width: 100%;"/>
               <a-input-number v-model="yMax" placeholder="最大值" style="width: 100%;"/>
+            </div>
+            <div class="checkbox-item">
+              <a-checkbox v-model="yAxisSplitLine">显示网格线</a-checkbox>
+            </div>
+            <div class="checkbox-item">
+              <a-checkbox v-model="showMarkPoint">显示标记点</a-checkbox>
+            </div>
+            <div class="checkbox-item">
+              <a-checkbox v-model="showMarkLine">显示标记线</a-checkbox>
             </div>
             <div class="checkbox-group-container">
               <a-checkbox-group v-model="selectedYIndex">
@@ -137,16 +176,29 @@ import { baseMixin } from '@/store/app-mixin'
 import { Compact } from 'vue-color'
 import * as XLSX from 'xlsx'
 import Handsontable from 'handsontable'
-
+import { fetchTables, getTableData, listQuery } from '@/api/datasource/datasource'
+import { renderChart } from '@/views/visualization/renderChart'
+import { dsImgObj } from '@/views/datasource/const'
+const { registerLanguageDictionary, zhCN } = require('handsontable/i18n')
+registerLanguageDictionary(zhCN)
 export default {
   name: 'Index',
+  computed: {
+    dsImgObj () {
+      return dsImgObj
+    }
+  },
   mixins: [baseMixin],
   components: {
     Compact
   },
   data () {
     return {
+      fromDsList: [],
+      sourceTables: [],
+      form: this.$form.createForm(this),
       showTable: false,
+      showDataSource: false,
       // 基础设置
       chartType: 'line',
       chartTypes: [{ 'icon-type': 'line-chart', label: '折线图', type: 'line' }, { 'icon-type': 'bar-chart', label: '柱状图', type: 'bar' }, { 'icon-type': 'dot-chart', label: '散点图', type: 'scatter' }],
@@ -160,6 +212,15 @@ export default {
       yMax: null,
       yAxisSplitLine: true,
       xAxisRotate: null,
+      showMarkPoint: false,
+      showMarkLine: false,
+      markPointData: [
+        { type: 'max', name: '最大值' },
+        { type: 'min', name: '最小值' }
+      ],
+      markLineData: [
+        { type: 'average', name: '平均值' }
+      ],
 
       // 系列样式
       chooseLine: '',
@@ -234,25 +295,29 @@ export default {
       }
     },
     initializeHandsontable () {
-      if (this.hot) {
-        this.hot.destroy() // 销毁之前的实例
-      }
-      const container = this.$refs.chartTable
-      this.hot = new Handsontable(container, {
-        data: this.chartJsonData,
-        rowHeaders: true,
-        colHeaders: true,
-        height: '50%',
-        autoWrapRow: true,
-        autoWrapCol: true,
-        afterChange: (changes) => {
-          if (changes) {
-            this.chartJsonData = this.hot.getData()
-            this.chartData = this.convertJsonToObject()
-          }
-        },
-        licenseKey: 'non-commercial-and-evaluation' // 如果你是非商业用户
-      })
+      setTimeout(() => {
+        if (this.hot) {
+          this.hot.destroy()
+        }
+        const container = this.$refs.chartTable
+        this.hot = new Handsontable(container, {
+          data: this.chartJsonData.slice(1),
+          contextMenu: true,
+          language: 'zh-CN',
+          rowHeaders: true,
+          colHeaders: this.chartJsonData[0],
+          height: '50%',
+          autoWrapRow: false,
+          autoWrapCol: false,
+          afterChange: (changes) => {
+            if (changes) {
+              this.chartJsonData = [this.hot.getColHeader()].concat(this.hot.getData())
+              this.chartData = this.convertJsonToObject()
+            }
+          },
+          licenseKey: 'non-commercial-and-evaluation' // 如果你是非商业用户
+        })
+      }, 300)
     },
     convertJsonToObject () {
       const headers = this.chartJsonData[0] // 假设第一行是列名
@@ -300,104 +365,49 @@ export default {
       this.xAxisData = Object.keys(this.chartData)
     },
     renderChart () {
-      const seriesData = []
-      const xAxisData = this.xAxisData
-
-      this.selectedYIndex.forEach(YIndex => {
-        const ChartStyle = this.chartStyles[YIndex] || {}
-        // 基础配置项
-        const labelConfig = {
-          show: ChartStyle.showDataLabel,
-          position: ChartStyle.position,
-          color: ChartStyle.labelColor?.hex,
-          formatter: ChartStyle.formatter,
-          fontSize: ChartStyle.fontSize,
-          fontWeight: ChartStyle.fontWeight
-        }
-
-        switch (this.chartType) {
-          case 'scatter':
-            // Scatter 不支持 lineStyle 和 smooth
-            const scatterConfig = {
-              name: YIndex,
-              type: 'scatter',
-              data: xAxisData.map(XIndex => [XIndex, this.chartData[XIndex][YIndex]]),
-              itemStyle: {
-                color: ChartStyle.lineColor?.hex
-              },
-              label: labelConfig
-            }
-            seriesData.push(scatterConfig)
-            break
-
-          case 'bar':
-            // Bar 不支持 lineStyle 和 smooth
-            const barConfig = {
-              name: YIndex,
-              type: 'bar',
-              data: xAxisData.map(XIndex => this.chartData[XIndex][YIndex]),
-              itemStyle: {
-                color: ChartStyle.lineColor?.hex
-              },
-              label: labelConfig
-            }
-            seriesData.push(barConfig)
-            break
-
-          case 'line':
-            // Line 支持 lineStyle 和 smooth，但不支持 itemStyle
-            const lineConfig = {
-              name: YIndex,
-              type: 'line',
-              data: xAxisData.map(XIndex => this.chartData[XIndex][YIndex]),
-              lineStyle: {
-                color: ChartStyle.lineColor?.hex,
-                type: ChartStyle.lineStyle
-              },
-              label: labelConfig,
-              smooth: ChartStyle.smooth
-            }
-            seriesData.push(lineConfig)
-            break
-
-          default:
-            console.warn(`Unsupported chart type: ${this.chartType}`)
-            break
+      renderChart(this)
+    },
+    handleFromChange (value) {
+      // 切换数据源同步表单数据
+      this.form.setFieldsValue({ 'selectedDataSource': value })
+      // 清空表单中来源表
+      this.form.setFieldsValue({ 'selectedSourceTable': '' })
+      fetchTables(value).then(res => {
+        this.sourceTables = res.result
+      })
+    },
+    handleFromTbChange (value) {
+      getTableData({
+        dsId: this.form.getFieldValue('selectedDataSource'),
+        tableName: value
+      }).then(res => {
+        if (res.result.length === 0) {
+          this.$message.error('数据源表无数据')
+        } else {
+          const data = []
+          data.push(Object.keys(res.result[0]))
+          res.result.forEach(item => {
+            data.push(Object.values(item))
+          })
+          this.chartJsonData = data
+          this.initChartData()
         }
       })
-
-      const option = {
-        title: { text: this.chartTitle },
-        tooltip: { trigger: 'axis' },
-        legend: {
-          data: this.selectedYIndex,
-          [this.legendPosition]: this.legendPosition
-        },
-        xAxis: {
-          type: 'category',
-          data: xAxisData,
-          name: this.xAxisTitle,
-          axisLabel: { rotate: this.xAxisRotate }
-        },
-        yAxis: {
-          type: 'value',
-          name: this.yAxisTitle,
-          min: this.yMin,
-          max: this.yMax,
-          splitLine: { show: this.yAxisSplitLine }
-        },
-        series: seriesData,
-        toolbox: this.showToolbox ? {
-          feature: {
-            saveAsImage: {},
-            dataView: {},
-            dataZoom: { show: true },
-            restore: {}
+    },
+    fetchDsList () {
+      listQuery().then(res => {
+        const record = res.result
+        this.fromDsList = record.reduce((acc, item) => {
+          if (item.type === 1) {
+            acc.push({
+              dsId: item.dsId,
+              name: item.name,
+              type: item.type
+            })
           }
-        } : null
-      }
-      this.chart.setOption(option, true)
-      setTimeout(() => { this.chart.resize() }, 300)
+          return acc
+        }, [])
+      })
     }
   },
   watch: {
@@ -420,7 +430,9 @@ export default {
       handler: 'renderChart',
       deep: true
     },
-    sideCollapsed: 'renderChart'
+    sideCollapsed: 'renderChart',
+    showMarkPoint: 'renderChart',
+    showMarkLine: 'renderChart'
   },
   mounted () {
     this.chart = echarts.init(this.$refs.chart)
@@ -438,35 +450,44 @@ export default {
 
 .right-sidebar {
   width: 250px;
-  max-height: 85vh;
   overflow-y: auto;
   padding: 10px;
+  transition: all 0.3s;
   background-color: #f7f7f7;
   ::v-deep .ant-card-head {
     font-size: 14px;
     padding-left: 10px;
     border-left: 3px solid #1890ff;
-
     .ant-card-head-title {
       padding: 14px 0;
     }
   }
 }
-
+.data-source{
+  width: 100%;
+  height: 0;
+  transition: all 0.3s;
+}
 .show-chart-table {
   width: 50%;
 }
-
-.main-content {
-  flex: 1;
-  overflow: hidden;
-  padding: 20px;
-  max-height: 85vh;
+.show-data-source {
+  height: auto;
+  margin-bottom: 10px;
 }
-
-.chart-container {
-  height: 100%;
-  width: 100%;
+.chart-div{
+  max-height: 85vh;
+  border: 2px solid #f7f7f7;
+  border-radius: 5px;
+  .main-content {
+    flex: 1;
+    overflow: hidden;
+    padding: 20px;
+    .chart-container {
+      height: 100%;
+      width: 100%;
+    }
+  }
 }
 
 .checkbox-group-container {
@@ -481,7 +502,7 @@ export default {
   cursor: pointer;
 }
 .checkbox-item {
-  padding: 10px;
+  padding: 5px;
   width: 100%;
   white-space: nowrap; /* 防止文本换行 */
   overflow: hidden; /* 超出部分隐藏 */
@@ -510,9 +531,6 @@ p{
   line-height: 30px;
   padding-left: 10px;
 }
-.left-sidebar {
-
-}
 .icon-div {
   display: flex;
   flex-direction: column;
@@ -540,5 +558,23 @@ p{
 }
 .ant-btn{
   margin-right: 10px;
+}
+::v-deep .ds-icon {
+  float: left;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-right: 4px;
+  img {
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+}
+.data-source-item{
+  width: 30%;
 }
 </style>

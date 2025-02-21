@@ -17,13 +17,7 @@ import com.datalinkx.driver.dsdriver.base.model.DbTableField;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 
 
 @Slf4j
@@ -88,6 +82,11 @@ public class DsController {
 	@GetMapping("/tables/{dsId}")
 	public WebResult<List<String>> fetchTables(@PathVariable String dsId) {
 		return WebResult.of(dsServiceImpl.fetchTables(dsId));
+	}
+
+	@GetMapping("/tables/{dsId}/{tableName}")
+	public WebResult<List<Map<String, Object>>> getTableData(@PathVariable String dsId, @PathVariable String tableName) {
+		return WebResult.of(dsServiceImpl.getTableData(dsId, tableName));
 	}
 
 	@GetMapping("/field/info")

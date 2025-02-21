@@ -4,6 +4,7 @@ import static com.datalinkx.common.utils.IdUtils.genKey;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,10 +39,14 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+
+import javax.sql.DataSource;
 
 
 @Service
@@ -52,6 +57,8 @@ public class DsServiceImpl implements DsService {
 	private DsRepository dsRepository;
 	@Autowired
 	private JobRepository jobRepository;
+	@Autowired
+	private DataSource dataSource;
 
 
 	/**
@@ -289,5 +296,30 @@ public class DsServiceImpl implements DsService {
 			throw new DatalinkXServerException(e);
 		}
 		return new ArrayList<>();
+	}
+
+	@Override
+	public List<Map<String, Object>> getTableData(String dsId, String tableName) {
+		List<Map<String, Object>> tableData = new ArrayList<>();
+		try (Connection connection = dataSource.getConnection()) {
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery("SELECT * FROM " + tableName);
+
+			// 获取列信息
+			ResultSetMetaData metaData = resultSet.getMetaData();
+			int columnCount = metaData.getColumnCount();
+
+			// 将数据转换为适合图表的数据格式
+			while (resultSet.next()) {
+				Map<String, Object> row = new HashMap<>();
+				for (int i = 1; i <= columnCount; i++) {
+					row.put(metaData.getColumnName(i), resultSet.getObject(i));
+				}
+				tableData.add(row);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return tableData;
 	}
 }

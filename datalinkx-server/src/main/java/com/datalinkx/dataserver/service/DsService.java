@@ -1,6 +1,7 @@
 package com.datalinkx.dataserver.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.datalinkx.dataserver.bean.domain.DsBean;
 import com.datalinkx.dataserver.bean.vo.PageVo;
@@ -53,4 +54,6 @@ public interface DsService {
      * 指定数据源-数据表下的字段列表
      */
     List<DbTableField> fetchFields(String dsId, String tbName);
+
+    List<Map<String, Object>> getTableData(String dsId, String tableName);
 }
