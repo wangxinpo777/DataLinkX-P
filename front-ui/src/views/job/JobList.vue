@@ -23,6 +23,7 @@
 import { pageQuery, delObj, exec, stop } from '@/api/job/job'
 import { closeConnect } from '@/api/job/sse'
 import JobSaveOrUpdate from '../job/JobSaveOrUpdate.vue'
+import { fetchEventSource } from '@microsoft/fetch-event-source'
 // 0:CREATE|1:SYNCING|2:SYNC_FINISH|3:SYNC_ERROR|4:QUEUING
 const StatusType = [
   {
@@ -206,31 +207,42 @@ export default {
     },
     createEventSource () {
       if (window.EventSource) {
-        this.eventSource = new EventSource(
-          `api/api/sse/connect/jobList`, {
-            // 设置重连时间
-            heartbeatTimeout: 60 * 60 * 1000
-            // 添加token
-          })
-        this.eventSource.onopen = (e) => {
-          console.log('connect success')
-        }
-        this.eventSource.onmessage = (e) => {
-          console.log('from server data:', e.data)
-          const flashData = JSON.parse(e.data)
-          console.log(flashData)
-          for (const i of this.tableData) {
-            if (i.job_id === flashData.job_id) {
-              if (flashData.status === 1) {
-                i.status = flashData.status
-                i.progress = (flashData.write_records + '/' + flashData.read_records)
-              } else {
-                // 防止消息先到前端后端未入库
-                i.status = flashData.status
+        const token = localStorage.getItem('Access-Token').replace(/"/g, '')
+        const url = `api/api/sse/connect/jobList`
+        fetchEventSource(url, {
+          method: 'GET',
+          headers: {
+            'ACCESS-TOKEN': token,
+            'Accept': 'text/event-stream'
+          },
+          heartbeatTimeout: 60 * 60 * 1000, // 设置心跳超时时间
+          onopen: () => {
+            console.log('SSE 连接成功')
+          },
+          onmessage: (event) => {
+            console.log('从服务器接收数据:', event.data)
+            const flashData = JSON.parse(event.data)
+            console.log(flashData)
+
+            for (const i of this.tableData) {
+              if (i.job_id === flashData.job_id) {
+                if (flashData.status === 1) {
+                  i.status = flashData.status
+                  i.progress = `${flashData.write_records}/${flashData.read_records}`
+                } else {
+                  // 防止消息先到前端，后端未入库
+                  i.status = flashData.status
+                }
               }
             }
+          },
+          onclose: () => {
+            console.log('SSE 连接已关闭')
+          },
+          onerror: (err) => {
+            console.error('SSE 发生错误:', err)
           }
-        }
+        })
       } else {
         console.log('browser not support SSE')
       }

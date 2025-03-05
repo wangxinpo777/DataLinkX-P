@@ -13,4 +13,5 @@ public class ClientProperties {
     private ClientConfig.ServicePropertieBean datajob;
     private ClientConfig.ServicePropertieBean flink;
     private ClientConfig.ServicePropertieBean seatunnel;
+    private ClientConfig.ServicePropertieBean deepseek;
 }

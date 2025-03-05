@@ -39,7 +39,7 @@
       </div>
       <div class="table-operator">
         <!--      v-action="'upms:user:add'"-->
-<!--        <a-button @click="$refs.refDsConfig.show('','add')" icon="plus" type="primary">新建</a-button>-->
+        <!--        <a-button @click="$refs.refDsConfig.show('','add')" icon="plus" type="primary">新建</a-button>-->
         <a-button @click="createDS" icon="plus" type="primary">新建</a-button>
       </div>
       <a-table
@@ -275,7 +275,7 @@ export default {
   }
   .list-acard {
     flex: 1;
-    margin: 24px 0 16px 24px;
+    margin: 24px 24px 16px 24px;
   }
   .list-left {
     border-radius: 0px;
