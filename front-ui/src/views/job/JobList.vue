@@ -211,6 +211,7 @@ export default {
         const url = `api/api/sse/connect/jobList`
         fetchEventSource(url, {
           method: 'GET',
+          openWhenHidden: true,
           headers: {
             'ACCESS-TOKEN': token,
             'Accept': 'text/event-stream'

@@ -116,6 +116,7 @@ export default {
 
       fetchEventSource(url, {
         method: 'GET',
+        openWhenHidden: true,
         headers: {
           'ACCESS-TOKEN': token,
           'Accept': 'text/event-stream'
@@ -171,7 +172,7 @@ export default {
   border-radius: 8px;
 }
 .message-content {
-  padding: 14px 12px 0 12px;
+  padding: 14px 12px;
   position: relative;
   background: #f5f5f5 !important;
   color: #333 !important;
@@ -207,15 +208,24 @@ export default {
   margin-right: 8px;
 }
 
+::v-deep ul, ol {
+  list-style: initial !important;
+}
+::v-deep ul {
+  list-style-type: disc; /* 实心圆点 */
+}
+
+::v-deep ol {
+  list-style-type: decimal; /* 数字序号 */
+}
+::v-deep p{
+  margin-bottom: 0;
+}
 .message.user {
   justify-content: flex-end;
 }
 
 .message.assistant {
   justify-content: flex-start;
-}
-
-.bubble {
-
 }
 </style>
