@@ -1,12 +1,11 @@
-package com.datalinkx.dataserver.controller;
+package com.datalinkx.deepseek.controller;
 
 import com.datalinkx.common.result.WebResult;
-import com.datalinkx.copilot.client.request.ChatReq;
-import com.datalinkx.copilot.client.response.DeepSeekResponse;
-import com.datalinkx.dataserver.bean.domain.Conversation;
-import com.datalinkx.dataserver.bean.domain.Message;
-import com.datalinkx.dataserver.service.DeepSeekService;
-import com.datalinkx.dataserver.utils.SecurityUtils;
+import com.datalinkx.deepseek.bean.Conversation;
+import com.datalinkx.deepseek.bean.Message;
+import com.datalinkx.deepseek.client.request.ChatReq;
+import com.datalinkx.deepseek.client.response.DeepSeekResponse;
+import com.datalinkx.deepseek.service.DeepSeekService;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +21,16 @@ import java.util.List;
 public class DeepSeekController {
     @Autowired
     private DeepSeekService deepSeekService;
+
     @PostMapping("/chat")
     public WebResult<DeepSeekResponse> chat(@RequestParam String model, @RequestBody List<ChatReq.Content> contents) {
         return WebResult.of(deepSeekService.chat(model, contents));
     }
 
     @GetMapping("/stream/chat")
-    public SseEmitter streamChat(@RequestParam String model, @RequestParam String content, @RequestParam(required = false) String conversationId) {
+    public SseEmitter streamChat(@RequestParam String model, @RequestParam String content, @RequestParam(required = false) String conversationId, @RequestParam Long userId) {
         log.info("stream chat");
-        return deepSeekService.streamChat(model, content, conversationId);
+        return deepSeekService.streamChat(model, content, conversationId, userId);
     }
 
     @GetMapping("/messages/history")
@@ -39,8 +39,8 @@ public class DeepSeekController {
     }
 
     @GetMapping("/conversions/history")
-    public WebResult<List<Conversation>> getHistoryConversations() {
-        return WebResult.of(deepSeekService.getHistoryConversations(Long.valueOf(SecurityUtils.getUserId())));
+    public WebResult<List<Conversation>> getHistoryConversations(@RequestParam Long userId) {
+        return WebResult.of(deepSeekService.getHistoryConversations(userId));
     }
 
 }

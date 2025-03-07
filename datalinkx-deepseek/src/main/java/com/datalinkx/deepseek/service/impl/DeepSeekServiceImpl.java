@@ -1,15 +1,14 @@
-package com.datalinkx.dataserver.service.impl;
+package com.datalinkx.deepseek.service.impl;
 
 import com.datalinkx.common.utils.JsonUtils;
-import com.datalinkx.copilot.client.request.ChatReq;
-import com.datalinkx.copilot.client.response.DeepSeekResponse;
-import com.datalinkx.dataserver.bean.domain.Conversation;
-import com.datalinkx.dataserver.bean.domain.Message;
-import com.datalinkx.dataserver.client.deepseek.DeepSeekClient;
-import com.datalinkx.dataserver.repository.ConversationRepository;
-import com.datalinkx.dataserver.repository.MessageRepository;
-import com.datalinkx.dataserver.service.DeepSeekService;
-import com.datalinkx.dataserver.utils.SecurityUtils;
+import com.datalinkx.deepseek.bean.Conversation;
+import com.datalinkx.deepseek.bean.Message;
+import com.datalinkx.deepseek.client.DeepSeekClient;
+import com.datalinkx.deepseek.client.request.ChatReq;
+import com.datalinkx.deepseek.client.response.DeepSeekResponse;
+import com.datalinkx.deepseek.repository.ConversationRepository;
+import com.datalinkx.deepseek.repository.MessageRepository;
+import com.datalinkx.deepseek.service.DeepSeekService;
 import com.datalinkx.sse.config.SseEmitterServer;
 import com.datalinkx.sse.config.oksse.RealEventSource;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +66,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public SseEmitter streamChat(String model, String content, String conversationId) {
+    public SseEmitter streamChat(String model, String content, String conversationId, Long userId) {
         ChatReq.Content chatContent = ChatReq.Content.builder()
                 .role("user")
                 .content(content)
@@ -75,7 +74,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
         if (StringUtils.isEmpty(conversationId)) {
             conversationId = UUID.randomUUID().toString().replaceAll("-", "");
             // 保存会话
-            saveConversation(Long.valueOf(SecurityUtils.getUserId()), conversationId, content.substring(0, Math.min(content.length(), 10)));
+            saveConversation(userId, conversationId, content.substring(0, Math.min(content.length(), 10)));
         }
 
         List<Message> historyMessages = getHistoryMessages(conversationId);
@@ -138,7 +137,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
         return contents;
     }
 
-    public void saveMessage(String conversationId, String role, String content,String reasoningContent) {
+    public void saveMessage(String conversationId, String role, String content, String reasoningContent) {
         Message message = new Message();
         message.setId(UUID.randomUUID().toString().replaceAll("-", ""));
         message.setConversationId(conversationId);
@@ -175,7 +174,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
             @Override
             public void onOpen(EventSource eventSource, Response response) {
                 // 先保存用户输入
-                saveMessage(conversationId, chatContent.getRole(), chatContent.getContent(),"");
+                saveMessage(conversationId, chatContent.getRole(), chatContent.getContent(), "");
                 log.info("SSE open");
             }
 
@@ -215,13 +214,13 @@ public class DeepSeekServiceImpl implements DeepSeekService {
             @Override
             public void onClosed(EventSource eventSource) {
                 log.info("SSE close");
-                saveMessage(conversationId, "assistant", aiResponse.toString(),aiResponseTemp.toString());
+                saveMessage(conversationId, "assistant", aiResponse.toString(), aiResponseTemp.toString());
                 sseEmitter.complete();
             }
 
             @Override
             public void onFailure(EventSource eventSource, Throwable t, Response response) {
-                saveMessage(conversationId, "assistant", aiResponse.toString(),aiResponseTemp.toString());
+                saveMessage(conversationId, "assistant", aiResponse.toString(), aiResponseTemp.toString());
                 if (response != null) {
                     String msg;
                     try {

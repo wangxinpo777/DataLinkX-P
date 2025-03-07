@@ -17,8 +17,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableJpaAuditing
 @EnableAsync
 @EnableScheduling
-@EnableJpaRepositories(basePackages = {"com.datalinkx.dataserver.*"})
-@EntityScan(basePackages = {"com.datalinkx.dataserver.*"})
+@EnableJpaRepositories(basePackages = {"com.datalinkx.dataserver.*","com.datalinkx.deepseek.*"})
+@EntityScan(basePackages = {"com.datalinkx.dataserver.*","com.datalinkx.deepseek.*"})
 @ComponentScan(
         basePackages = {"com.datalinkx.*.**"},
         excludeFilters = {

@@ -23,6 +23,7 @@
         <module>datalinkx-sse</module>
         <module>datalinkx-connector</module>
         <module>datalinkx-copilot</module>
+        <module>datalinkx-deepseek</module>
     </modules>
 
 

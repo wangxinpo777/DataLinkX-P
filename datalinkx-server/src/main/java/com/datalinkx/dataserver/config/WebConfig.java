@@ -4,7 +4,6 @@ import com.datalinkx.dataclient.client.datalinkxjob.DatalinkXJobClient;
 import com.datalinkx.dataclient.client.flink.FlinkClient;
 import com.datalinkx.dataclient.client.seatunnel.SeaTunnelClient;
 import com.datalinkx.dataclient.config.DatalinkXClientUtils;
-import com.datalinkx.dataserver.client.deepseek.DeepSeekClient;
 import com.datalinkx.dataserver.client.xxljob.XxlJobClient;
 import com.datalinkx.dataserver.client.xxljob.XxlLoginClient;
 import com.datalinkx.dataserver.client.xxljob.interceptor.LoginInterceptor;
@@ -110,9 +109,5 @@ public class WebConfig implements WebMvcConfigurer {
 	public SeaTunnelClient SeatunnelClient(ClientProperties clientProperties) {
 		return DatalinkXClientUtils.createClient("seatunnel", clientProperties.getSeatunnel(), SeaTunnelClient.class);
 	}
-
-	@Bean
-	public DeepSeekClient deepSeekClient(ClientProperties clientProperties) {
-		return DatalinkXClientUtils.createClient("deepseek", clientProperties.getDeepseek(), DeepSeekClient.class);
-	}
+	
 }

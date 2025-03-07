@@ -21,9 +21,12 @@ export function deeepseekMessagesHistory (conversationId) {
   })
 }
 
-export function deeepseekConversationsHistory () {
+export function deeepseekConversationsHistory (userId) {
   return request({
     url: '/api/deepseek/conversions/history',
-    method: 'GET'
+    method: 'GET',
+    params: {
+      userId: userId
+    }
   })
 }

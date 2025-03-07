@@ -16,7 +16,7 @@
                 placement="right">
                 {{ item.title }}
               </a-tooltip>
-              <a-icon v-if="hoveredItem === item.id" type="delete" style="position: absolute; right: 0; top: 12px;"/>
+              <a-icon v-if="hoveredItem === item.id" type="delete" style="position: absolute; right: 0; top: 12px;" />
             </a-menu-item>
           </template>
         </a-menu>
@@ -29,7 +29,7 @@
       <div class="chat">
         <div class="chat-box" ref="messageContainer">
           <div class="message">
-            <a-avatar class="avatar" src="https://i.pravatar.cc/40?img=2"/>
+            <a-avatar class="avatar" src="https://i.pravatar.cc/40?img=2" />
             <div class="message-content">
               <div class="bubble mdTextBox">
                 <p>你好，我是 AI 机器人，有什么可以帮助你的吗？</p>
@@ -37,8 +37,8 @@
             </div>
           </div>
           <div v-for="message in messages" :key="message.id" :class="['message', message.role]">
-            <a-avatar v-if="message.role === 'user'" class="avatar" src="https://i.pravatar.cc/40?img=1"/>
-            <a-avatar v-else class="avatar" src="https://i.pravatar.cc/40?img=2"/>
+            <a-avatar v-if="message.role === 'user'" class="avatar" src="https://i.pravatar.cc/40?img=1" />
+            <a-avatar v-else class="avatar" src="https://i.pravatar.cc/40?img=2" />
             <div class="message-content">
               <div
                 class="bubble2"
@@ -81,7 +81,7 @@
             <a-button
               shape="circle"
               setsize="small"
-              icon="plus"/>
+              icon="plus" />
             <a-button
               shape="circle"
               setsize="small"
@@ -191,7 +191,7 @@ export default {
       }
     },
     initDeepSeek () {
-      deeepseekConversationsHistory().then(res => {
+      deeepseekConversationsHistory(JSON.parse(localStorage.getItem('User')).userId).then(res => {
         this.conversations = res.result
         this.conversationId = res.result.length > 0 ? res.result[0].id : ''
         deeepseekMessagesHistory(this.conversationId).then(res => {
@@ -227,7 +227,7 @@ export default {
 
       this.loading = true
       const token = localStorage.getItem('Access-Token').replace(/"/g, '')
-      const url = `/api/api/deepseek/stream/chat?model=${this.model}&content=${encodeURIComponent(this.userInput)}&conversationId=${this.conversationId}`
+      const url = `/api/api/deepseek/stream/chat?model=${this.model}&content=${encodeURIComponent(this.userInput)}&userId=${JSON.parse(localStorage.getItem('User')).userId}&conversationId=${this.conversationId}`
       this.messages.push({
         id: this.messages.length + 1,
         role: 'user',
@@ -244,7 +244,7 @@ export default {
           'Accept': 'text/event-stream'
         },
         onopen: () => {
-          deeepseekConversationsHistory().then(res => {
+          deeepseekConversationsHistory(JSON.parse(localStorage.getItem('User')).userId).then(res => {
             this.conversations = res.result
             if (this.conversationId === '') {
               this.conversationId = res.result.length > 0 ? res.result[0].id : ''
@@ -260,13 +260,19 @@ export default {
 
           if (existingMessage) {
             // 追加内容
-            existingMessage.content += data.choices[0].delta.content ? data.choices[0].delta.content : data.choices[0].delta.reasoning_content
+            if (data.choices[0].delta.content) {
+              existingMessage.content += data.choices[0].delta.content
+            }
+            if (data.choices[0].delta.reasoning_content) {
+              existingMessage.reasoningContent += data.choices[0].delta.reasoning_content
+            }
           } else {
             // 不存在则添加新的消息
             this.messages.push({
               id: data.id,
               role: data.choices[0].delta.role === 'user' ? 'user' : 'assistant',
-              content: data.choices[0].delta.content ? data.choices[0].delta.content : data.choices[0].delta.reasoning_content
+              content: data.choices[0].delta.reasoning_content,
+              reasoningContent: data.choices[0].delta.reasoning_content
             })
           }
         },
