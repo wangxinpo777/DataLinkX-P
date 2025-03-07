@@ -3,8 +3,13 @@ package com.datalinkx.dataserver.service.impl;
 import com.datalinkx.common.utils.JsonUtils;
 import com.datalinkx.copilot.client.request.ChatReq;
 import com.datalinkx.copilot.client.response.DeepSeekResponse;
+import com.datalinkx.dataserver.bean.domain.Conversation;
+import com.datalinkx.dataserver.bean.domain.Message;
 import com.datalinkx.dataserver.client.deepseek.DeepSeekClient;
+import com.datalinkx.dataserver.repository.ConversationRepository;
+import com.datalinkx.dataserver.repository.MessageRepository;
 import com.datalinkx.dataserver.service.DeepSeekService;
+import com.datalinkx.dataserver.utils.SecurityUtils;
 import com.datalinkx.sse.config.SseEmitterServer;
 import com.datalinkx.sse.config.oksse.RealEventSource;
 import lombok.extern.slf4j.Slf4j;
@@ -15,16 +20,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.sql.Timestamp;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -42,6 +47,12 @@ public class DeepSeekServiceImpl implements DeepSeekService {
     @Autowired
     private DeepSeekClient deepSeekClient;
 
+    @Autowired
+    private MessageRepository messageRepository;
+
+    @Autowired
+    private ConversationRepository conversationRepository;
+
     @Override
     public DeepSeekResponse chat(String model, List<ChatReq.Content> contents) {
         // 检查是否是第一次调用（即 contents 仅包含用户的第一条消息）
@@ -54,13 +65,27 @@ public class DeepSeekServiceImpl implements DeepSeekService {
         return deepSeekClient.chat(chatReq, "Bearer " + apiKey);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public SseEmitter streamChat(String model, String content) {
+    public SseEmitter streamChat(String model, String content, String conversationId) {
         ChatReq.Content chatContent = ChatReq.Content.builder()
                 .role("user")
                 .content(content)
                 .build();
+        if (StringUtils.isEmpty(conversationId)) {
+            conversationId = UUID.randomUUID().toString().replaceAll("-", "");
+            // 保存会话
+            saveConversation(Long.valueOf(SecurityUtils.getUserId()), conversationId, content.substring(0, Math.min(content.length(), 10)));
+        }
+
+        List<Message> historyMessages = getHistoryMessages(conversationId);
         List<ChatReq.Content> contents = new ArrayList<ChatReq.Content>() {{
+            addAll(historyMessages.stream()
+                    .map(message -> ChatReq.Content.builder()
+                            .role(message.getRole())
+                            .content(message.getContent())
+                            .build())
+                    .collect(Collectors.toList()));
             add(chatContent);
         }};
         // 检查是否是第一次调用（即 contents 仅包含用户的第一条消息）
@@ -77,7 +102,22 @@ public class DeepSeekServiceImpl implements DeepSeekService {
         RequestBody requestBody = RequestBody.create(mediaType, bodyString);
         okRequestBuilder.header("Authorization", "Bearer " + apiKey).header("Content-Type", "application/json").header("Accept", "application/json"); // 确保接收 JSON 格式的响应
         okRequestBuilder.post(requestBody);
-        return DeepSeekServiceImpl.transformRequest(okRequestBuilder.build(), UUID.randomUUID().toString().replaceAll("-", ""));
+        return transformRequest(okRequestBuilder.build(), UUID.randomUUID().toString().replaceAll("-", ""), conversationId, chatContent);
+    }
+
+    @Override
+    public List<Message> getHistoryMessages(String conversationId) {
+        return messageRepository.findByConversationId(conversationId)
+                .stream()
+                .sorted(Comparator.comparing(Message::getCreatedAt))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Conversation> getHistoryConversations(Long userId) {
+        return conversationRepository.findByUserId(userId).stream()
+                .sorted(Comparator.comparing(Conversation::getCreatedAt).reversed())
+                .collect(Collectors.toList());
     }
 
     private List<ChatReq.Content> getContents(List<ChatReq.Content> contents) {
@@ -98,20 +138,44 @@ public class DeepSeekServiceImpl implements DeepSeekService {
         return contents;
     }
 
-    public static SseEmitter transformRequest(Request request, String connectId) {
+    public void saveMessage(String conversationId, String role, String content,String reasoningContent) {
+        Message message = new Message();
+        message.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+        message.setConversationId(conversationId);
+        message.setRole(role);
+        message.setContent(content);
+        message.setReasoningContent(reasoningContent);
+        message.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        messageRepository.save(message);
+    }
+
+    public void saveConversation(Long userId, String conversationId, String title) {
+        Conversation conversation = new Conversation();
+        conversation.setTitle(title);
+        conversation.setId(conversationId);
+        conversation.setUserId(userId);
+        conversation.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        conversationRepository.save(conversation);
+    }
+
+    public SseEmitter transformRequest(Request request, String connectId, String conversationId, ChatReq.Content chatContent) {
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .connectTimeout(1, TimeUnit.DAYS)
                 .readTimeout(1, TimeUnit.DAYS) //这边需要将超时显示设置长一点，不然刚连上就断开，之前以为调用方式错误被坑了半天
                 .build();
 
         SseEmitter sseEmitter = SseEmitterServer.connect(connectId);
-
+        // 存放 AI 逐步推送的内容
+        StringBuilder aiResponse = new StringBuilder();
+        StringBuilder aiResponseTemp = new StringBuilder();
         // 实例化EventSource，注册EventSource监听器
         RealEventSource realEventSource = new RealEventSource(request, new EventSourceListener() {
             final CopyOnWriteArrayList<DeepSeekResponse> deepSeekResponses = new CopyOnWriteArrayList<>();
 
             @Override
             public void onOpen(EventSource eventSource, Response response) {
+                // 先保存用户输入
+                saveMessage(conversationId, chatContent.getRole(), chatContent.getContent(),"");
                 log.info("SSE open");
             }
 
@@ -124,7 +188,16 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                 for (String dataItem : dataList) {
                     if (dataItem.startsWith("{") && dataItem.endsWith("}")) {
                         DeepSeekResponse deepSeekResponse = JsonUtils.toObject(dataItem, DeepSeekResponse.class);
+                        String content = deepSeekResponse.getChoices().get(0).getDelta().getContent();
+                        String reasoningContent = deepSeekResponse.getChoices().get(0).getDelta().getReasoning_content();
+                        if (StringUtils.isNotEmpty(content)) {
+                            aiResponse.append(content);
+                        }
+                        if (StringUtils.isNotEmpty(reasoningContent)) {
+                            aiResponseTemp.append(reasoningContent);
+                        }
                         deepSeekResponses.add(deepSeekResponse);
+
                         try {
                             SseEmitter.SseEventBuilder event = SseEmitter.event()
                                     .data(deepSeekResponse)
@@ -142,11 +215,13 @@ public class DeepSeekServiceImpl implements DeepSeekService {
             @Override
             public void onClosed(EventSource eventSource) {
                 log.info("SSE close");
+                saveMessage(conversationId, "assistant", aiResponse.toString(),aiResponseTemp.toString());
                 sseEmitter.complete();
             }
 
             @Override
             public void onFailure(EventSource eventSource, Throwable t, Response response) {
+                saveMessage(conversationId, "assistant", aiResponse.toString(),aiResponseTemp.toString());
                 if (response != null) {
                     String msg;
                     try {

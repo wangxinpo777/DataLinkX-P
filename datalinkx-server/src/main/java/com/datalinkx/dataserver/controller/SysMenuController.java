@@ -9,7 +9,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 
@@ -56,6 +56,8 @@ public class SysMenuController {
     public WebResult<HashMap<String, Integer>> updateMenu(@RequestBody SysMenuBean menu) {
         SysMenuBean sysMenuBean = sysMenuRepository.findById(menu.getMenuId()).orElse(new SysMenuBean());
         BeanUtils.copyProperties(menu, sysMenuBean, getNullPropertyNames(menu));
+        sysMenuBean.setUpdateBy(SecurityUtils.getUsername());
+        sysMenuBean.setUpdateTime(new Timestamp(System.currentTimeMillis()));
         int count = menuService.updateMenu(sysMenuBean);
         HashMap<String, Integer> resultMap = new HashMap<>();
         resultMap.put("count", count);

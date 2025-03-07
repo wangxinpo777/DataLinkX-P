@@ -24,6 +24,7 @@ public class DeepSeekResponse {
     public static class Message {
         private String role;
         private String content;
+        private String reasoning_content;
     }
     @JsonIgnoreProperties(ignoreUnknown = true)
     @Data

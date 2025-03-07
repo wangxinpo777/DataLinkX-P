@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.*;
 
 import static com.datalinkx.dataserver.utils.SecurityUtils.*;
@@ -94,6 +95,7 @@ public class SysUserController {
 //        {
 //            return WebResult.fail(new DatalinkXServerException("修改用户'" + user.getUserName() + "'失败，手机号码已存在"));
 //        }
+        user.setUpdateTime(new Timestamp(System.currentTimeMillis()));
         user.setUpdateBy(getUserId());
         return WebResult.of(userService.updateUser(user));
     }
@@ -115,7 +117,7 @@ public class SysUserController {
             ImageBean imageBean = new ImageBean();
             imageBean.setName(fileName);
             imageBean.setData(fileData);
-            imageBean.setIsDel("0");
+            imageBean.setIsDel(0);
             Integer id = imageRepository.save(imageBean).getId();
             userService.updateUserAvatar(getUserId(), String.valueOf(id));
             HashMap<String, String> resultMap = new HashMap<>();

@@ -11,11 +11,13 @@ import com.datalinkx.dataserver.bean.model.AuthUserBody;
 import com.datalinkx.dataserver.repository.SysRoleRepository;
 import com.datalinkx.dataserver.service.ISysMenuService;
 import com.datalinkx.dataserver.service.ISysRoleService;
+import com.datalinkx.dataserver.utils.SecurityUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 
@@ -55,6 +57,8 @@ public class SysRoleController {
      */
     @PutMapping("/update")
     public WebResult<HashMap<String, Integer>> updateRole(@RequestBody SysRoleBean role) {
+        role.setUpdateBy(SecurityUtils.getUsername());
+        role.setUpdateTime(new Timestamp(System.currentTimeMillis()));
         int count = 0;
         if (role.getRoleId() != null) {
             SysRoleBean sysRoleBean = sysRoleRepository.findById(role.getRoleId()).orElse(new SysRoleBean());
@@ -75,6 +79,8 @@ public class SysRoleController {
      */
     @PostMapping("/insert")
     public WebResult<HashMap<String, Integer>> insertMenu(@RequestBody SysRoleBean role) {
+        role.setCreateBy(SecurityUtils.getUsername());
+        role.setCreateTime(new Timestamp(System.currentTimeMillis()));
         int count = roleService.insertRole(role);
         HashMap<String, Integer> resultMap = new HashMap<>();
         resultMap.put("count", count);

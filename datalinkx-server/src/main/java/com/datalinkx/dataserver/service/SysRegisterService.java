@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.Objects;
 
 import static com.datalinkx.dataserver.utils.RSAEncrypt.decrypt;
@@ -32,6 +33,8 @@ public class SysRegisterService {
     @Transactional(rollbackFor = Exception.class)
     public boolean register(RegisterBody user) throws Exception {
         SysUserBean sysUserBean = new SysUserBean();
+        sysUserBean.setCreateBy(user.getUsername());
+        sysUserBean.setCreateTime(new Timestamp(System.currentTimeMillis()));
         sysUserBean.setUserName(user.getUsername());
         sysUserBean.setNickName(user.getNickname());
         sysUserBean.setEmail(user.getEmail());

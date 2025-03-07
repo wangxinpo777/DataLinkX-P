@@ -33,6 +33,6 @@ public class ImageBean {
 
     @Size(max = 1)
     @Column(name = "is_del", length = 1)
-    private String isDel;
+    private Integer isDel;
 
 }
