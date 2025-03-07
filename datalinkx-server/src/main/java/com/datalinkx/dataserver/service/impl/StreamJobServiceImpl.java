@@ -6,7 +6,6 @@ import static com.datalinkx.common.utils.JsonUtils.toJson;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,7 +30,6 @@ import com.datalinkx.dataserver.repository.JobRepository;
 import com.datalinkx.dataserver.service.DtsJobService;
 import com.datalinkx.dataserver.service.StreamJobService;
 import com.datalinkx.driver.model.DataTransJobDetail;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;

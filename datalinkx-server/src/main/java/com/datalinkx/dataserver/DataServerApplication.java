@@ -12,17 +12,16 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 
-
 @SpringBootApplication
 @EnableJpaAuditing
 @EnableAsync
 @EnableScheduling
-@EnableJpaRepositories(basePackages = {"com.datalinkx.dataserver.*","com.datalinkx.deepseek.*"})
-@EntityScan(basePackages = {"com.datalinkx.dataserver.*","com.datalinkx.deepseek.*"})
+@EnableJpaRepositories(basePackages = {"com.datalinkx.dataserver.*", "com.datalinkx.deepseek.*", "com.datalinkx.security.*"})
+@EntityScan(basePackages = {"com.datalinkx.dataserver.*", "com.datalinkx.deepseek.*", "com.datalinkx.security.*"})
 @ComponentScan(
         basePackages = {"com.datalinkx.*.**"},
         excludeFilters = {
-                @ComponentScan.Filter(type = FilterType.CUSTOM, classes = { SpringBeanFilter.class })
+                @ComponentScan.Filter(type = FilterType.CUSTOM, classes = {SpringBeanFilter.class})
         }
 )
 public class DataServerApplication {
