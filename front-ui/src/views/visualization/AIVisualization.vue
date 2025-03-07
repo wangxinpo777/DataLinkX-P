@@ -271,8 +271,8 @@ export default {
             this.messages.push({
               id: data.id,
               role: data.choices[0].delta.role === 'user' ? 'user' : 'assistant',
-              content: data.choices[0].delta.reasoning_content,
-              reasoningContent: data.choices[0].delta.reasoning_content
+              content: data.choices[0].delta.content ? data.choices[0].delta.content : '',
+              reasoningContent: data.choices[0].delta.reasoning_content ? data.choices[0].delta.reasoning_content : ''
             })
           }
         },
