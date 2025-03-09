@@ -1,8 +1,8 @@
 package com.datalinkx.deepseek.service;
 
 
-import com.datalinkx.deepseek.bean.Conversation;
-import com.datalinkx.deepseek.bean.Message;
+import com.datalinkx.deepseek.bean.ConversationBean;
+import com.datalinkx.deepseek.bean.MessageBean;
 import com.datalinkx.deepseek.client.request.ChatReq;
 import com.datalinkx.deepseek.client.response.DeepSeekResponse;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -14,7 +14,7 @@ public interface DeepSeekService {
 
     SseEmitter streamChat(String model, String content, String conversationId, Long userId);
 
-    List<Message> getHistoryMessages(String conversationId);
+    List<MessageBean> getHistoryMessages(String conversationId);
 
-    List<Conversation> getHistoryConversations(Long userId);
+    List<ConversationBean> getHistoryConversations(Long userId);
 }

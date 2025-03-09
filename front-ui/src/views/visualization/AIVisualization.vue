@@ -6,17 +6,52 @@
           <template v-for="item in conversations">
             <a-menu-item
               :key="item.id"
+              :class="{ 'edit': editConversationId === item.id && editConversationVisible }"
               @click="flushMessages(item.id)"
               style="position: relative;"
-              @mouseenter="hoveredItem = item.id"
-              @mouseleave="hoveredItem = null">
+              @mouseenter="handleMouseEnter(item.id)"
+              @mouseleave="handleMouseLeave()">
+              <a-input
+                ref="editInput"
+                v-if="editConversationId === item.id && editConversationVisible"
+                v-model="item.title"
+                @blur="updateConversation(item.id,item.title)"
+                style="width:100%;"
+              />
               <a-tooltip
+                v-else
                 :title="item.title"
                 :mouseEnterDelay="0.5"
                 placement="right">
                 {{ item.title }}
               </a-tooltip>
-              <a-icon v-if="hoveredItem === item.id" type="delete" style="position: absolute; right: 0; top: 12px;" />
+              <a-dropdown
+                :trigger="['click']"
+                @visibleChange="visible => toggleDropdown = visible"
+                style="position: absolute; right: 0; top: 15px;"
+                v-if="hoveredItem === item.id && !editConversationVisible">
+                <a-icon type="dash" />
+                <a-menu slot="overlay">
+                  <a-menu-item>
+                    <div @click="deleteConversation(item.id)">
+                      <a-icon
+                        type="delete"
+                        style="margin-right: 8px;"
+                      />
+                      <span>删除</span>
+                    </div>
+                  </a-menu-item>
+                  <a-menu-item>
+                    <div @click="editConversation(item.id)">
+                      <a-icon
+                        type="edit"
+                        style="margin-right: 8px;"
+                      />
+                      <span>重命名</span>
+                    </div>
+                  </a-menu-item>
+                </a-menu>
+              </a-dropdown>
             </a-menu-item>
           </template>
         </a-menu>
@@ -103,7 +138,9 @@ import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import {
   deeepseekConversationsHistory,
-  deeepseekMessagesHistory
+  deeepseekDeleteConversation,
+  deeepseekMessagesHistory,
+  deeepseekUpdateConversation
 } from '@/api/deepseek/api'
 
 export default {
@@ -135,6 +172,8 @@ export default {
       hoveredItem: null,
       conversations: [],
       conversationId: '',
+      editConversationId: '',
+      tempTitle: '',
       messages: [],
       message: {
         id: 0,
@@ -143,7 +182,9 @@ export default {
       },
       loading: false,
       eventSource: null,
-      model: 'deepseek-chat'
+      model: 'deepseek-chat',
+      toggleDropdown: false,
+      editConversationVisible: false
     }
   },
   computed: {
@@ -162,6 +203,75 @@ export default {
     this.initDeepSeek()
   },
   methods: {
+    deleteConversation (conversationId) {
+      this.$confirm({
+        title: '删除会话',
+        content: '确定要删除该会话吗？',
+        okText: '确定',
+        okType: 'danger',
+        cancelText: '取消',
+        onOk: () => {
+          this.toggleDropdown = false
+          deeepseekDeleteConversation(conversationId).then((res) => {
+            this.initDeepSeek()
+            if (res.status === '0') {
+              this.$message.success('删除成功')
+            } else {
+              this.$message.error('删除失败')
+            }
+          }).catch(() => {
+            this.$message.error('删除失败')
+          })
+        },
+        onCancel: () => {
+          this.toggleDropdown = false
+        }
+      })
+    },
+    updateConversation (id, title) {
+      if (!title) {
+        this.$message.error('会话名称不能为空')
+        this.conversations.find(item => item.id === id).title = this.tempTitle
+        this.editConversationVisible = false
+        this.editConversationId = ''
+        return
+      }
+      if (title.length > 10) {
+        this.$message.error('会话名称不能超过10个字符')
+        this.conversations.find(item => item.id === id).title = this.tempTitle
+        this.editConversationVisible = false
+        this.editConversationId = ''
+        return
+      }
+      if (title === this.conversations.find(item => item.id === id).title) {
+        this.editConversationVisible = false
+        this.editConversationId = ''
+        return
+      }
+      deeepseekUpdateConversation(id, title).then((res) => {
+        if (res.status === '0') {
+          this.$message.success('修改成功')
+        } else {
+          this.$message.error('修改失败')
+        }
+        this.editConversationVisible = false
+        this.editConversationId = ''
+        this.initDeepSeek()
+      }).catch(() => {
+        this.$message.error('修改失败')
+        this.editConversationVisible = false
+        this.editConversationId = ''
+      })
+    },
+    editConversation (id) {
+      this.editConversationId = id
+      this.editConversationVisible = true
+      this.toggleDropdown = false
+      this.tempTitle = this.conversations.find(item => item.id === id).title
+      this.$nextTick(() => {
+        this.$refs.editInput[0].focus()
+      })
+    },
     scrollToBottom () {
       this.$nextTick(() => {
         const container = this.$refs.messageContainer
@@ -185,7 +295,7 @@ export default {
       })
     },
     flushMessages (conversationId) {
-      if (conversationId !== this.conversationId) {
+      if (conversationId !== this.conversationId && !this.toggleDropdown && !this.editConversationVisible) {
         this.conversationId = conversationId
         this.deeepseekMessagesHistory()
       }
@@ -289,6 +399,16 @@ export default {
         console.log('SSE 连接已关闭')
         this.loading = false
       })
+    },
+    handleMouseLeave () {
+      if (!this.toggleDropdown) {
+        this.hoveredItem = null
+      }
+    },
+    handleMouseEnter (id) {
+      if (!this.toggleDropdown) {
+        this.hoveredItem = id
+      }
     }
   }
 }
@@ -300,6 +420,14 @@ export default {
 .main {
   padding: 24px 24px 16px 24px;
   height: 100%;
+
+  .edit {
+    padding: 0 8px;
+
+    .ant-input {
+      padding: 0 8px;
+    }
+  }
 }
 
 .chat-container {

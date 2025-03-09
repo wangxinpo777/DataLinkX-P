@@ -58,16 +58,11 @@ public class SysRoleController {
     public WebResult<HashMap<String, Integer>> updateRole(@RequestBody SysRoleBean role) {
         role.setUpdateBy(SecurityUtils.getUsername());
         role.setUpdateTime(new Timestamp(System.currentTimeMillis()));
-        int count = 0;
-        if (role.getRoleId() != null) {
-            SysRoleBean sysRoleBean = sysRoleRepository.findById(role.getRoleId()).orElse(new SysRoleBean());
-            BeanUtils.copyProperties(role, sysRoleBean, ObjectUtils.getNullPropertyNames(role));
-            count = roleService.updateRole(sysRoleBean);
-        } else {
-            count = roleService.insertRole(role);
-        }
         HashMap<String, Integer> resultMap = new HashMap<>();
-        resultMap.put("count", count);
+        sysRoleRepository.findById(role.getRoleId()).ifPresent(sysRoleBean -> {
+            BeanUtils.copyProperties(role, sysRoleBean, ObjectUtils.getNullPropertyNames(role));
+            resultMap.put("count", roleService.updateRole(sysRoleBean));
+        });
         return WebResult.of(resultMap);
     }
 
@@ -132,7 +127,6 @@ public class SysRoleController {
     /**
      * 查询角色菜单列表
      *
-     *
      * @param roleId
      */
     @GetMapping("/authMenuList")
@@ -145,6 +139,7 @@ public class SysRoleController {
 
     /**
      * 批量授权角色菜单
+     *
      * @param roleId
      * @param menuIds
      */

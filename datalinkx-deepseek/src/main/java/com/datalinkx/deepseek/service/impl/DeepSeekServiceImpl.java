@@ -1,8 +1,8 @@
 package com.datalinkx.deepseek.service.impl;
 
 import com.datalinkx.common.utils.JsonUtils;
-import com.datalinkx.deepseek.bean.Conversation;
-import com.datalinkx.deepseek.bean.Message;
+import com.datalinkx.deepseek.bean.ConversationBean;
+import com.datalinkx.deepseek.bean.MessageBean;
 import com.datalinkx.deepseek.client.DeepSeekClient;
 import com.datalinkx.deepseek.client.request.ChatReq;
 import com.datalinkx.deepseek.client.response.DeepSeekResponse;
@@ -77,12 +77,12 @@ public class DeepSeekServiceImpl implements DeepSeekService {
             saveConversation(userId, conversationId, content.substring(0, Math.min(content.length(), 10)));
         }
 
-        List<Message> historyMessages = getHistoryMessages(conversationId);
+        List<MessageBean> historyMessageBeans = getHistoryMessages(conversationId);
         List<ChatReq.Content> contents = new ArrayList<ChatReq.Content>() {{
-            addAll(historyMessages.stream()
-                    .map(message -> ChatReq.Content.builder()
-                            .role(message.getRole())
-                            .content(message.getContent())
+            addAll(historyMessageBeans.stream()
+                    .map(messageBean -> ChatReq.Content.builder()
+                            .role(messageBean.getRole())
+                            .content(messageBean.getContent())
                             .build())
                     .collect(Collectors.toList()));
             add(chatContent);
@@ -105,17 +105,17 @@ public class DeepSeekServiceImpl implements DeepSeekService {
     }
 
     @Override
-    public List<Message> getHistoryMessages(String conversationId) {
+    public List<MessageBean> getHistoryMessages(String conversationId) {
         return messageRepository.findByConversationId(conversationId)
                 .stream()
-                .sorted(Comparator.comparing(Message::getCreatedAt))
+                .sorted(Comparator.comparing(MessageBean::getCreatedAt))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<Conversation> getHistoryConversations(Long userId) {
+    public List<ConversationBean> getHistoryConversations(Long userId) {
         return conversationRepository.findByUserId(userId).stream()
-                .sorted(Comparator.comparing(Conversation::getCreatedAt).reversed())
+                .sorted(Comparator.comparing(ConversationBean::getCreatedAt).reversed())
                 .collect(Collectors.toList());
     }
 
@@ -138,23 +138,23 @@ public class DeepSeekServiceImpl implements DeepSeekService {
     }
 
     public void saveMessage(String conversationId, String role, String content, String reasoningContent) {
-        Message message = new Message();
-        message.setId(UUID.randomUUID().toString().replaceAll("-", ""));
-        message.setConversationId(conversationId);
-        message.setRole(role);
-        message.setContent(content);
-        message.setReasoningContent(reasoningContent);
-        message.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-        messageRepository.save(message);
+        MessageBean messageBean = new MessageBean();
+        messageBean.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+        messageBean.setConversationId(conversationId);
+        messageBean.setRole(role);
+        messageBean.setContent(content);
+        messageBean.setReasoningContent(reasoningContent);
+        messageBean.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        messageRepository.save(messageBean);
     }
 
     public void saveConversation(Long userId, String conversationId, String title) {
-        Conversation conversation = new Conversation();
-        conversation.setTitle(title);
-        conversation.setId(conversationId);
-        conversation.setUserId(userId);
-        conversation.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-        conversationRepository.save(conversation);
+        ConversationBean conversationBean = new ConversationBean();
+        conversationBean.setTitle(title);
+        conversationBean.setId(conversationId);
+        conversationBean.setUserId(userId);
+        conversationBean.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        conversationRepository.save(conversationBean);
     }
 
     public SseEmitter transformRequest(Request request, String connectId, String conversationId, ChatReq.Content chatContent) {

@@ -7,6 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.SQLDelete;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,7 +24,8 @@ import java.sql.Timestamp;
 @DynamicInsert
 @AllArgsConstructor
 @NoArgsConstructor
-public class Conversation {
+@SQLDelete(sql = "update conversation set is_del = 1 where id = ?")
+public class ConversationBean {
     @Id
     private String id;
 

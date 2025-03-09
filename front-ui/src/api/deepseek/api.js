@@ -23,10 +23,31 @@ export function deeepseekMessagesHistory (conversationId) {
 
 export function deeepseekConversationsHistory (userId) {
   return request({
-    url: '/api/deepseek/conversions/history',
+    url: '/api/deepseek/conversations/history',
     method: 'GET',
     params: {
       userId: userId
+    }
+  })
+}
+
+export function deeepseekDeleteConversation (conversationId) {
+  return request({
+    url: '/api/deepseek/conversations/delete',
+    method: 'DELETE',
+    params: {
+      conversationId: conversationId
+    }
+  })
+}
+
+export function deeepseekUpdateConversation (conversationId, conversationName) {
+  return request({
+    url: '/api/deepseek/conversations/update',
+    method: 'PUT',
+    data: {
+      id: conversationId,
+      title: conversationName
     }
   })
 }

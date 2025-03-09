@@ -23,7 +23,7 @@ import java.sql.Timestamp;
 @DynamicInsert
 @AllArgsConstructor
 @NoArgsConstructor
-public class Message {
+public class MessageBean {
     @Id
     private String id;
     @Column(name = "conversation_id")

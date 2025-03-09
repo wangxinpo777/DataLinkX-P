@@ -53,13 +53,13 @@ public class SysMenuController {
      */
     @PutMapping("/update")
     public WebResult<HashMap<String, Integer>> updateMenu(@RequestBody SysMenuBean menu) {
-        SysMenuBean sysMenuBean = sysMenuRepository.findById(menu.getMenuId()).orElse(new SysMenuBean());
-        BeanUtils.copyProperties(menu, sysMenuBean, ObjectUtils.getNullPropertyNames(menu));
-        sysMenuBean.setUpdateBy(SecurityUtils.getUsername());
-        sysMenuBean.setUpdateTime(new Timestamp(System.currentTimeMillis()));
-        int count = menuService.updateMenu(sysMenuBean);
         HashMap<String, Integer> resultMap = new HashMap<>();
-        resultMap.put("count", count);
+        sysMenuRepository.findById(menu.getMenuId()).ifPresent(sysMenuBean -> {
+            BeanUtils.copyProperties(menu, sysMenuBean, ObjectUtils.getNullPropertyNames(menu));
+            sysMenuBean.setUpdateBy(SecurityUtils.getUsername());
+            sysMenuBean.setUpdateTime(new Timestamp(System.currentTimeMillis()));
+            resultMap.put("count", menuService.updateMenu(sysMenuBean));
+        });
         return WebResult.of(resultMap);
     }
 
