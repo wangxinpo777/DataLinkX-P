@@ -243,7 +243,7 @@ export default {
         this.editConversationId = ''
         return
       }
-      if (title === this.conversations.find(item => item.id === id).title) {
+      if (title === this.tempTitle) {
         this.editConversationVisible = false
         this.editConversationId = ''
         return
