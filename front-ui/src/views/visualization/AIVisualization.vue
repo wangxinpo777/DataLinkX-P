@@ -353,22 +353,29 @@ export default {
 
       this.loading = true
       const token = localStorage.getItem('Access-Token').replace(/"/g, '')
-      const url = `/api/api/deepseek/stream/chat?model=${this.model}&content=${encodeURIComponent(this.userInput)}&userId=${JSON.parse(localStorage.getItem('User')).userId}&conversationId=${this.conversationId}`
+      const url = `/api/api/deepseek/stream/chat?model=${this.model}`
       this.messages.push({
         id: this.messages.length + 1,
         role: 'user',
         content: this.userInput
       })
+      const content = this.userInput
       this.userInput = '' // 清空输入框
       this.scrollToBottom()
 
       fetchEventSource(url, {
-        method: 'GET',
+        method: 'POST',
         openWhenHidden: true,
         headers: {
           'ACCESS-TOKEN': token,
-          'Accept': 'text/event-stream'
+          'Accept': 'text/event-stream',
+          'Content-Type': 'application/json' // 必须指定 JSON 类型
         },
+        body: JSON.stringify({
+          content: content,
+          userId: JSON.parse(localStorage.getItem('User')).userId,
+          conversationId: this.conversationId
+        }),
         onopen: () => {
           deeepseekConversationsHistory(JSON.parse(localStorage.getItem('User')).userId).then(res => {
             this.conversations = res.result

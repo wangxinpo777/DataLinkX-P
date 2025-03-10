@@ -52,18 +52,6 @@ public class DeepSeekServiceImpl implements DeepSeekService {
     @Autowired
     private ConversationRepository conversationRepository;
 
-    @Override
-    public DeepSeekResponse chat(String model, List<ChatReq.Content> contents) {
-        // 检查是否是第一次调用（即 contents 仅包含用户的第一条消息）
-        contents = getContents(contents);
-        ChatReq chatReq = ChatReq.builder()
-                .messages(contents)
-                .stream(false)
-                .model(StringUtils.isNotEmpty(model) ? model : this.model)
-                .build();
-        return deepSeekClient.chat(chatReq, "Bearer " + apiKey);
-    }
-
     @Transactional(rollbackFor = Exception.class)
     @Override
     public SseEmitter streamChat(String model, String content, String conversationId, Long userId) {

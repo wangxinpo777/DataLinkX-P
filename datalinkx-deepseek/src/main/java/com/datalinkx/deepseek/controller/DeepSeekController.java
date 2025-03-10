@@ -4,8 +4,7 @@ import com.datalinkx.common.result.WebResult;
 import com.datalinkx.common.utils.ObjectUtils;
 import com.datalinkx.deepseek.bean.ConversationBean;
 import com.datalinkx.deepseek.bean.MessageBean;
-import com.datalinkx.deepseek.client.request.ChatReq;
-import com.datalinkx.deepseek.client.response.DeepSeekResponse;
+import com.datalinkx.deepseek.model.EventRequest;
 import com.datalinkx.deepseek.repository.ConversationRepository;
 import com.datalinkx.deepseek.service.DeepSeekService;
 import io.swagger.annotations.Api;
@@ -27,15 +26,9 @@ public class DeepSeekController {
     @Autowired
     private ConversationRepository conversationRepository;
 
-    @PostMapping("/chat")
-    public WebResult<DeepSeekResponse> chat(@RequestParam String model, @RequestBody List<ChatReq.Content> contents) {
-        return WebResult.of(deepSeekService.chat(model, contents));
-    }
-
-    @GetMapping("/stream/chat")
-    public SseEmitter streamChat(@RequestParam String model, @RequestParam String content, @RequestParam(required = false) String conversationId, @RequestParam Long userId) {
-        log.info("stream chat");
-        return deepSeekService.streamChat(model, content, conversationId, userId);
+    @PostMapping("/stream/chat")
+    public SseEmitter streamChat(@RequestParam String model, @RequestBody EventRequest eventRequest) {
+        return deepSeekService.streamChat(model, eventRequest.getContent(), eventRequest.getConversationId(), eventRequest.getUserId());
     }
 
     @GetMapping("/messages/history")
