@@ -23,6 +23,7 @@ import systemManagement from '@/assets/icons/system-management.svg?inline'
 import menuManagement from '@/assets/icons/menu-management.svg?inline'
 import roleManagement from '@/assets/icons/role-management.svg?inline'
 import visualAnalysis from '@/assets/icons/visual-analysis.svg?inline'
+import deepSeek from '@/assets/icons/deepseek.svg?inline'
 
 export {
   bxAnaalyse,
@@ -40,7 +41,8 @@ export {
   logo,
   systemManagement,
   menuManagement,
-  visualAnalysis
+  visualAnalysis,
+  deepSeek
 }
 
 export const icons = {

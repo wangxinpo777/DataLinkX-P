@@ -31,8 +31,7 @@ public class ImageBean {
     @Column(name = "data")
     private byte[] data;
 
-    @Size(max = 1)
-    @Column(name = "is_del", length = 1)
+    @Column(name = "is_del")
     private Integer isDel;
 
 }

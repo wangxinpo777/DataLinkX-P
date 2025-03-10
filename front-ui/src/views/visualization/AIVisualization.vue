@@ -64,7 +64,7 @@
       <div class="chat">
         <div class="chat-box" ref="messageContainer">
           <div class="message">
-            <a-avatar class="avatar" src="https://i.pravatar.cc/40?img=2" />
+            <a-icon class="avatar" :component="deepSeek" />
             <div class="message-content">
               <div class="bubble mdTextBox">
                 <p>你好，我是 AI 机器人，有什么可以帮助你的吗？</p>
@@ -72,27 +72,34 @@
             </div>
           </div>
           <div v-for="message in messages" :key="message.id" :class="['message', message.role]">
-            <a-avatar v-if="message.role === 'user'" class="avatar" src="https://i.pravatar.cc/40?img=1" />
-            <a-avatar v-else class="avatar" src="https://i.pravatar.cc/40?img=2" />
-            <div class="message-content">
-              <div
-                class="bubble2"
-                v-if="message.role === 'assistant' && message.reasoningContent"
-                v-html="renderMdTextReasoning(message)"
-              >
+            <template v-if="message.role === 'user'">
+              <div class="message-content">
+                <!-- 渲染Markdown内容 -->
+                <div class="bubble1" v-html="renderMdText(message)"></div>
               </div>
-              <!-- 渲染Markdown内容 -->
-              <div class="bubble1" v-html="renderMdText(message)"></div>
-              <!-- 复制按钮 -->
-              <a-button
-                class="copyBtn"
-                v-if="message.role === 'assistant'"
-                type="link"
-                size="small"
-                @click="copyText(message.id)"
-                icon="copy"
-              />
-            </div>
+              <img v-if="message.role === 'user'" class="userAvatar" :src="avatar"/>
+            </template>
+            <template v-else>
+              <a-icon class="avatar" :component="deepSeek" />
+              <div class="message-content">
+                <div
+                  class="bubble2"
+                  v-if="message.reasoningContent"
+                  v-html="renderMdTextReasoning(message)"
+                >
+                </div>
+                <!-- 渲染Markdown内容 -->
+                <div class="bubble1" v-html="renderMdText(message)"></div>
+                <!-- 复制按钮 -->
+                <a-button
+                  class="copyBtn"
+                  type="link"
+                  size="small"
+                  @click="copyText(message.id)"
+                  icon="copy"
+                />
+              </div>
+            </template>
           </div>
         </div>
         <div class="operation">
@@ -142,6 +149,9 @@ import {
   deeepseekMessagesHistory,
   deeepseekUpdateConversation
 } from '@/api/deepseek/api'
+import storage from 'store'
+import { AVATAR } from '@/store/mutation-types'
+import { deepSeek } from '@/core/icons'
 
 export default {
   name: 'AIVisualization',
@@ -188,6 +198,12 @@ export default {
     }
   },
   computed: {
+    avatar () {
+      return storage.get(AVATAR)
+    },
+    deepSeek () {
+      return deepSeek
+    },
     renderMdText () {
       return (message) => {
         return this.markdownRender.render(message.content)
@@ -485,12 +501,18 @@ export default {
   align-items: center;
   margin-bottom: 8px;
   width: 100%;
-}
+  .avatar {
+    width: 30px;
+    height: 30px;
+    margin-right: 8px;
+    font-size: 40px;
+  }
+  .userAvatar {
+    width: 30px;
+    height: 30px;
+    margin-left: 8px;
+  }
 
-.message .avatar {
-  width: 30px;
-  height: 30px;
-  margin-right: 8px;
 }
 
 ::v-deep ul, ol {
