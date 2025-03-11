@@ -150,6 +150,7 @@
 <script>
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import MarkdownIt from 'markdown-it'
+import markdownItCodeCopy from 'markdown-it-code-copy'
 import hljs from 'highlight.js'
 import {
   deeepseekConversationsHistory,
@@ -173,19 +174,29 @@ export default {
         highlight: (str, lang) => {
           if (lang && hljs.getLanguage(lang)) {
             try {
-              return hljs.highlight(lang, str).value // 旧语法
+              if (lang === 'html') {
+                 return `<div class="code-wrapper"><pre class="hljs"><code>${hljs.highlight(lang, str, true).value}</code></pre>
+<button class="run-btn" onclick="runCode(this, '${lang}')">在 HTML 打开</button></div>`
+              } else return `<div class="code-wrapper"><pre class="hljs"><code>${hljs.highlight(lang, str, true).value}</code></pre></div>`
             } catch (err) {
               console.error('代码高亮失败:', err) // 可选：打印错误
             }
           }
-
           // 兜底方案：自动检测语言
           try {
-            return hljs.highlightAuto(str).value
+            return `${hljs.highlight(lang, str, true).value}</div>`
           } catch (err) {
-            return hljs.highlight('plaintext', str).value // 纯文本兜底
+            return `${hljs.highlight(lang, str, true).value}</div>`
           }
         }
+      }).use(markdownItCodeCopy, {
+        iconStyle: 'font-size: 18px; opacity: 0.6;',
+        iconClass: 'mdi mdi-content-copy', // 复制图标（默认 Material Design Icons）
+        buttonStyle: 'position: absolute; top: 10px; right: 10px; cursor: pointer; background: none; border: none;',
+        buttonClass: 'copy-btn',
+        element: '<span>📋</span>', // 可自定义按钮
+        onSuccess: (e) => this.$message.success('复制成功！'),
+        onError: (e) => this.$message.error('复制失败！')
       }),
       userInput: '',
       hoveredItem: null,
@@ -225,12 +236,8 @@ export default {
     }
   },
   mounted () {
+    window.runCode = runCode
     this.initDeepSeek()
-    setTimeout(() => {
-      document.querySelectorAll('table').forEach(table => {
-        table.classList.add('table-striped', 'table')
-      })
-    }, 1000)
   },
   methods: {
     beforeUpload (file) {
@@ -501,10 +508,16 @@ export default {
     }
   }
 }
+const runCode = function (el, lang) {
+  const html = el.previousElementSibling.textContent.trim()
+  const blob = new Blob([html], { type: 'text/html' })
+  const url = URL.createObjectURL(blob)
+  window.open(url, '_blank')
+}
 </script>
 
 <style scoped lang="less">
-@import '~highlight.js/styles/github.css';
+@import '~highlight.js/styles/vs.css';
 
 .main {
   padding: 24px 24px 16px 24px;
@@ -595,6 +608,29 @@ export default {
 
 }
 
+::v-deep .copy-btn {
+  top: 5px !important;
+  right: 5px !important;
+  &:hover {
+    opacity: 0.8 ;
+  }
+}
+
+::v-deep .run-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 5px 10px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  &:hover {
+    background: #0056b3;
+  }
+}
+
 ::v-deep ul, ol {
   list-style: initial !important;
 }
@@ -679,5 +715,30 @@ export default {
   padding: 10px;
   margin-bottom: 10px;
   background-color: white;
+}
+::v-deep table {
+  width: 100%;
+}
+
+::v-deep th, td {
+  border: 1px solid #ddd; /* 添加边框 */
+  padding: 10px !important;
+}
+
+::v-deep th {
+  background-color: #f2f2f2; /* 表头背景颜色 */
+}
+
+/* 条纹效果 - 奇数行和偶数行交替背景色 */
+::v-deep tr:nth-child(odd) {
+  background-color: #f9f9f9; /* 奇数行背景颜色 */
+}
+
+::v-deep tr:nth-child(even) {
+  background-color: #f2f2f2; /* 偶数行背景颜色 */
+}
+
+::v-deep tr:hover {
+  background-color: #e9e9e9; /* 鼠标悬停时背景颜色 */
 }
 </style>
