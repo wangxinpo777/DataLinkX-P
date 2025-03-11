@@ -2,37 +2,36 @@
   <a-config-provider :locale="locale">
     <div id="app">
       <router-view v-if="ifRouterAlive" />
-      <div class="chat-container">
-        <beautiful-chat
-          :participants="participants"
-          :titleImageUrl="titleImageUrl"
-          :onMessageWasSent="onMessageWasSent"
-          :messageList="messageList"
-          :newMessagesCount="newMessagesCount"
-          :isOpen="isChatOpen"
-          :close="closeChat"
-          :open="openChat"
-          :showEmoji="true"
-          :showFile="true"
-          :showEdition="true"
-          :showDeletion="true"
-          :showTypingIndicator="showTypingIndicator"
-          :showLauncher="true"
-          :showCloseButton="true"
-          :colors="colors"
-          :alwaysScrollToBottocom="alwaysScrollToBottom"
-          :disableUserListToggle="false"
-          :messageStyling="messageStyling"
-          @onType="handleOnType"
-          @edit="editMessage" />
-      </div>
+      <!--      <div class="chat-container">-->
+      <!--        <beautiful-chat-->
+      <!--          :participants="participants"-->
+      <!--          :titleImageUrl="titleImageUrl"-->
+      <!--          :onMessageWasSent="onMessageWasSent"-->
+      <!--          :messageList="messageList"-->
+      <!--          :newMessagesCount="newMessagesCount"-->
+      <!--          :isOpen="isChatOpen"-->
+      <!--          :close="closeChat"-->
+      <!--          :open="openChat"-->
+      <!--          :showEmoji="true"-->
+      <!--          :showFile="true"-->
+      <!--          :showEdition="true"-->
+      <!--          :showDeletion="true"-->
+      <!--          :showTypingIndicator="showTypingIndicator"-->
+      <!--          :showLauncher="true"-->
+      <!--          :showCloseButton="true"-->
+      <!--          :colors="colors"-->
+      <!--          :alwaysScrollToBottocom="alwaysScrollToBottom"-->
+      <!--          :disableUserListToggle="false"-->
+      <!--          :messageStyling="messageStyling"-->
+      <!--          @onType="handleOnType"-->
+      <!--          @edit="editMessage" />-->
+      <!--      </div>-->
     </div>
   </a-config-provider>
 </template>
 
 <script>
 import { domTitle, setDocumentTitle } from '@/utils/domUtil'
-import { copilotChat } from '@/api/system/copilot'
 import { i18nRender } from '@/locales'
 import EVA from '@/assets/eva.png'
 import TitleImg from '@/assets/titleImg.png'

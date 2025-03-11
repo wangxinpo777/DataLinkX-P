@@ -103,27 +103,35 @@
           </div>
         </div>
         <div class="operation">
-          <a-select
-            v-model="model"
-            style="position: absolute; right: 10px;z-index: 1; top: 5px;"
-            placeholder="选择模型"
-            :dropdownStyle="{ bottom: '100%', top: 'auto' }"
-          >
-            <a-select-option value="deepseek-chat">DeepSeek V3</a-select-option>
-            <a-select-option value="deepseek-reasoner">DeepSeek R1</a-select-option>
-          </a-select>
+          <a-icon class="clearIcon" v-if="userInput" type="close" @click="userInput=''"/>
           <a-textarea
             v-model="userInput"
             class="input-text"
             placeholder="询问任何问题"
-            @pressEnter.prevent="sendMessage"
+            @pressEnter="e => sendMessage(e)"
           >
           </a-textarea>
           <div class="buttons" style="position: relative;">
-            <a-button
-              shape="circle"
-              setsize="small"
-              icon="plus" />
+            <!--excel或者csv-->
+            <a-upload
+              :showUploadList="false"
+              :accept="'.csv,.xls,.xlsx'"
+              :beforeUpload="beforeUpload"
+            >
+              <a-button
+                shape="circle"
+                setsize="small"
+                icon="file-excel" />
+            </a-upload>
+            <a-select
+              v-model="model"
+              placeholder="选择模型"
+              :dropdownStyle="{ bottom: '100%', top: 'auto' }"
+              style="margin-left: 8px"
+            >
+              <a-select-option value="deepseek-chat">DeepSeek V3</a-select-option>
+              <a-select-option value="deepseek-reasoner">DeepSeek R1</a-select-option>
+            </a-select>
             <a-button
               shape="circle"
               setsize="small"
@@ -152,6 +160,7 @@ import {
 import storage from 'store'
 import { AVATAR } from '@/store/mutation-types'
 import { deepSeek } from '@/core/icons'
+import * as XLSX from 'xlsx'
 
 export default {
   name: 'AIVisualization',
@@ -219,6 +228,49 @@ export default {
     this.initDeepSeek()
   },
   methods: {
+    beforeUpload (file) {
+      const fileType = file.type
+      if (fileType === 'application/vnd.ms-excel' || fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+        this.analyzeExcelFile(file)
+      } else if (fileType === 'text/csv') {
+        this.analyzeCsvFile(file)
+      } else {
+        this.$message.error('请上传Excel或者CSV文件')
+      }
+      return false
+    },
+    // 处理上传是Excel文件
+    analyzeExcelFile (file) {
+      const fileReader = new FileReader()
+      fileReader.readAsBinaryString(file)
+      fileReader.onload = (ev) => {
+        try {
+          const workbook = XLSX.read(ev.target.result, {
+            type: 'binary'
+          })
+          const workSheets = workbook.Sheets[workbook.SheetNames[0]]
+          this.userInput = XLSX.utils.sheet_to_json(workSheets, { header: 1 })
+        } catch (e) {
+          console.log(e)
+        }
+      }
+    },
+    // 处理是csv格式
+    analyzeCsvFile (file) {
+      const fileReader = new FileReader()
+      fileReader.readAsText(file)
+      fileReader.onload = (ev) => {
+        try {
+          // 处理解析之后的csv格式
+          const result = ev.target.result.split('\n')
+          this.userInput = result.map((item) => {
+            return item.split(',')
+          })
+        } catch (e) {
+          console.log(e)
+        }
+      }
+    },
     deleteConversation (conversationId) {
       this.$confirm({
         title: '删除会话',
@@ -343,9 +395,13 @@ export default {
       document.body.removeChild(textArea)
       this.$message.success('消息已复制到剪贴板')
     },
-    sendMessage () {
+    sendMessage (e) {
       if (!this.userInput.trim() || this.loading) return
 
+      if (e.shiftKey) {
+        return
+      }
+      e.preventDefault()
       // 关闭旧的 SSE 连接
       if (this.eventSource) {
         this.eventSource.close()
@@ -360,6 +416,7 @@ export default {
         content: this.userInput
       })
       const content = this.userInput
+      const tempConversationId = this.conversationId
       this.userInput = '' // 清空输入框
       this.scrollToBottom()
 
@@ -399,7 +456,7 @@ export default {
             if (data.choices[0].delta.reasoning_content) {
               existingMessage.reasoningContent += data.choices[0].delta.reasoning_content
             }
-          } else {
+          } else if (tempConversationId === this.conversationId) {
             // 不存在则添加新的消息
             this.messages.push({
               id: data.id,
@@ -489,8 +546,8 @@ export default {
 .chat-box {
   overflow-y: auto;
   padding: 0 8px;
-  height: 65vh;
-  min-height: 40vh;
+  height: 75vh;
+  width: 70%;
 }
 
 .operation {
@@ -501,6 +558,13 @@ export default {
   display: flex;
   flex-direction: column;
   position: relative;
+  .clearIcon {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    cursor: pointer;
+    z-index: 1;
+  }
 }
 
 .message {
@@ -561,13 +625,14 @@ export default {
 }
 
 .chat {
-  width: 70%;
+  width: 100%;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
 }
 
 ::v-deep .input-text {
   border: none;
+  resize: none;
   flex: 1;
   border-radius: 8px;
   margin-bottom: 10px;
