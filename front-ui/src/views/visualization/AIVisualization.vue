@@ -56,7 +56,7 @@
           </template>
         </a-menu>
         <div class="add-conversation">
-          <a-checkable-tag :checked="true" class="add-conversation-text" @change="messages = [];conversationId = ''">
+          <a-checkable-tag :checked="true" class="add-conversation-text" @change="messages = [];conversationId = '';userInput = ''">
             新增会话
           </a-checkable-tag>
         </div>
@@ -226,10 +226,21 @@ export default {
   },
   mounted () {
     this.initDeepSeek()
+    setTimeout(() => {
+      document.querySelectorAll('table').forEach(table => {
+        table.classList.add('table-striped', 'table')
+      })
+    }, 1000)
   },
   methods: {
     beforeUpload (file) {
+      // 判断文件类型
       const fileType = file.type
+      // 限制文件大小
+      if (file.size > 1024 * 1024 * 5) {
+        this.$message.error('文件大小不能超过5M')
+        return false
+      }
       if (fileType === 'application/vnd.ms-excel' || fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
         this.analyzeExcelFile(file)
       } else if (fileType === 'text/csv') {
@@ -249,7 +260,7 @@ export default {
             type: 'binary'
           })
           const workSheets = workbook.Sheets[workbook.SheetNames[0]]
-          this.userInput = XLSX.utils.sheet_to_json(workSheets, { header: 1 })
+          this.userInput = XLSX.utils.sheet_to_json(workSheets, { header: 1 }).toString()
         } catch (e) {
           console.log(e)
         }
@@ -263,9 +274,7 @@ export default {
         try {
           // 处理解析之后的csv格式
           const result = ev.target.result.split('\n')
-          this.userInput = result.map((item) => {
-            return item.split(',')
-          })
+          this.userInput = result.join('')
         } catch (e) {
           console.log(e)
         }

@@ -179,6 +179,7 @@ import Handsontable from 'handsontable'
 import { fetchTables, getTableData, listQuery } from '@/api/datasource/datasource'
 import { renderChart } from '@/views/visualization/renderChart'
 import { dsImgObj } from '@/views/datasource/const'
+
 const { registerLanguageDictionary, zhCN } = require('handsontable/i18n')
 registerLanguageDictionary(zhCN)
 export default {
@@ -248,7 +249,13 @@ export default {
   },
   methods: {
     beforeUpload (file) {
+      // 判断文件类型
       const fileType = file.type
+      // 限制文件大小
+      if (file.size > 1024 * 1024 * 5) {
+        this.$message.error('文件大小不能超过5M')
+        return false
+      }
       if (fileType === 'application/vnd.ms-excel' || fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
         this.analyzeExcelFile(file)
       } else if (fileType === 'text/csv') {
