@@ -75,9 +75,9 @@
             <template v-if="message.role === 'user'">
               <div class="message-content">
                 <!-- 渲染Markdown内容 -->
-                <div class="bubble1" v-html="renderMdText(message)"></div>
+                <div class="bubble1" v-html="renderUserMarkdownRender(message)"></div>
               </div>
-              <img v-if="message.role === 'user'" class="userAvatar" :src="avatar"/>
+              <img class="userAvatar" :src="avatar"/>
             </template>
             <template v-else>
               <a-icon class="avatar" :component="deepSeek" />
@@ -150,6 +150,7 @@
 <script>
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import MarkdownIt from 'markdown-it'
+import markdownItPlainText from 'markdown-it-plain-text'
 import markdownItCodeCopy from 'markdown-it-code-copy'
 import hljs from 'highlight.js'
 import {
@@ -198,6 +199,12 @@ export default {
         onSuccess: (e) => this.$message.success('复制成功！'),
         onError: (e) => this.$message.error('复制失败！')
       }),
+      userMarkdownRender: new MarkdownIt({
+        html: true,
+        linkify: true,
+        typographer: true,
+        breaks: true
+      }).use(markdownItPlainText),
       userInput: '',
       hoveredItem: null,
       conversations: [],
@@ -233,6 +240,11 @@ export default {
       return (message) => {
         return this.markdownRender.render(message.reasoningContent)
       }
+    },
+    renderUserMarkdownRender () {
+      return (message) => {
+        return this.userMarkdownRender.render(message.content)
+      }
     }
   },
   mounted () {
@@ -267,7 +279,7 @@ export default {
             type: 'binary'
           })
           const workSheets = workbook.Sheets[workbook.SheetNames[0]]
-          this.userInput = XLSX.utils.sheet_to_json(workSheets, { header: 1 }).toString()
+          this.userInput += XLSX.utils.sheet_to_csv(workSheets)
         } catch (e) {
           console.log(e)
         }
@@ -280,8 +292,7 @@ export default {
       fileReader.onload = (ev) => {
         try {
           // 处理解析之后的csv格式
-          const result = ev.target.result.split('\n')
-          this.userInput = result.join('')
+          this.userInput += ev.target.result
         } catch (e) {
           console.log(e)
         }
@@ -565,6 +576,10 @@ const runCode = function (el, lang) {
   flex: 1;
 }
 
+::v-deep pre{
+  white-space: pre-wrap
+}
+
 .chat-box {
   overflow-y: auto;
   padding: 0 8px;
@@ -577,7 +592,6 @@ const runCode = function (el, lang) {
   border-radius: 8px;
   padding: 10px;
   flex: 1;
-  width: 0;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -680,6 +694,7 @@ const runCode = function (el, lang) {
   border: none;
   resize: none;
   flex: 1;
+  word-break: break-all;
   border-radius: 8px;
   margin-bottom: 10px;
 
