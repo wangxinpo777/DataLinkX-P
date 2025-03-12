@@ -67,6 +67,8 @@ client:
     logging: true
   ollama:
     url: http://localhost:11434
+  deepseek:
+    url: https://api.deepseek.com
 
 topic:
   daemon: true
@@ -99,6 +101,12 @@ llm:
   vector: "elasticsearch"
   response_parse: "$.message.content"
   inner_prompt: "不要回答任何多余的说辞和思考过程!只回答我问题的答案，不要长篇大论一句话，越简洁越好"
+
+deepseek:
+  #  [deepseek-chat, deepseek-reasoner]
+  model: "deepseek-chat"
+  api_key: ""
+  system_content: "你是一名数据分析助手，专注于用简洁的语言解释复杂的数据分析结果。"
 
 # token配置
 token:
