@@ -1,0 +1,126 @@
+server:
+  port: 12345
+
+spring:
+  application:
+    name: datalinkx-server
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:123456}
+    url: jdbc:mysql://${MYSQL_URL:127.0.0.1}:3306/datalinkx?characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    deserialization:
+      fail-on-unknown-properties: false
+  aop:
+    proxy-target-class: true
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  redis:
+    database: 0       # Redis数据库索引（默认为0）,如果设置为1，那么存入的key-value都存放在select 1中
+    host: ${REDIS_HOST:127.0.0.1}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:123456}
+    timeout: 10000
+#  elasticsearch:  # 开启大模型时打开注解
+#    rest:
+#      uris:
+
+xxl-job:
+  username: admin
+  password: 123456
+  job-group: 3
+  exec-handler: dataTransJobHandler
+  executor-route-strategy: FIRST
+  client:
+    url: http://127.0.0.1:8080
+    connect_timeout_ms: 20000
+    call_timeout_ms: 600000
+    read_timeout_ms: 600000
+    logging: true
+
+# 流转配置性能
+data-transfer:
+  # 批次提交行数，读fetch-size行后提交
+  fetch-size: 1000
+  # 读fetch-size行数据的查询超时时间
+  query-time-out: 10000
+  # 流式checkpoint地址
+  checkpoint-path: file:///tmp
+
+client:
+  datajob:
+    url: http://localhost:23456
+    connect_timeout_ms: 20000
+    call_timeout_ms: 600000
+    read_timeout_ms: 600000
+    logging: true
+  flink:
+    url: http://localhost:8081
+    connect_timeout_ms: 20000
+    call_timeout_ms: 600000
+    read_timeout_ms: 600000
+    logging: true
+  ollama:
+    url: http://localhost:11434
+  deepseek:
+    url: https://api.deepseek.com
+
+topic:
+  daemon: true
+
+logging:
+  pattern:
+    console: ${CONSOLE_LOG_PATTERN:%clr(%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:%5p}) %clr(${PID:- }){magenta} [${spring.application.name}] %clr([%10.10t]){faint}[%36.36X{trace_id}] %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}}
+  file:
+    name: log/${spring.application.name}.log
+  level:
+    com.datalinkx: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type: DEBUG
+
+retrofit:
+  # 日志打印配置
+  log:
+    # 启用日志打印
+    enable: true
+    # 日志打印拦截器
+    logging-interceptor: com.github.lianjiatech.retrofit.spring.boot.interceptor.DefaultLoggingInterceptor
+    # 全局日志打印级别
+    global-log-level: info
+    # 全局日志打印策略
+    global-log-strategy: body
+
+llm:
+  #  embedding: "shaw/dmeta-embedding-zh"
+  model: "qwen:7b"
+  vector: "elasticsearch"
+  response_parse: "$.message.content"
+  inner_prompt: "不要回答任何多余的说辞和思考过程!只回答我问题的答案，不要长篇大论一句话，越简洁越好"
+
+deepseek:
+  #  [deepseek-chat, deepseek-reasoner]
+  model: "deepseek-chat"
+  api_key: ""
+  system_content: "你是一名数据分析助手，专注于用简洁的语言解释复杂的数据分析结果。"
+
+# token配置
+token:
+  # 令牌自定义标识
+  header: ACCESS-TOKEN
+  # 令牌密钥
+  secret: NBgkqhkiG9w0BAQEFAASCBKgwggSkA
+  # 令牌有效期（默认30分钟）
+  expireTime: 30
+
+# 用户配置
+user:
+  password:
+    # 密码最大错误次数
+    maxRetryCount: 5
+    # 密码锁定时间（默认10分钟）
+    lockTime: 10
