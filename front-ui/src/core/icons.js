@@ -62,5 +62,6 @@ export const icons = {
   systemManagement: systemManagement,
   menuManagement: menuManagement,
   roleManagement: roleManagement,
-  visualAnalysis: visualAnalysis
+  visualAnalysis: visualAnalysis,
+  deepSeek: deepSeek
 }
