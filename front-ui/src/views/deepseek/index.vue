@@ -1,6 +1,6 @@
 <template>
   <div class="main">
-    <a-card class="chat-container" title="AI 机器人聊天室">
+    <a-card class="chat-container" title="DeepSeek">
       <div class="menu-box" v-if="conversations.length > 0">
         <a-menu mode="vertical" class="menu" :selected-keys="[conversationId]">
           <template v-for="item in conversations">
@@ -67,7 +67,7 @@
             <a-icon class="avatar" :component="deepSeek" />
             <div class="message-content">
               <div class="bubble mdTextBox">
-                <p>你好，我是 AI 机器人，有什么可以帮助你的吗？</p>
+                <p>你好，我是 DeepSeek，有什么可以帮助你的吗？</p>
               </div>
             </div>
           </div>
@@ -208,7 +208,7 @@ export default {
       message: {
         id: 0,
         role: 'assistant',
-        content: '你好，我是 AI 机器人，有什么可以帮助你的吗？'
+        content: '你好，我是 DeepSeek，有什么可以帮助你的吗？'
       },
       loading: false,
       eventSource: null,
@@ -598,7 +598,7 @@ const runCode = function (el, lang) {
     width: 30px;
     height: 30px;
     margin-right: 8px;
-    font-size: 40px;
+    font-size: 30px;
   }
   .userAvatar {
     width: 30px;
