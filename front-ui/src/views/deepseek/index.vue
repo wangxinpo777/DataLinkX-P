@@ -577,6 +577,7 @@ const runCode = function (el, lang) {
   border-radius: 8px;
   padding: 10px;
   flex: 1;
+  width: 0;
   display: flex;
   flex-direction: column;
   position: relative;
