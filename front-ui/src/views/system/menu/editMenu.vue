@@ -62,8 +62,8 @@
       <a-form-item label="是否缓存">
         <a-radio-group
           v-decorator="[ 'isCache', { initialValue: menu.isCache || '1',rules: [ { required: true, message: '请选择是否缓存' } ] } ]">
-          <a-radio value="1">是</a-radio>
-          <a-radio value="0">否</a-radio>
+          <a-radio value="1">否</a-radio>
+          <a-radio value="0">是</a-radio>
         </a-radio-group>
       </a-form-item>
       <a-form-item label="菜单类型">
