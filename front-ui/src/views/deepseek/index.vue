@@ -1,6 +1,6 @@
 <template>
   <div class="main">
-    <a-card class="chat-container" title="DeepSeek">
+    <a-card class="chat-container" title="DeepSeek" :headStyle="{minHeight: '50px',maxHeight: '50px'}">
       <div class="menu-box" v-if="conversations.length > 0">
         <a-menu mode="vertical" class="menu" :selected-keys="[conversationId]">
           <template v-for="item in conversations">
@@ -61,86 +61,84 @@
           </a-checkable-tag>
         </div>
       </div>
-      <div class="chat">
-        <div class="chat-box" ref="messageContainer">
-          <div class="message">
-            <a-icon class="avatar" :component="deepSeek" />
-            <div class="message-content">
-              <div class="bubble mdTextBox">
-                <p>你好，我是 DeepSeek，有什么可以帮助你的吗？</p>
-              </div>
+      <div class="chat-box" ref="messageContainer">
+        <div class="message">
+          <a-icon class="avatar" :component="deepSeek" />
+          <div class="message-content">
+            <div class="bubble mdTextBox">
+              <p>你好，我是 DeepSeek，有什么可以帮助你的吗？</p>
             </div>
           </div>
-          <div v-for="message in messages" :key="message.id" :class="['message', message.role]">
-            <template v-if="message.role === 'user'">
-              <div class="message-content">
-                <!-- 渲染Markdown内容 -->
-                <div class="bubble1" v-html="renderUserMarkdownRender(message)"></div>
-              </div>
-              <img class="userAvatar" :src="avatar"/>
-            </template>
-            <template v-else>
-              <a-icon class="avatar" :component="deepSeek" />
-              <div class="message-content">
-                <div
-                  class="bubble2"
-                  v-if="message.reasoningContent"
-                  v-html="renderMdTextReasoning(message)"
-                >
-                </div>
-                <!-- 渲染Markdown内容 -->
-                <div class="bubble1" v-html="renderMdText(message)"></div>
-                <!-- 复制按钮 -->
-                <a-button
-                  class="copyBtn"
-                  type="link"
-                  size="small"
-                  @click="copyText(message.id)"
-                  icon="copy"
-                />
-              </div>
-            </template>
-          </div>
         </div>
-        <div class="operation">
-          <a-icon class="clearIcon" v-if="userInput" type="close" @click="userInput=''"/>
-          <a-textarea
-            v-model="userInput"
-            class="input-text"
-            placeholder="询问任何问题"
-            @pressEnter="e => sendMessage(e)"
-          >
-          </a-textarea>
-          <div class="buttons" style="position: relative;">
-            <!--excel或者csv-->
-            <a-upload
-              :showUploadList="false"
-              :accept="'.csv,.xls,.xlsx'"
-              :beforeUpload="beforeUpload"
-            >
+        <div v-for="message in messages" :key="message.id" :class="['message', message.role]">
+          <template v-if="message.role === 'user'">
+            <div class="message-content">
+              <!-- 渲染Markdown内容 -->
+              <div class="bubble1" v-html="renderUserMarkdownRender(message)"></div>
+            </div>
+            <img class="userAvatar" :src="avatar"/>
+          </template>
+          <template v-else>
+            <a-icon class="avatar" :component="deepSeek" />
+            <div class="message-content">
+              <div
+                class="bubble2"
+                v-if="message.reasoningContent"
+                v-html="renderMdTextReasoning(message)"
+              >
+              </div>
+              <!-- 渲染Markdown内容 -->
+              <div class="bubble1" v-html="renderMdText(message)"></div>
+              <!-- 复制按钮 -->
               <a-button
-                shape="circle"
-                setsize="small"
-                icon="file-excel" />
-            </a-upload>
-            <a-select
-              v-model="model"
-              placeholder="选择模型"
-              :dropdownStyle="{ bottom: '100%', top: 'auto' }"
-              style="margin-left: 8px"
-            >
-              <a-select-option value="deepseek-chat">DeepSeek V3</a-select-option>
-              <a-select-option value="deepseek-reasoner">DeepSeek R1</a-select-option>
-            </a-select>
+                class="copyBtn"
+                type="link"
+                size="small"
+                @click="copyText(message.id)"
+                icon="copy"
+              />
+            </div>
+          </template>
+        </div>
+      </div>
+      <div class="operation">
+        <a-icon class="clearIcon" v-if="userInput" type="close" @click="userInput=''"/>
+        <a-textarea
+          v-model="userInput"
+          class="input-text"
+          placeholder="询问任何问题"
+          @pressEnter="e => sendMessage(e)"
+        >
+        </a-textarea>
+        <div class="buttons" style="position: relative;">
+          <!--excel或者csv-->
+          <a-upload
+            :showUploadList="false"
+            :accept="'.csv,.xls,.xlsx'"
+            :beforeUpload="beforeUpload"
+          >
             <a-button
               shape="circle"
               setsize="small"
-              style="position: absolute; right: 0; bottom: 0;"
-              @click="sendMessage"
-              :loading="loading"
-              icon="arrow-up"
-            ></a-button>
-          </div>
+              icon="file-excel" />
+          </a-upload>
+          <a-select
+            v-model="model"
+            placeholder="选择模型"
+            :dropdownStyle="{ bottom: '100%', top: 'auto' }"
+            style="margin-left: 8px"
+          >
+            <a-select-option value="deepseek-chat">DeepSeek V3</a-select-option>
+            <a-select-option value="deepseek-reasoner">DeepSeek R1</a-select-option>
+          </a-select>
+          <a-button
+            shape="circle"
+            setsize="small"
+            style="position: absolute; right: 0; bottom: 0;"
+            @click="sendMessage"
+            :loading="loading"
+            icon="arrow-up"
+          ></a-button>
         </div>
       </div>
     </a-card>
@@ -163,6 +161,7 @@ import storage from 'store'
 import { AVATAR } from '@/store/mutation-types'
 import { deepSeek } from '@/core/icons'
 import * as XLSX from 'xlsx'
+
 const pyodideWorker = new Worker('/js/pyodideWorker.js')
 export default {
   name: 'AIVisualization',
@@ -230,16 +229,6 @@ export default {
         return this.markdownRender.render(message.content)
       }
     },
-    renderMdTextReasoning () {
-      return (message) => {
-        return this.markdownRender.render(message.reasoningContent)
-      }
-    },
-    renderUserMarkdownRender () {
-      return (message) => {
-        return this.userMarkdownRender.render(message.content)
-      }
-    },
     openButton () {
       return (lang) => {
         if (lang === 'html') {
@@ -262,6 +251,7 @@ export default {
       } else {
         console.log('Pyodide Result:', result)
         this.pythonResult = result
+        document.querySelector('.result-container').innerHTML += '运行结果：' + `<pre>${result}</pre>`
       }
     }
   },
@@ -530,17 +520,37 @@ export default {
       if (!this.toggleDropdown) {
         this.hoveredItem = id
       }
+    },
+    renderMdTextReasoning (message) {
+        return this.markdownRender.render(message.reasoningContent)
+    },
+    renderUserMarkdownRender (message) {
+        return this.userMarkdownRender.render(message.content)
     }
   }
 }
-const runCode = function (el, lang) {
+const runCode = function (button, lang) {
   if (lang === 'html') {
-    const html = el.previousElementSibling.textContent.trim()
+    const html = button.previousElementSibling.textContent.trim()
     const blob = new Blob([html], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     window.open(url, '_blank')
   } else if (lang === 'python') {
-    const code = el.previousElementSibling.textContent
+    const code = button.previousElementSibling.textContent
+    // 获取按钮的父级元素
+    const parentElement = button.parentNode
+    // 获取父级元素的父级元素
+    const grandParentElement = parentElement.parentNode
+    // 检查是否已经存在结果 div，避免重复创建
+    let resultDiv = grandParentElement.querySelector('.result-container')
+    if (!resultDiv) {
+      // 创建一个新的 div 元素
+      resultDiv = document.createElement('div')
+      resultDiv.className = 'result-container'
+      resultDiv.innerHTML = '正在运行中...\n'
+      // 将结果 div 插入到父级同级
+      grandParentElement.appendChild(resultDiv)
+    }
     pyodideWorker.postMessage({ pythonCode: code })
   }
 }
@@ -565,7 +575,6 @@ const runCode = function (el, lang) {
 .chat-container {
   width: 100%;
   border-radius: 8px;
-  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -593,25 +602,22 @@ const runCode = function (el, lang) {
   padding: 24px 16px;
   display: flex;
   flex: 1;
-}
-
-::v-deep pre{
-  white-space: pre-wrap
+  min-height: calc(100vh - 65px - 40px - 50px);
+  max-height: calc(100vh - 65px - 40px - 50px);
 }
 
 .chat-box {
   overflow-y: auto;
   padding: 0 8px;
-  height: 75vh;
-  width: 70%;
+  flex: 1;
 }
 
 .operation {
   border: 1px solid #f0f0f0;
   border-radius: 8px;
   padding: 10px;
-  flex: 1;
   display: flex;
+  width: 20vw;
   flex-direction: column;
   position: relative;
   .clearIcon {
@@ -650,8 +656,19 @@ const runCode = function (el, lang) {
   }
 }
 
+::v-deep .code-wrapper {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+::v-deep .result-container {
+  background-color: white;
+  padding: 10px;
+}
+
 ::v-deep .run-btn {
   position: absolute;
+  width: 150px;
   bottom: 0;
   right: 0;
   padding: 5px 10px;
@@ -701,12 +718,6 @@ const runCode = function (el, lang) {
 
 .menu {
   border: none;
-}
-
-.chat {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
 }
 
 ::v-deep .input-text {

@@ -1,6 +1,5 @@
 self.importScripts('/js/pyodide/pyodide.js')
 const pyodide = loadPyodide().then((p) => {
-  self.postMessage({ result: 'Pyodide 加载完成' })
   p.loadPackage(['micropip', 'numpy', 'scikit-learn', 'scipy', 'pandas'])
   return p
 })
