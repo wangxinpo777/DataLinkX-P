@@ -163,11 +163,12 @@ import storage from 'store'
 import { AVATAR } from '@/store/mutation-types'
 import { deepSeek } from '@/core/icons'
 import * as XLSX from 'xlsx'
-
+const pyodideWorker = new Worker('/js/pyodideWorker.js')
 export default {
   name: 'AIVisualization',
   data () {
     return {
+      pythonResult: '',
       markdownRender: new MarkdownIt({
         html: true,
         linkify: true,
@@ -175,20 +176,13 @@ export default {
         highlight: (str, lang) => {
           if (lang && hljs.getLanguage(lang)) {
             try {
-              if (lang === 'html') {
-                 return `<div class="code-wrapper"><pre class="hljs"><code>${hljs.highlight(lang, str, true).value}</code></pre>
-<button class="run-btn" onclick="runCode(this, '${lang}')">在 HTML 打开</button></div>`
-              } else return `<div class="code-wrapper"><pre class="hljs"><code>${hljs.highlight(lang, str, true).value}</code></pre></div>`
+              return `<div class="code-wrapper"><pre class="hljs"><code>${hljs.highlight(lang, str, true).value}</code></pre>
+<button class="run-btn" onclick="runCode(this, '${lang}')">` + this.openButton(lang) + `</button></div>`
             } catch (err) {
               console.error('代码高亮失败:', err) // 可选：打印错误
             }
           }
-          // 兜底方案：自动检测语言
-          try {
-            return `${hljs.highlight(lang, str, true).value}</div>`
-          } catch (err) {
-            return `${hljs.highlight(lang, str, true).value}</div>`
-          }
+          return `<div class="code-wrapper"><pre class="hljs"><code>` + this.markdownRender.utils.escapeHtml(str) + `</code></pre></div>`
         }
       }).use(markdownItCodeCopy, {
         iconStyle: 'font-size: 18px; opacity: 0.6;',
@@ -245,11 +239,31 @@ export default {
       return (message) => {
         return this.userMarkdownRender.render(message.content)
       }
+    },
+    openButton () {
+      return (lang) => {
+        if (lang === 'html') {
+          return '打开'
+        } else if (lang === 'python') {
+          return '运行'
+        } else {
+          return '查看'
+        }
+      }
     }
   },
   mounted () {
     window.runCode = runCode
     this.initDeepSeek()
+    pyodideWorker.onmessage = (event) => {
+      const { result, error } = event.data
+      if (error) {
+        console.error('Pyodide Error:', error)
+      } else {
+        console.log('Pyodide Result:', result)
+        this.pythonResult = result
+      }
+    }
   },
   methods: {
     beforeUpload (file) {
@@ -520,10 +534,15 @@ export default {
   }
 }
 const runCode = function (el, lang) {
-  const html = el.previousElementSibling.textContent.trim()
-  const blob = new Blob([html], { type: 'text/html' })
-  const url = URL.createObjectURL(blob)
-  window.open(url, '_blank')
+  if (lang === 'html') {
+    const html = el.previousElementSibling.textContent.trim()
+    const blob = new Blob([html], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+  } else if (lang === 'python') {
+    const code = el.previousElementSibling.textContent
+    pyodideWorker.postMessage({ pythonCode: code })
+  }
 }
 </script>
 
