@@ -1,11 +1,14 @@
 self.importScripts('/js/pyodide/pyodide.js')
-const pyodide = loadPyodide().then((p) => {
-  p.loadPackage(['micropip', 'numpy', 'scikit-learn', 'scipy', 'pandas'])
-  return p
-})
+let pyodide
 self.onmessage = async (event) => {
   const { pythonCode } = event.data
-  runPythonCode(await pyodide, pythonCode)
+  if (pythonCode === 'Test') {
+    pyodide = await loadPyodide()
+    await pyodide.loadPackage(['micropip', 'numpy', 'scikit-learn', 'scipy', 'pandas'])
+    self.postMessage({ result: 'True' })
+    return
+  }
+  runPythonCode(pyodide, pythonCode)
 }
 const runPythonCode = (pyodide, pythonCode) => {
   if (!pythonCode) {

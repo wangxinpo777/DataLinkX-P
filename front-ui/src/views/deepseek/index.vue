@@ -167,6 +167,7 @@ export default {
   name: 'AIVisualization',
   data () {
     return {
+      loadedPython: false,
       pythonResult: '',
       markdownRender: new MarkdownIt({
         html: true,
@@ -232,11 +233,15 @@ export default {
     openButton () {
       return (lang) => {
         if (lang === 'html') {
-          return '打开'
+          return '查看结果'
         } else if (lang === 'python') {
-          return '运行'
+          if (this.loadedPython) {
+            return '运行脚本'
+          } else {
+            return 'Python环境加载中...'
+          }
         } else {
-          return '查看'
+          return '查看查看数据'
         }
       }
     }
@@ -249,11 +254,17 @@ export default {
       if (error) {
         console.error('Pyodide Error:', error)
       } else {
-        console.log('Pyodide Result:', result)
-        this.pythonResult = result
-        document.querySelector('.result-container').innerHTML += '运行结果：' + `<pre>${result}</pre>`
+        if (result === 'True') {
+          this.loadedPython = true
+          console.log('Pyodide 加载成功')
+        } else {
+          console.log('Pyodide Result:', result)
+          this.pythonResult = result
+          document.querySelector('.result-container').innerHTML += '运行结果：' + `<pre>${result}</pre>`
+        }
       }
     }
+    pyodideWorker.postMessage({ pythonCode: 'Test' })
   },
   methods: {
     beforeUpload (file) {
@@ -658,7 +669,7 @@ const runCode = function (button, lang) {
 
 ::v-deep .code-wrapper {
   position: relative;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 ::v-deep .result-container {
@@ -668,8 +679,8 @@ const runCode = function (button, lang) {
 
 ::v-deep .run-btn {
   position: absolute;
-  width: 150px;
-  bottom: 0;
+  max-width: 200px;
+  bottom: -5px;
   right: 0;
   padding: 5px 10px;
   background: #007bff;
@@ -717,6 +728,7 @@ const runCode = function (button, lang) {
 }
 
 .menu {
+  overflow-y: auto;
   border: none;
 }
 
