@@ -11,6 +11,34 @@ export function deeepseekChart ({ contents, model }) {
   })
 }
 
+export function deeepseekStreamChart (content,
+                                     userId,
+                                     conversationId, model) {
+  return request({
+    url: '/api/deepseek/stream/chat',
+    method: 'POST',
+    data: {
+      content: content,
+      userId: userId,
+      conversationId: conversationId
+    },
+    params: {
+      model: model
+    }
+  })
+}
+
+export function getDeepseekStream (conversationId, userId) {
+  return request({
+    url: '/api/deepseek/stream/chat',
+    method: 'GET',
+    params: {
+      conversationId: conversationId,
+      userId: userId
+    }
+  })
+}
+
 export function deeepseekMessagesHistory (conversationId) {
   return request({
     url: '/api/deepseek/messages/history',

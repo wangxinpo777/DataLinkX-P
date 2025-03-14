@@ -54,7 +54,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public SseEmitter streamChat(String model, String content, String conversationId, Long userId) {
+    public String streamChat(String model, String content, String conversationId, Long userId) {
         ChatReq.Content chatContent = ChatReq.Content.builder()
                 .role("user")
                 .content(content)
@@ -89,7 +89,8 @@ public class DeepSeekServiceImpl implements DeepSeekService {
         RequestBody requestBody = RequestBody.create(mediaType, bodyString);
         okRequestBuilder.header("Authorization", "Bearer " + apiKey).header("Content-Type", "application/json").header("Accept", "application/json"); // 确保接收 JSON 格式的响应
         okRequestBuilder.post(requestBody);
-        return transformRequest(okRequestBuilder.build(), UUID.randomUUID().toString().replaceAll("-", ""), conversationId, chatContent);
+        transformRequest(okRequestBuilder.build(), String.valueOf(userId), conversationId, chatContent);
+        return conversationId;
     }
 
     @Override
@@ -145,24 +146,26 @@ public class DeepSeekServiceImpl implements DeepSeekService {
         conversationRepository.save(conversationBean);
     }
 
-    public SseEmitter transformRequest(Request request, String connectId, String conversationId, ChatReq.Content chatContent) {
+    public void transformRequest(Request request, String connectId, String conversationId, ChatReq.Content chatContent) {
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .connectTimeout(1, TimeUnit.DAYS)
                 .readTimeout(1, TimeUnit.DAYS) //这边需要将超时显示设置长一点，不然刚连上就断开，之前以为调用方式错误被坑了半天
                 .build();
 
-        SseEmitter sseEmitter = SseEmitterServer.connect(connectId);
+        SseEmitter sseEmitter = SseEmitterServer.connect(conversationId + "-" + connectId);
         // 存放 AI 逐步推送的内容
         StringBuilder aiResponse = new StringBuilder();
         StringBuilder aiResponseTemp = new StringBuilder();
         // 实例化EventSource，注册EventSource监听器
         RealEventSource realEventSource = new RealEventSource(request, new EventSourceListener() {
             final CopyOnWriteArrayList<DeepSeekResponse> deepSeekResponses = new CopyOnWriteArrayList<>();
+            boolean open = false;
 
             @Override
             public void onOpen(EventSource eventSource, Response response) {
                 // 先保存用户输入
                 saveMessage(conversationId, chatContent.getRole(), chatContent.getContent(), "");
+                open = true;
                 log.info("SSE open");
             }
 
@@ -190,10 +193,14 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                                     .data(deepSeekResponse)
                                     .id(deepSeekResponse.getId())
                                     .name(type);
-                            sseEmitter.send(event);
+                            if (open) {
+                                sseEmitter.send(event);
+                            }
                         } catch (IOException e) {
                             log.error(e.getMessage(), e);
                             sseEmitter.completeWithError(e);
+                            SseEmitterServer.removeUser(conversationId + "-" + connectId);
+                            open = false;
                         }
                     }
                 }
@@ -203,7 +210,9 @@ public class DeepSeekServiceImpl implements DeepSeekService {
             public void onClosed(EventSource eventSource) {
                 log.info("SSE close");
                 saveMessage(conversationId, "assistant", aiResponse.toString(), aiResponseTemp.toString());
+                open = false;
                 sseEmitter.complete();
+                SseEmitterServer.removeUser(conversationId + "-" + connectId);
             }
 
             @Override
@@ -221,7 +230,9 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                     }
                     log.error(msg);
                 }
+                open = false;
                 sseEmitter.completeWithError(t);
+                SseEmitterServer.removeUser(conversationId + "-" + connectId);
             }
         });
 
@@ -237,7 +248,6 @@ public class DeepSeekServiceImpl implements DeepSeekService {
             log.error("SSE web err: " + error.toString());
             realEventSource.cancel();
         });
-        return sseEmitter;
     }
 
 }

@@ -146,7 +146,6 @@
 </template>
 
 <script>
-import { fetchEventSource } from '@microsoft/fetch-event-source'
 import MarkdownIt from 'markdown-it'
 import markdownItPlainText from 'markdown-it-plain-text'
 import markdownItCodeCopy from 'markdown-it-code-copy'
@@ -155,12 +154,14 @@ import {
   deeepseekConversationsHistory,
   deeepseekDeleteConversation,
   deeepseekMessagesHistory,
+  deeepseekStreamChart,
   deeepseekUpdateConversation
 } from '@/api/deepseek/api'
 import storage from 'store'
 import { AVATAR } from '@/store/mutation-types'
 import { deepSeek } from '@/core/icons'
 import * as XLSX from 'xlsx'
+import { fetchEventSource } from '@microsoft/fetch-event-source'
 
 const pyodideWorker = new Worker('/js/pyodideWorker.js')
 export default {
@@ -450,79 +451,74 @@ export default {
       e.preventDefault()
       // 关闭旧的 SSE 连接
       if (this.eventSource) {
-        this.eventSource.close()
+        this.eventSource = null
       }
 
       this.loading = true
       const token = localStorage.getItem('Access-Token').replace(/"/g, '')
-      const url = `/api/api/deepseek/stream/chat?model=${this.model}`
       this.messages.push({
         id: this.messages.length + 1,
         role: 'user',
         content: this.userInput
       })
       const content = this.userInput
-      const tempConversationId = this.conversationId
       this.userInput = '' // 清空输入框
       this.scrollToBottom()
-
-      fetchEventSource(url, {
-        method: 'POST',
-        openWhenHidden: true,
-        headers: {
-          'ACCESS-TOKEN': token,
-          'Accept': 'text/event-stream',
-          'Content-Type': 'application/json' // 必须指定 JSON 类型
-        },
-        body: JSON.stringify({
-          content: content,
-          userId: JSON.parse(localStorage.getItem('User')).userId,
-          conversationId: this.conversationId
-        }),
-        onopen: () => {
-          deeepseekConversationsHistory(JSON.parse(localStorage.getItem('User')).userId).then(res => {
-            this.conversations = res.result
-            if (this.conversationId === '') {
-              this.conversationId = res.result.length > 0 ? res.result[0].id : ''
-            }
-          })
-          console.log('SSE 连接已建立')
-        },
-        onmessage: (event) => {
-          const data = JSON.parse(event.data)
-
-          // 在 messages 数组中查找相同 id 的消息
-          const existingMessage = this.messages.find(msg => msg.id === data.id)
-
-          if (existingMessage) {
-            // 追加内容
-            if (data.choices[0].delta.content) {
-              existingMessage.content += data.choices[0].delta.content
-            }
-            if (data.choices[0].delta.reasoning_content) {
-              existingMessage.reasoningContent += data.choices[0].delta.reasoning_content
-            }
-          } else if (tempConversationId === this.conversationId) {
-            // 不存在则添加新的消息
-            this.messages.push({
-              id: data.id,
-              role: data.choices[0].delta.role === 'user' ? 'user' : 'assistant',
-              content: data.choices[0].delta.content ? data.choices[0].delta.content : '',
-              reasoningContent: data.choices[0].delta.reasoning_content ? data.choices[0].delta.reasoning_content : ''
+      deeepseekStreamChart(content, JSON.parse(localStorage.getItem('User')).userId, this.conversationId, this.model).then(res => {
+        this.conversationId = res.result
+        this.eventSource = fetchEventSource(`api/api/deepseek/stream/chat?userId=${JSON.parse(localStorage.getItem('User')).userId}&conversationId=${this.conversationId}`, {
+          openWhenHidden: true,
+          headers: {
+            'ACCESS-TOKEN': token,
+            'Accept': 'text/event-stream',
+            'Content-Type': 'application/json' // 必须指定 JSON 类型
+          },
+          onopen: () => {
+            deeepseekConversationsHistory(JSON.parse(localStorage.getItem('User')).userId).then(res => {
+              this.conversations = res.result
+              if (this.conversationId === '') {
+                this.conversationId = res.result.length > 0 ? res.result[0].id : ''
+              }
             })
+            console.log('SSE 连接已建立')
+          },
+          onmessage: (event) => {
+            const data = JSON.parse(event.data)
+
+            // 在 messages 数组中查找相同 id 的消息
+            const existingMessage = this.messages.find(msg => msg.id === data.id)
+
+            if (existingMessage) {
+              // 追加内容
+              if (data.choices[0].delta.content) {
+                existingMessage.content += data.choices[0].delta.content
+              }
+              if (data.choices[0].delta.reasoning_content) {
+                existingMessage.reasoningContent += data.choices[0].delta.reasoning_content
+              }
+            } else {
+              // 不存在则添加新的消息
+              this.messages.push({
+                id: data.id,
+                role: data.choices[0].delta.role === 'user' ? 'user' : 'assistant',
+                content: data.choices[0].delta.content ? data.choices[0].delta.content : '',
+                reasoningContent: data.choices[0].delta.reasoning_content ? data.choices[0].delta.reasoning_content : ''
+              })
+            }
+          },
+          onclose: () => {
+            console.log('SSE 连接已关闭')
+            this.scrollToBottom()
+            this.loading = false
+          },
+          onerror: (err) => {
+            this.loading = false
+            console.error('SSE 发生错误:', err)
+            throw new Error('SSE 连接发生错误')
           }
-        },
-        onclose: () => {
-          console.log('SSE 连接已关闭')
-          this.scrollToBottom()
-          this.loading = false
-        },
-        onerror: (err) => {
-          console.error('SSE 发生错误:', err)
-          this.loading = false
-        }
-      }).then(() => {
-        console.log('SSE 连接已关闭')
+        })
+      }).catch(() => {
+        this.$message.error('发送失败')
         this.loading = false
       })
     },
