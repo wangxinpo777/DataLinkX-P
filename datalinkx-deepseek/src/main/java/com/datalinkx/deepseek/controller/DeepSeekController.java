@@ -32,7 +32,7 @@ public class DeepSeekController {
         return WebResult.of(deepSeekService.streamChat(model, eventRequest.getContent(), eventRequest.getConversationId(), eventRequest.getUserId()));
     }
 
-    @GetMapping("/stream/chat")
+    @GetMapping("/get/stream/chat")
     public SseEmitter streamChat(@RequestParam String conversationId, @RequestParam Long userId) {
         return SseEmitterServer.connect(conversationId + "-" + userId);
     }
