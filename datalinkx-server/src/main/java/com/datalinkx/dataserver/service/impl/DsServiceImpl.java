@@ -31,6 +31,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -296,11 +297,21 @@ public class DsServiceImpl implements DsService {
 	}
 
 	@Override
-	public List<Map<String, Object>> getTableData(String dsId, String tableName) {
+	public List<Map<String, Object>> getTableData(String dsId, String tableName) throws UnsupportedEncodingException {
+		DsBean dsBean = dsRepository.findByDsId(dsId).orElseThrow(() -> new DatalinkXServerException(StatusCode.DS_NOT_EXISTS));
+		DriverManagerDataSource dataSource = new DriverManagerDataSource();
+		dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+		dataSource.setUrl("jdbc:mysql://" + dsBean.getHost() + ":" + dsBean.getPort() + "/" + dsBean.getDatabase());
+		if (dsBean.getPassword() != null) {
+			dsBean.setPassword(new String(Base64Utils.decodeBase64(dsBean.getPassword())));
+		}
+		dataSource.setUsername(dsBean.getUsername());
+		dataSource.setPassword(dsBean.getPassword());
 		List<Map<String, Object>> tableData = new ArrayList<>();
 		try (Connection connection = dataSource.getConnection()) {
+			String sql = "SELECT * FROM " + tableName;
 			Statement statement = connection.createStatement();
-			ResultSet resultSet = statement.executeQuery("SELECT * FROM " + tableName);
+			ResultSet resultSet = statement.executeQuery(sql);
 
 			// 获取列信息
 			ResultSetMetaData metaData = resultSet.getMetaData();

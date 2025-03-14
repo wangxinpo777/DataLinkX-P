@@ -1,10 +1,5 @@
 package com.datalinkx.dataserver.controller;
 
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.datalinkx.common.exception.DatalinkXServerException;
 import com.datalinkx.common.result.WebResult;
 import com.datalinkx.dataserver.bean.domain.DsBean;
@@ -18,6 +13,11 @@ import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -85,7 +85,7 @@ public class DsController {
 	}
 
 	@GetMapping("/tables/{dsId}/{tableName}")
-	public WebResult<List<Map<String, Object>>> getTableData(@PathVariable String dsId, @PathVariable String tableName) {
+	public WebResult<List<Map<String, Object>>> getTableData(@PathVariable String dsId, @PathVariable String tableName) throws UnsupportedEncodingException {
 		return WebResult.of(dsServiceImpl.getTableData(dsId, tableName));
 	}
 

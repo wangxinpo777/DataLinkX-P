@@ -1,12 +1,13 @@
 package com.datalinkx.dataserver.service;
 
-import java.util.List;
-import java.util.Map;
-
 import com.datalinkx.dataserver.bean.domain.DsBean;
 import com.datalinkx.dataserver.bean.vo.PageVo;
 import com.datalinkx.dataserver.controller.form.DsForm;
 import com.datalinkx.driver.dsdriver.base.model.DbTableField;
+
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 业务数据源管理service
@@ -55,5 +56,5 @@ public interface DsService {
      */
     List<DbTableField> fetchFields(String dsId, String tbName);
 
-    List<Map<String, Object>> getTableData(String dsId, String tableName);
+    List<Map<String, Object>> getTableData(String dsId, String tableName) throws UnsupportedEncodingException;
 }
