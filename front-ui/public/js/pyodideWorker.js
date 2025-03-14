@@ -3,8 +3,10 @@ let pyodide
 self.onmessage = async (event) => {
   const { pythonCode } = event.data
   if (pythonCode === 'Test') {
-    pyodide = await loadPyodide()
-    await pyodide.loadPackage(['micropip', 'numpy', 'scikit-learn', 'scipy', 'pandas'])
+    if (!pyodide) {
+      pyodide = await loadPyodide()
+      await pyodide.loadPackage(['micropip', 'numpy', 'scikit-learn', 'scipy', 'pandas'])
+    }
     self.postMessage({ result: 'True' })
     return
   }
