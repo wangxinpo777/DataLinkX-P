@@ -18,7 +18,7 @@
             <a-input
               size="large"
               type="text"
-              :placeholder="process.env.VUE_APP_PREVIEW ? '请输入用户名' : $t('user.login.username.placeholder')"
+              :placeholder="preview ? '请输入用户名' : $t('user.login.username.placeholder')"
               v-decorator="[
                 'username',
                 {rules: [{ required: true, message: $t('user.userName.required') }, { validator: handleUsernameOrEmail }], validateTrigger: 'change'}
@@ -31,7 +31,7 @@
           <a-form-item>
             <a-input-password
               size="large"
-              :placeholder="process.env.VUE_APP_PREVIEW ? '请输入密码' : $t('user.login.password.placeholder')"
+              :placeholder="preview ? '请输入密码' : $t('user.login.password.placeholder')"
               v-decorator="[
                 'password',
                 {rules: [{ required: true, message: $t('user.password.required') }], validateTrigger: 'blur'}
@@ -115,7 +115,8 @@ export default {
         // login type: 0 email, 1 username, 2 telephone
         loginType: 1,
         smsSendBtn: false
-      }
+      },
+      preview: process.env.NODE_ENV === 'production'
     }
   },
   created () {
