@@ -7,6 +7,7 @@ import com.datalinkx.deepseek.bean.MessageBean;
 import com.datalinkx.deepseek.model.EventRequest;
 import com.datalinkx.deepseek.repository.ConversationRepository;
 import com.datalinkx.deepseek.service.DeepSeekService;
+import com.datalinkx.sse.config.SseEmitterServer;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -27,8 +28,13 @@ public class DeepSeekController {
     private ConversationRepository conversationRepository;
 
     @PostMapping("/stream/chat")
-    public SseEmitter streamChat(@RequestParam String model, @RequestBody EventRequest eventRequest) {
-        return deepSeekService.streamChat(model, eventRequest.getContent(), eventRequest.getConversationId(), eventRequest.getUserId());
+    public WebResult<String> streamChat(@RequestParam String model, @RequestBody EventRequest eventRequest) {
+        return WebResult.of(deepSeekService.streamChat(model, eventRequest.getContent(), eventRequest.getConversationId(), eventRequest.getUserId()));
+    }
+
+    @GetMapping("/get/stream/chat")
+    public SseEmitter streamChat(@RequestParam String conversationId, @RequestParam Long userId) {
+        return SseEmitterServer.connect(conversationId + "-" + userId);
     }
 
     @GetMapping("/messages/history")
