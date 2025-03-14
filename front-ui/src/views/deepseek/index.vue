@@ -169,6 +169,7 @@ export default {
     return {
       loadedPython: false,
       pythonResult: '',
+      runningPython: false,
       markdownRender: new MarkdownIt({
         html: true,
         linkify: true,
@@ -236,18 +237,19 @@ export default {
           return '查看结果'
         } else if (lang === 'python') {
           if (this.loadedPython) {
-            return '运行脚本'
+            return '运行Python'
           } else {
             return 'Python环境加载中...'
           }
         } else {
-          return '查看查看数据'
+          return '查看数据'
         }
       }
     }
   },
   mounted () {
     window.runCode = runCode
+    window.vueInstance = this
     this.initDeepSeek()
     pyodideWorker.onmessage = (event) => {
       const { result, error } = event.data
@@ -261,6 +263,8 @@ export default {
           console.log('Pyodide Result:', result)
           this.pythonResult = result
           document.querySelector('.result-container').innerHTML += '运行结果：' + `<pre>${result}</pre>`
+          document.querySelector('.run-btn').innerHTML = '运行Python'
+          this.runningPython = false
         }
       }
     }
@@ -547,6 +551,17 @@ const runCode = function (button, lang) {
     const url = URL.createObjectURL(blob)
     window.open(url, '_blank')
   } else if (lang === 'python') {
+    const { vueInstance } = window
+    if (!vueInstance.loadedPython) {
+      vueInstance.$message.error('Python环境加载中，请稍后再试')
+      return
+    }
+    if (vueInstance.runningPython) {
+      vueInstance.$message.error('Python脚本正在运行中，请稍后再试')
+      return
+    }
+    button.innerHTML = 'Python运行中...'
+    vueInstance.runningPython = true
     const code = button.previousElementSibling.textContent
     // 获取按钮的父级元素
     const parentElement = button.parentNode
@@ -563,6 +578,11 @@ const runCode = function (button, lang) {
       grandParentElement.appendChild(resultDiv)
     }
     pyodideWorker.postMessage({ pythonCode: code })
+  } else {
+    const data = button.previousElementSibling.textContent
+    const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
   }
 }
 </script>
