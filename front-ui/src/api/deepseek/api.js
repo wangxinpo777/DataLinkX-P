@@ -30,7 +30,7 @@ export function deeepseekStreamChart (content,
 
 export function getDeepseekStream (conversationId, userId) {
   return request({
-    url: '/api/deepseek/stream/chat',
+    url: '/api/deepseek/get/stream/chat',
     method: 'GET',
     params: {
       conversationId: conversationId,

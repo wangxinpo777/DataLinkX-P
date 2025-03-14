@@ -466,7 +466,7 @@ export default {
       this.scrollToBottom()
       deeepseekStreamChart(content, JSON.parse(localStorage.getItem('User')).userId, this.conversationId, this.model).then(res => {
         this.conversationId = res.result
-        this.eventSource = fetchEventSource(`api/api/deepseek/stream/chat?userId=${JSON.parse(localStorage.getItem('User')).userId}&conversationId=${this.conversationId}`, {
+        this.eventSource = fetchEventSource(`api/api/deepseek/get/stream/chat?userId=${JSON.parse(localStorage.getItem('User')).userId}&conversationId=${this.conversationId}`, {
           openWhenHidden: true,
           headers: {
             'ACCESS-TOKEN': token,
