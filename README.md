@@ -29,7 +29,11 @@
 
 ![输入图片说明](datalinkx-server/src/main/resources/readme/deepseek.png)
 
-### 3.添加可视化BI,支持`上传数据`、`从数据库读取`、`自定义可视化`、`动态编辑`
+### 3.支持直接运行Python脚本、HTML代码
+
+![输入图片说明](datalinkx-server/src/main/resources/readme/Python.png)
+
+### 4.添加可视化BI,支持`上传数据`、`从数据库读取`、`自定义可视化`、`动态编辑`
 
 ![输入图片说明](datalinkx-server/src/main/resources/readme/BI.png)
 
