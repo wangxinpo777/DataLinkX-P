@@ -43,6 +43,7 @@
     "lodash.pick": "^4.4.0",
     "markdown-it": "^14.1.0",
     "markdown-it-code-copy": "^0.2.2",
+    "markdown-it-plain-text": "^0.3.0",
     "mockjs2": "1.0.8",
     "moment": "^2.29.2",
     "nprogress": "^0.2.0",
