@@ -455,7 +455,7 @@ export default {
 
       this.loading = true
       const token = localStorage.getItem('Access-Token').replace(/"/g, '')
-      const url = `/api/api/deepseek/stream/chat?model=${this.model}`
+      const url = `http://localhost:12345/api/deepseek/stream/chat?model=${this.model}`
       this.messages.push({
         id: this.messages.length + 1,
         role: 'user',
