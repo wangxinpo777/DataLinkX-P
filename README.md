@@ -39,6 +39,11 @@
 
 ![输入图片说明](datalinkx-server/src/main/resources/readme/BI2.png)
 
+## 项目启动
+1. 在`datalinkx-server`模块下编辑`application.yml`，配置mysql、redis、deepseek API key即可，启动`datalinkx-server`后端服务
+2. 在`front-ui`目录下运行`yarn install`安装前端项目依赖模块，再运行`yarn serve`即可启动前端服务
+### 完成后就可以愉快的体验啦
+
 ![输入图片说明](datalinkx-server/src/main/resources/readme/project_name.png)
 
 <p align="center">
