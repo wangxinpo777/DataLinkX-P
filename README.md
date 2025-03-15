@@ -44,31 +44,6 @@
 2. 在`front-ui`目录下运行`yarn install`安装前端项目依赖模块，再运行`yarn serve`即可启动前端服务
 ### 完成后就可以愉快的体验啦
 
-![输入图片说明](datalinkx-server/src/main/resources/readme/project_name.png)
-
-<p align="center">
-<a href="https://github.com/SplitfireUptown/datalinkx"><img src="https://img.shields.io/github/stars/SplitfireUptown/datalinkx.svg?style=flat&label=GithubStars"></a>
-<a href="https://gitee.com/atuptown/datalinkx"><img src="https://gitee.com/atuptown/datalinkx/badge/star.svg?theme=dark" alt="Gitee Starts"></a>
-  <a href="https://gitee.com/atuptown/datalinkx"><img src="https://gitee.com/atuptown/datalinkx/badge/fork.svg?theme=dark" alt="Gitee Starts"></a>
-<a href="#"><img src="https://img.shields.io/badge/Author-在下uptown-orange.svg" alt="作者"></a>
-<a href="#项目文档"><img src="https://img.shields.io/badge/JDK-8-red.svg" alt="jdk版本"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/SpringBoot-2.4.3-green.svg" alt="SpringBoot版本"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/MySQL-8.0-orange.svg" alt="MySQL版本"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/Redis-5.0-green.svg" alt="Redis版本"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/消息队列-Redis Stream-red.svg" alt="Redis版本"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/ORM-SpringData JPA-blue.svg" alt="ORM框架"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/分布式定时任务-xxljob-green.svg" alt="分布式定时任务"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/分布式计算引擎-Flink-red.svg" alt="计算引擎"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/分布式计算引擎-Seatunnel-blue.svg" alt="计算引擎"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/系统部署-Docker & DockerCompose-yellow.svg" alt="部署"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/前端-Vue2.x-green.svg" alt="部署"></a>
-  <a href="#项目文档"><img src="https://img.shields.io/badge/前端UI-AntDesignUI-red.svg" alt="前端"></a>
-<a href="#项目文档"><img src="https://img.shields.io/badge/RPC-Retrofit2-blue.svg" alt="RPC框架"></a>
-<a href="#项目文档"><img src="https://img.shields.io/badge/同步框架-Chunjun(FlinkX)-green.svg" alt="同步框架"></a>
-<a href="#项目文档"><img src="https://img.shields.io/badge/向量库-ElasticSearch 7.9.3-blue.svg" alt="向量库"></a>
-<a href="#项目文档"><img src="https://img.shields.io/badge/大模型框架-ollama-orange.svg" alt="大模型框架"></a>
-</p>
-
 ## 异构数据源同步服务DatalinkX介绍
 
 **核心功能** ：在不同的异构数据源中进行数据同步，对同步任务进行管理和维护
