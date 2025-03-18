@@ -188,7 +188,7 @@ export default {
         if (res.status === '0') {
           this.dsGroupNumber = Object.assign({}, this.dsGroupNumber, res.result)
         } else {
-          this.$message.error(res.error)
+          this.$message.error(res.errstr)
         }
       }).catch(reason => {
         this.loading = false
@@ -273,6 +273,7 @@ export default {
   .list-acard {
     flex: 1;
     margin: 24px 24px 16px 24px;
+    border-radius: 8px;
   }
   .list-left {
     border-radius: 0px;
