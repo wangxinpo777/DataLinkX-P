@@ -212,7 +212,7 @@ export const transformMenuToRoutes = (menuList) => {
         : null
     }
     if (route.name === 'Index') {
-      route.redirect = '/dashboard'
+      route.redirect = '/datalist'
     }
     // 动态设置组件，处理特殊情况如 null 或 Layout 类型
     route.component = constantRouterComponents[menu.component || menu.routeName] || (() => import(`@/views/${menu.component}`))
