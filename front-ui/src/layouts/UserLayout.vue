@@ -70,7 +70,7 @@ export default {
   .container {
     width: 100%;
     min-height: 100%;
-    background: linear-gradient(to left bottom, rgba(165, 18, 18, 0.8), rgba(255, 106, 0, 0.3)),url(~@/assets/home.png)no-repeat center / cover;
+    background: linear-gradient(to left, rgba(165, 18, 18, 0.35), rgba(255, 106, 0, 0)),url(~@/assets/home.png)no-repeat center / cover;
     //padding: 50px 0 84px;
     position: relative;
 
