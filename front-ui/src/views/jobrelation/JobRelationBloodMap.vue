@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="height: 90%;background-color: white">
     <div class="data-lineage-graph">
       <h1 class="header">任务血缘关系图</h1>
       <div class="task-select">

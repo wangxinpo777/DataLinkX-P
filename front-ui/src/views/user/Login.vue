@@ -261,6 +261,13 @@ export default {
 
 <style lang="less" scoped>
 .user-layout-login {
+  background: rgba(255, 255, 255, 0.2); /* 轻微透明 */
+  backdrop-filter: blur(10px); /* 玻璃模糊效果 */
+  border-radius: 12px; /* 圆角 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 轻微阴影，增加立体感 */
+  display: flex;
+  padding: 24px;
+  flex-direction: column;
   label {
     font-size: 14px;
   }
@@ -276,15 +283,20 @@ export default {
   }
 
   button.login-button {
-    padding: 0 15px;
+    background: linear-gradient(to right, #007bff, #0056b3);
+    border: none;
     font-size: 16px;
+    line-height: 16px;
     height: 40px;
     width: 100%;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
   }
 
   .user-login-other {
     text-align: left;
-    margin-top: 24px;
     line-height: 22px;
 
     .item-icon {

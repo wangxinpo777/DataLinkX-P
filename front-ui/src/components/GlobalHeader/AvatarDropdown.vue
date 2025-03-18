@@ -2,7 +2,7 @@
   <div>
     <a-dropdown v-if="currentUser && currentUser.nickName" placement="bottomRight">
       <span class="ant-pro-account-avatar">
-        <a-avatar size="small" :src="currentUser.avatar || 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'" :alt="currentUser.nickName" />
+        <a-avatar style="margin-right: 8px" size="small" :src="currentUser.avatar || 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'" :alt="currentUser.nickName" />
         <span>{{ currentUser.nickName }}</span>
       </span>
       <template v-slot:overlay>
