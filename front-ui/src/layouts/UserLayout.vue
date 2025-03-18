@@ -70,8 +70,7 @@ export default {
   .container {
     width: 100%;
     min-height: 100%;
-    background: #f0f2f5 url(~@/assets/background.svg) no-repeat 50%;
-    background-size: 100%;
+    background: linear-gradient(to left bottom, rgba(165, 18, 18, 0.8), rgba(255, 106, 0, 0.3)),url(~@/assets/home.png)no-repeat center / cover;
     //padding: 50px 0 84px;
     position: relative;
 
@@ -84,6 +83,7 @@ export default {
       .select-lang-trigger {
         cursor: pointer;
         padding: 12px;
+        color: white;
         margin-right: 24px;
         display: inline-flex;
         align-items: center;
@@ -122,7 +122,8 @@ export default {
 
           .title {
             font-size: 33px;
-            color: rgba(0, 0, 0, .85);
+            color: white;
+            text-shadow: 0 0 0.25px currentColor;
             font-family: Avenir, 'Helvetica Neue', Arial, Helvetica, sans-serif;
             font-weight: 600;
             position: relative;
@@ -131,7 +132,8 @@ export default {
         }
         .desc {
           font-size: 14px;
-          color: rgba(0, 0, 0, 0.45);
+          color: #f5f5f5;
+          text-shadow: 0 0 0.25px currentColor;
           margin-top: 12px;
           margin-bottom: 40px;
         }

@@ -20,7 +20,7 @@ const app = {
   state: {
     sideCollapsed: false,
     isMobile: false,
-    theme: 'dark',
+    theme: 'light',
     layout: '',
     contentWidth: '',
     fixedHeader: false,

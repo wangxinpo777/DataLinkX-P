@@ -1,6 +1,6 @@
 <template>
   <div class="main user-layout-register">
-    <h3><span>{{ $t('user.register.register') }}</span></h3>
+    <h3><span style="color: white;text-shadow: 0 0 0.25px currentColor;">{{ $t('user.register.register') }}</span></h3>
     <a-form ref="formRegister" :form="form" id="formRegister">
       <a-form-item>
         <a-input
@@ -191,6 +191,32 @@ export default {
 </script>
 <style lang="less" scoped>
   .user-layout-register {
+    background: rgba(255, 255, 255, 0.2); /* 轻微透明 */
+    backdrop-filter: blur(10px); /* 玻璃模糊效果 */
+    border-radius: 12px; /* 圆角 */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 轻微阴影，增加立体感 */
+    display: flex;
+    padding: 24px;
+    flex-direction: column;
+
+    button.register-button {
+      background: linear-gradient(to right, #007bff, #0056b3);
+      border: none;
+      font-size: 16px;
+      line-height: 16px;
+      height: 40px;
+      width: 100%;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #0094ff, #0070e0);
+      transform: scale(1.05); /* 轻微放大，提升点击感 */
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3); /* 发光效果 */
+    }
 
     & > h3 {
       font-size: 16px;
@@ -210,6 +236,8 @@ export default {
     .login {
       float: right;
       line-height: 40px;
+      color: white;
+      text-shadow: 0 0 0.25px currentColor;
     }
   }
 </style>

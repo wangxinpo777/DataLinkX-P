@@ -26,7 +26,7 @@
           增加 Header 左侧内容区自定义
     -->
     <template v-slot:headerContentRender>
-      <div>
+      <div style="margin-top: 2px">
         <a-tooltip title="刷新页面">
           <a-icon type="reload" style="font-size: 18px;cursor: pointer;" @click="() => { reload();$message.success('刷新成功') }" />
         </a-tooltip>
