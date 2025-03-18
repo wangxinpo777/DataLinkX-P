@@ -276,7 +276,8 @@ public class DsServiceImpl implements DsService {
 	}
 
 	public List<DsBean> list() {
-		return dsRepository.findAllByIsDel(0).stream()
+		return Optional.ofNullable(dsRepository.findAllByIsDel(0))
+				.orElse(Collections.emptyList()).stream()
 				.sorted(Comparator.comparing(DsBean::getType)).collect(Collectors.toList());
 	}
 
