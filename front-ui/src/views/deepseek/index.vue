@@ -63,7 +63,7 @@
       </div>
       <div class="chat-box" ref="messageContainer">
         <div class="message">
-          <a-icon class="avatar" :component="deepSeek" />
+          <a-icon class="avatar" style="color: rgba(59,130,246)" :component="deepSeek" />
           <div class="message-content">
             <div class="bubble mdTextBox">
               <p>你好，我是 DeepSeek，有什么可以帮助你的吗？</p>
@@ -79,7 +79,7 @@
             <img class="userAvatar" :src="avatar"/>
           </template>
           <template v-else>
-            <a-icon class="avatar" :component="deepSeek" />
+            <a-icon class="avatar" style="color: rgba(59,130,246)" :component="deepSeek" />
             <div class="message-content">
               <div
                 class="bubble2"

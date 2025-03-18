@@ -1,12 +1,12 @@
 <template>
   <div class="ds-list-root">
     <div class="list-left">
-      <ul>
+      <ul class="ant-menu">
         <li
           v-for="ds in dsTypeList"
           :key="ds.value"
-          class="ds-list"
-          :class="{active: ds.dsTypeKey === currentDs.dsTypeKey}"
+          class="ds-list ant-menu-item"
+          :class="{'ant-menu-item-selected': ds.dsTypeKey === currentDs.dsTypeKey}"
           @click="selectDs(ds)"
         >
           <span class="ds-icon">
@@ -70,9 +70,6 @@ import HttpDsSaveOrUpdate from './HttpDsSaveOrUpdate.vue'
 import DsConfig from './DsConfig.vue'
 import { dsTypeList } from './const'
 import { DATA_SOURCE_TYPE } from '@/api/globalConstant'
-import { getCurrentUserNav } from '@/api/login'
-import router from '@/router'
-import { transformMenuToRoutes } from '@/router/generator-routers'
 
 export default {
   name: 'ContainerBottom',
@@ -279,7 +276,6 @@ export default {
   }
   .list-left {
     border-radius: 0px;
-    padding: 0 8px;
     overflow: auto;
     cursor: pointer;
     background-color: #fff;
@@ -297,11 +293,7 @@ export default {
       padding-left: 16px;
       height: 40px;
       position: relative;
-      border-radius: 6px;
       cursor: pointer;
-      &:hover {
-        background-color: rgba(15, 34, 67, 0.05);
-      }
       .ds-icon {
         float: left;
         width: 24px;
@@ -331,7 +323,6 @@ export default {
           height: 20px;
           font-size: 14px;
           display: inline-block;
-          color: rgba(21, 22, 24, 0.72);
           max-width: 90px;
           text-overflow: ellipsis;
           overflow: hidden;
@@ -350,9 +341,6 @@ export default {
           transform: scale(0.86);
         }
       }
-    }
-    .active {
-      background-color: rgba(43, 121, 255, 0.1);
     }
   }
 
