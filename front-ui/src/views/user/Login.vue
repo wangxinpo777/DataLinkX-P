@@ -281,7 +281,11 @@ export default {
   .forge-password {
     font-size: 14px;
   }
-
+  button:hover {
+    background: linear-gradient(to right, #0094ff, #0070e0);
+    transform: scale(1.05); /* 轻微放大，提升点击感 */
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3); /* 发光效果 */
+  }
   button.login-button {
     background: linear-gradient(to right, #007bff, #0056b3);
     border: none;
