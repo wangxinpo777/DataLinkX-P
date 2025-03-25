@@ -76,11 +76,12 @@ public class DeepSeekServiceImpl implements DeepSeekService {
             add(chatContent);
         }};
         // 检查是否是第一次调用（即 contents 仅包含用户的第一条消息）
+        this.model=StringUtils.isNotEmpty(model) ? model : this.model;
         contents = getContents(contents);
         ChatReq chatReq = ChatReq.builder()
                 .messages(contents)
                 .stream(true)
-                .model(StringUtils.isNotEmpty(model) ? model : this.model)
+                .model(this.model)
                 .build();
         String bodyString = JsonUtils.toJson(chatReq);
         String largeModelUrl = deepseekUrl + "/chat/completions";
@@ -126,14 +127,21 @@ public class DeepSeekServiceImpl implements DeepSeekService {
         return contents;
     }
 
-    public void saveMessage(String conversationId, String role, String content, String reasoningContent) {
+    public void saveMessage(String conversationId, String role, String content, String reasoningContent, DeepSeekResponse.Usage usage) {
         MessageBean messageBean = new MessageBean();
+        messageBean.setModel(this.model);
         messageBean.setId(UUID.randomUUID().toString().replaceAll("-", ""));
         messageBean.setConversationId(conversationId);
         messageBean.setRole(role);
         messageBean.setContent(content);
         messageBean.setReasoningContent(reasoningContent);
         messageBean.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        messageBean.setTotalTokens(usage.getTotal_tokens());
+        messageBean.setPromptTokens(usage.getPrompt_tokens());
+        messageBean.setPromptCacheHitTokens(usage.getPrompt_cache_tit_tokens());
+        messageBean.setPromptCacheMissTokens(usage.getPrompt_cache_miss_tokens());
+        messageBean.setReasoningTokens(usage.getReasoning_tokens());
+        messageBean.setCompletionTokens(usage.getCompletion_tokens());
         messageRepository.save(messageBean);
     }
 
@@ -160,11 +168,12 @@ public class DeepSeekServiceImpl implements DeepSeekService {
         RealEventSource realEventSource = new RealEventSource(request, new EventSourceListener() {
             final CopyOnWriteArrayList<DeepSeekResponse> deepSeekResponses = new CopyOnWriteArrayList<>();
             boolean open = false;
+            DeepSeekResponse.Usage usage = new DeepSeekResponse.Usage();
 
             @Override
             public void onOpen(EventSource eventSource, Response response) {
                 // 先保存用户输入
-                saveMessage(conversationId, chatContent.getRole(), chatContent.getContent(), "");
+                saveMessage(conversationId, chatContent.getRole(), chatContent.getContent(), "", usage);
                 open = true;
                 log.info("SSE open");
             }
@@ -182,9 +191,13 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                         String reasoningContent = deepSeekResponse.getChoices().get(0).getDelta().getReasoning_content();
                         if (StringUtils.isNotEmpty(content)) {
                             aiResponse.append(content);
+                        }else{
+                            usage = deepSeekResponse.getUsage();
                         }
                         if (StringUtils.isNotEmpty(reasoningContent)) {
                             aiResponseTemp.append(reasoningContent);
+                        }else{
+                            usage = deepSeekResponse.getUsage();
                         }
                         deepSeekResponses.add(deepSeekResponse);
 
@@ -209,7 +222,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
             @Override
             public void onClosed(EventSource eventSource) {
                 log.info("SSE close");
-                saveMessage(conversationId, "assistant", aiResponse.toString(), aiResponseTemp.toString());
+                saveMessage(conversationId, "assistant", aiResponse.toString(), aiResponseTemp.toString(), usage);
                 open = false;
                 sseEmitter.complete();
                 SseEmitterServer.removeUser(conversationId + "-" + connectId);
@@ -217,7 +230,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
 
             @Override
             public void onFailure(EventSource eventSource, Throwable t, Response response) {
-                saveMessage(conversationId, "assistant", aiResponse.toString(), aiResponseTemp.toString());
+                saveMessage(conversationId, "assistant", aiResponse.toString(), aiResponseTemp.toString(), usage);
                 if (response != null) {
                     String msg;
                     try {

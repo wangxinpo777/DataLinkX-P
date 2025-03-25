@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface MessageRepository extends JpaRepository<MessageBean, String> {
-    @Query(value = "select * from message where conversation_id = :conversationId", nativeQuery = true)
+    @Query(value = "select * from deepseek_message where conversation_id = :conversationId", nativeQuery = true)
     List<MessageBean> findByConversationId(String conversationId);
 }
