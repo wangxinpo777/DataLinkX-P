@@ -16,7 +16,7 @@ import javax.persistence.Table;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "conversation")
+@Table(name = "deepseek_conversation")
 @Data
 @FieldNameConstants
 @SuperBuilder
@@ -24,7 +24,7 @@ import java.sql.Timestamp;
 @DynamicInsert
 @AllArgsConstructor
 @NoArgsConstructor
-@SQLDelete(sql = "update conversation set is_del = 1 where id = ?")
+@SQLDelete(sql = "update deepseek_conversation set is_del = 1 where id = ?")
 public class ConversationBean {
     @Id
     private String id;
@@ -35,6 +35,6 @@ public class ConversationBean {
     private String title;
     @Column(name = "created_at")
     private Timestamp createdAt;
-    @Column(name = "is_del")
+    @Column(name = "is_del", columnDefinition = "int default 0 comment '是否删除'")
     private Integer isDel;
 }

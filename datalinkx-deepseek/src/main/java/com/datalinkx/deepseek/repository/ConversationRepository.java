@@ -10,6 +10,6 @@ import java.util.List;
 @Repository
 public interface ConversationRepository extends JpaRepository<ConversationBean, String> {
 
-    @Query(value = "select * from conversation where user_id = :userId", nativeQuery = true)
+    @Query(value = "select * from deepseek_conversation where user_id = :userId", nativeQuery = true)
     List<ConversationBean> findByUserId(Long userId);
 }
