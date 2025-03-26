@@ -2,8 +2,10 @@ package com.datalinkx.deepseek.controller;
 
 import com.datalinkx.common.result.WebResult;
 import com.datalinkx.common.utils.ObjectUtils;
-import com.datalinkx.deepseek.bean.ConversationBean;
-import com.datalinkx.deepseek.bean.MessageBean;
+import com.datalinkx.deepseek.bean.domain.ConversationBean;
+import com.datalinkx.deepseek.bean.domain.MessageBean;
+import com.datalinkx.deepseek.bean.dto.ChatApiCountDTO;
+import com.datalinkx.deepseek.bean.dto.ChatTokenCountDTO;
 import com.datalinkx.deepseek.model.EventRequest;
 import com.datalinkx.deepseek.repository.ConversationRepository;
 import com.datalinkx.deepseek.service.DeepSeekService;
@@ -61,4 +63,15 @@ public class DeepSeekController {
         });
         return WebResult.of(conversationBean);
     }
+
+    @GetMapping("/dashboard/api/count")
+    public WebResult<List<ChatApiCountDTO>> getChatApiCount(@RequestParam(defaultValue = "deepseek-chat") String model, @RequestParam(required = false) String dateFrom, @RequestParam(required = false) String dateTo) {
+        return WebResult.of(deepSeekService.getChatApiCount(model,dateFrom,dateTo));
+    }
+
+    @GetMapping("/dashboard/token/count")
+    public WebResult<List<ChatTokenCountDTO>> getChatTokenCount(@RequestParam(defaultValue = "deepseek-chat") String model, @RequestParam(required = false) String dateFrom, @RequestParam(required = false) String dateTo) {
+        return WebResult.of(deepSeekService.getChatTokenCount(model,dateFrom,dateTo));
+    }
+
 }

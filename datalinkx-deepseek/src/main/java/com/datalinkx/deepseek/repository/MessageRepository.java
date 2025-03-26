@@ -1,6 +1,6 @@
 package com.datalinkx.deepseek.repository;
 
-import com.datalinkx.deepseek.bean.MessageBean;
+import com.datalinkx.deepseek.bean.domain.MessageBean;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

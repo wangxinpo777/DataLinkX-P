@@ -1,8 +1,10 @@
 package com.datalinkx.deepseek.service.impl;
 
 import com.datalinkx.common.utils.JsonUtils;
-import com.datalinkx.deepseek.bean.ConversationBean;
-import com.datalinkx.deepseek.bean.MessageBean;
+import com.datalinkx.deepseek.bean.domain.ConversationBean;
+import com.datalinkx.deepseek.bean.domain.MessageBean;
+import com.datalinkx.deepseek.bean.dto.ChatApiCountDTO;
+import com.datalinkx.deepseek.bean.dto.ChatTokenCountDTO;
 import com.datalinkx.deepseek.client.DeepSeekClient;
 import com.datalinkx.deepseek.client.request.ChatReq;
 import com.datalinkx.deepseek.client.response.DeepSeekResponse;
@@ -98,15 +100,31 @@ public class DeepSeekServiceImpl implements DeepSeekService {
     public List<MessageBean> getHistoryMessages(String conversationId) {
         return messageRepository.findByConversationId(conversationId)
                 .stream()
-                .sorted(Comparator.comparing(MessageBean::getCreatedAt))
+                .sorted(Comparator.comparing(MessageBean::getCreatedTime))
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<ConversationBean> getHistoryConversations(Long userId) {
         return conversationRepository.findByUserId(userId).stream()
-                .sorted(Comparator.comparing(ConversationBean::getCreatedAt).reversed())
+                .sorted(Comparator.comparing(ConversationBean::getCreatedTime).reversed())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ChatApiCountDTO> getChatApiCount(String model, String dateFrom, String dateTo) {
+        // 转换为 Timestamp
+        Timestamp dateFromTimestamp = Timestamp.valueOf(dateFrom + " 00:00:00");
+        Timestamp dateToTimestamp = Timestamp.valueOf(dateTo + " 23:59:59");
+        return conversationRepository.chatApiCount(model, dateFromTimestamp, dateToTimestamp);
+    }
+
+    @Override
+    public List<ChatTokenCountDTO> getChatTokenCount(String model, String dateFrom, String dateTo) {
+        // 转换为 Timestamp
+        Timestamp dateFromTimestamp = Timestamp.valueOf(dateFrom + " 00:00:00");
+        Timestamp dateToTimestamp = Timestamp.valueOf(dateTo + " 23:59:59");
+        return conversationRepository.chatTokenCount(model, dateFromTimestamp, dateToTimestamp);
     }
 
     private List<ChatReq.Content> getContents(List<ChatReq.Content> contents) {
@@ -135,7 +153,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
         messageBean.setRole(role);
         messageBean.setContent(content);
         messageBean.setReasoningContent(reasoningContent);
-        messageBean.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        messageBean.setCreatedTime(new Timestamp(System.currentTimeMillis()));
         messageBean.setTotalTokens(usage.getTotal_tokens());
         messageBean.setPromptTokens(usage.getPrompt_tokens());
         messageBean.setPromptCacheHitTokens(usage.getPrompt_cache_tit_tokens());
@@ -150,7 +168,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
         conversationBean.setTitle(title);
         conversationBean.setId(conversationId);
         conversationBean.setUserId(userId);
-        conversationBean.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        conversationBean.setCreatedTime(new Timestamp(System.currentTimeMillis()));
         conversationRepository.save(conversationBean);
     }
 

@@ -323,27 +323,34 @@ CREATE TABLE `images`  (
                            PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 71 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
-DROP TABLE IF EXISTS `conversation`;
-CREATE TABLE `conversation`  (
-                                 `id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '会话ID',
-                                 `user_id` bigint NOT NULL COMMENT '用户ID',
-                                 `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '对话标题',
-                                 `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '会话创建时间',
-                                 `is_del` int NULL DEFAULT 0,
-                                 PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '会话记录表' ROW_FORMAT = Dynamic;
+DROP TABLE IF EXISTS `deepseek_conversation`;
+CREATE TABLE `deepseek_conversation` (
+                                         `id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                         `is_del` int DEFAULT '0',
+                                         `title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+                                         `user_id` bigint DEFAULT NULL,
+                                         `created_time` datetime(6) DEFAULT NULL,
+                                         PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='deepseek对话记录表';
 
-DROP TABLE IF EXISTS `message`;
-CREATE TABLE `message`  (
-                            `id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '消息ID',
-                            `conversation_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '会话ID',
-                            `role` enum('user','assistant') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '消息发送方',
-                            `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '消息内容',
-                            `reasoning_content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '消息内容（思考链）',
-                            `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '消息时间',
-                            `is_del` int NULL DEFAULT 0,
-                            PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '消息记录表' ROW_FORMAT = Dynamic;
+DROP TABLE IF EXISTS `deepseek_message`;
+CREATE TABLE `deepseek_message` (
+                                    `id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+                                    `completion_tokens` int DEFAULT '0' COMMENT '模型 completion 产生的 token 数',
+                                    `content` text COLLATE utf8mb4_unicode_ci COMMENT '内容',
+                                    `conversation_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+                                    `is_del` int DEFAULT '0',
+                                    `model` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '模型名称',
+                                    `prompt_cache_hit_tokens` int DEFAULT '0' COMMENT '用户 prompt 中，命中上下文缓存的 token 数',
+                                    `prompt_cache_miss_tokens` int DEFAULT '0' COMMENT '用户 prompt 中，未命中上下文缓存的 token 数',
+                                    `prompt_tokens` int DEFAULT '0' COMMENT '用户 prompt 所包含的 token 数',
+                                    `reasoning_content` text COLLATE utf8mb4_unicode_ci COMMENT '推理模型所产生的思维链',
+                                    `reasoning_tokens` int DEFAULT '0' COMMENT '推理模型所产生的思维链 token 数量',
+                                    `role` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+                                    `total_tokens` int DEFAULT '0' COMMENT '该请求中，所有 token 的数量（prompt + completion）',
+                                    `created_time` datetime(6) DEFAULT NULL,
+                                    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='deepseek消息记录表';
 
 alter table JOB ADD COLUMN  `name` varchar(64) DEFAULT NULL COMMENT '任务名称';;
 

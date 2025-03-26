@@ -1,4 +1,4 @@
-package com.datalinkx.deepseek.bean;
+package com.datalinkx.deepseek.bean.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,8 +33,8 @@ public class ConversationBean {
     private Long userId;
     @Column(name = "title")
     private String title;
-    @Column(name = "created_at")
-    private Timestamp createdAt;
+    @Column(name = "created_time")
+    private Timestamp createdTime;
     @Column(name = "is_del", columnDefinition = "int default 0 comment '是否删除'")
     private Integer isDel;
 }
