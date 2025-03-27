@@ -3,7 +3,10 @@
     <p style="margin-bottom: 10px;font-size: 20px">deepseek-chat</p>
     <a-row :gutter="68">
       <a-col :xs="24" :sm="12" :style="{ marginBottom: ' 24px'}">
-        <number-info :total="12321" :sub-total="17.1">
+        <number-info
+          :total="sumChatApiCount"
+          :sub-total="Math.abs(compareChatApiCount)"
+          :status="compareChatApiCount > 0 ? 'up' : 'down'">
           <span slot="subtitle">
             <span>API 请求次数</span>
           </span>
@@ -27,7 +30,10 @@
         </div>
       </a-col>
       <a-col :xs="24" :sm="12" :style="{ marginBottom: ' 24px'}">
-        <number-info :total="2.7" :sub-total="26.2" status="down">
+        <number-info
+          :total="sumChatTokenCount"
+          :sub-total="Math.abs(compareChatTokenCount)"
+          :status="compareChatTokenCount > 0 ? 'up' : 'down'">
           <span slot="subtitle">
             <span>Tokens</span>
           </span>
@@ -72,7 +78,10 @@
     <p style="margin-bottom: 10px;font-size: 20px">deepseek-reasoner</p>
     <a-row :gutter="68">
       <a-col :xs="24" :sm="12" :style="{ marginBottom: ' 24px'}">
-        <number-info :total="12321" :sub-total="17.1">
+        <number-info
+          :total="sumReasonerApiCount"
+          :sub-total="Math.abs(compareReasonerApiCount)"
+          :status="compareReasonerApiCount > 0 ? 'up' : 'down'">
           <span slot="subtitle">
             <span>API 请求次数</span>
           </span>
@@ -97,7 +106,10 @@
         </div>
       </a-col>
       <a-col :xs="24" :sm="12" :style="{ marginBottom: ' 24px'}">
-        <number-info :total="2.7" :sub-total="26.2" status="down">
+        <number-info
+          :total="sumReasonerTokenCount"
+          :sub-total="Math.abs(compareReasonerTokenCount)"
+          :status="compareReasonerTokenCount > 0 ? 'up' : 'down'">
           <span slot="subtitle">
             <span>Tokens</span>
           </span>
@@ -185,10 +197,45 @@ export default {
       type: Array,
       required: true
     }
+  },
+  computed: {
+    sumChatApiCount () {
+      return this.deepseekChatApiCountData.reduce((acc, cur) => acc + cur.count, 0)
+    },
+    // 计算和昨天相比的增长
+    compareChatApiCount () {
+      return this.deepseekChatApiCountData[this.deepseekChatApiCountData.length - 1].count - this.deepseekChatApiCountData[this.deepseekChatApiCountData.length - 2].count
+    },
+    sumChatTokenCount () {
+      return this.deepseekChatTokenCountData.reduce((acc, cur) => acc + cur.value, 0)
+    },
+    compareChatTokenCount () {
+      return this.deepseekChatTokenCountData[this.deepseekChatTokenCountData.length - 1].value - this.deepseekChatTokenCountData[this.deepseekChatTokenCountData.length - 2].value
+    },
+    sumReasonerApiCount () {
+      return this.deepseekReasonerApiCountData.reduce((acc, cur) => acc + cur.count, 0)
+    },
+    compareReasonerApiCount () {
+      return this.deepseekReasonerApiCountData[this.deepseekReasonerApiCountData.length - 1].count - this.deepseekReasonerApiCountData[this.deepseekReasonerApiCountData.length - 2].count
+    },
+    sumReasonerTokenCount () {
+      return this.deepseekReasonerTokenCountData.reduce((acc, cur) => acc + cur.value, 0)
+    },
+    compareReasonerTokenCount () {
+      return this.deepseekReasonerTokenCountData[this.deepseekReasonerTokenCountData.length - 1].value - this.deepseekReasonerTokenCountData[this.deepseekReasonerTokenCountData.length - 2].value
+    }
   }
 }
 </script>
 
 <style scoped>
+/* 针对 data-icon="caret-down" 的样式 */
+::v-deep [data-icon="caret-down"] {
+  color: red; /* 设置颜色为红色 */
 
+}
+/* 针对 data-icon="caret-up" 的样式 */
+::v-deep [data-icon="caret-up"] {
+  color: green; /* 设置颜色为绿色 */
+}
 </style>

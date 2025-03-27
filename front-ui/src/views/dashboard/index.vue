@@ -19,157 +19,157 @@
         <a-range-picker :allowClear="false" v-model="pickDate" :style="{width: '256px'}" @change="selectedDate=[];deepseekinit()"/>
       </div>
     </a-card>
-    <a-row :gutter="24">
-      <a-col :sm="24" :md="12" :xl="12" :style="{ marginBottom: '24px' }">
-        <chart-card :loading="loading" :title="$t('dashboard.analysis.total-sales')" total="￥126,560">
-          <a-tooltip :title="$t('dashboard.analysis.introduce')" slot="action">
-            <a-icon type="info-circle-o"/>
-          </a-tooltip>
-          <div>
-            <trend flag="up" style="margin-right: 16px;">
-              <span slot="term">{{ $t('dashboard.analysis.week') }}</span>
-              12%
-            </trend>
-            <trend flag="down">
-              <span slot="term">{{ $t('dashboard.analysis.day') }}</span>
-              11%
-            </trend>
-          </div>
-          <template slot="footer">{{ $t('dashboard.analysis.day-sales') }}<span>￥ 234.56</span></template>
-        </chart-card>
-      </a-col>
-      <a-col :sm="24" :md="12" :xl="12" :style="{ marginBottom: '24px' }">
-        <chart-card :loading="loading" :title="$t('dashboard.analysis.visits')" :total="8846 | NumberFormat">
-          <a-tooltip :title="$t('dashboard.analysis.introduce')" slot="action">
-            <a-icon type="info-circle-o"/>
-          </a-tooltip>
-          <div>
-            <mini-area/>
-          </div>
-          <template slot="footer">{{ $t('dashboard.analysis.day-visits') }}<span> {{ '1234' | NumberFormat }}</span>
-          </template>
-        </chart-card>
-      </a-col>
-      <a-col :sm="24" :md="12" :xl="12" :style="{ marginBottom: '24px' }">
-        <chart-card :loading="loading" :title="$t('dashboard.analysis.payments')" :total="6560 | NumberFormat">
-          <a-tooltip :title="$t('dashboard.analysis.introduce')" slot="action">
-            <a-icon type="info-circle-o"/>
-          </a-tooltip>
-          <div>
-            <mini-bar/>
-          </div>
-          <template slot="footer">{{ $t('dashboard.analysis.conversion-rate') }} <span>60%</span></template>
-        </chart-card>
-      </a-col>
-      <a-col :sm="24" :md="12" :xl="12" :style="{ marginBottom: '24px' }">
-        <chart-card :loading="loading" :title="$t('dashboard.analysis.operational-effect')" total="78%">
-          <a-tooltip :title="$t('dashboard.analysis.introduce')" slot="action">
-            <a-icon type="info-circle-o"/>
-          </a-tooltip>
-          <div>
-            <mini-progress color="rgb(19, 194, 194)" :target="80" :percentage="78" height="8px"/>
-          </div>
-          <template slot="footer">
-            <trend flag="down" style="margin-right: 16px;">
-              <span slot="term">{{ $t('dashboard.analysis.week') }}</span>
-              12%
-            </trend>
-            <trend flag="up">
-              <span slot="term">{{ $t('dashboard.analysis.day') }}</span>
-              80%
-            </trend>
-          </template>
-        </chart-card>
-      </a-col>
-    </a-row>
-    <div class="antd-pro-pages-dashboard-analysis-twoColLayout" :class="!isMobile && 'desktop'">
-      <a-row :gutter="24" type="flex">
-        <a-col :xl="12" :lg="24" :md="24" :sm="24" :xs="24">
-          <a-card
-            :loading="loading"
-            :bordered="false"
-            :title="$t('dashboard.analysis.online-top-search')"
-            :style="{ height: '100%' }">
-            <a-dropdown :trigger="['click']" placement="bottomLeft" slot="extra">
-              <a class="ant-dropdown-link" href="#">
-                <a-icon type="ellipsis"/>
-              </a>
-              <a-menu slot="overlay">
-                <a-menu-item>
-                  <a href="javascript:;">{{ $t('dashboard.analysis.dropdown-option-one') }}</a>
-                </a-menu-item>
-                <a-menu-item>
-                  <a href="javascript:;">{{ $t('dashboard.analysis.dropdown-option-two') }}</a>
-                </a-menu-item>
-              </a-menu>
-            </a-dropdown>
-            <div class="ant-table-wrapper">
-              <a-table
-                row-key="index"
-                size="small"
-                :columns="searchTableColumns"
-                :dataSource="searchData"
-                :pagination="{ pageSize: 5 }"
-              >
-                <span slot="range" slot-scope="text, record">
-                  <trend :flag="record.status === 0 ? 'up' : 'down'">
-                    {{ text }}%
-                  </trend>
-                </span>
-              </a-table>
-            </div>
-          </a-card>
-        </a-col>
-        <a-col :xl="12" :lg="24" :md="24" :sm="24" :xs="24">
-          <a-card
-            class="antd-pro-pages-dashboard-analysis-salesCard"
-            :loading="loading"
-            :bordered="false"
-            :title="$t('dashboard.analysis.the-proportion-of-sales')"
-            :style="{ height: '100%' }">
-            <div slot="extra" style="height: inherit;">
-              <!-- style="bottom: 12px;display: inline-block;" -->
-              <span class="dashboard-analysis-iconGroup">
-                <a-dropdown :trigger="['click']" placement="bottomLeft">
-                  <a-icon type="ellipsis" class="ant-dropdown-link"/>
-                  <a-menu slot="overlay">
-                    <a-menu-item>
-                      <a href="javascript:;">{{ $t('dashboard.analysis.dropdown-option-one') }}</a>
-                    </a-menu-item>
-                    <a-menu-item>
-                      <a href="javascript:;">{{ $t('dashboard.analysis.dropdown-option-two') }}</a>
-                    </a-menu-item>
-                  </a-menu>
-                </a-dropdown>
-              </span>
-              <div class="analysis-salesTypeRadio">
-                <a-radio-group defaultValue="a">
-                  <a-radio-button value="a">{{ $t('dashboard.analysis.channel.all') }}</a-radio-button>
-                  <a-radio-button value="b">{{ $t('dashboard.analysis.channel.online') }}</a-radio-button>
-                  <a-radio-button value="c">{{ $t('dashboard.analysis.channel.stores') }}</a-radio-button>
-                </a-radio-group>
-              </div>
+    <!--    <a-row :gutter="24">-->
+    <!--      <a-col :sm="24" :md="12" :xl="12" :style="{ marginBottom: '24px' }">-->
+    <!--        <chart-card :loading="loading" :title="$t('dashboard.analysis.total-sales')" total="￥126,560">-->
+    <!--          <a-tooltip :title="$t('dashboard.analysis.introduce')" slot="action">-->
+    <!--            <a-icon type="info-circle-o"/>-->
+    <!--          </a-tooltip>-->
+    <!--          <div>-->
+    <!--            <trend flag="up" style="margin-right: 16px;">-->
+    <!--              <span slot="term">{{ $t('dashboard.analysis.week') }}</span>-->
+    <!--              12%-->
+    <!--            </trend>-->
+    <!--            <trend flag="down">-->
+    <!--              <span slot="term">{{ $t('dashboard.analysis.day') }}</span>-->
+    <!--              11%-->
+    <!--            </trend>-->
+    <!--          </div>-->
+    <!--          <template slot="footer">{{ $t('dashboard.analysis.day-sales') }}<span>￥ 234.56</span></template>-->
+    <!--        </chart-card>-->
+    <!--      </a-col>-->
+    <!--      <a-col :sm="24" :md="12" :xl="12" :style="{ marginBottom: '24px' }">-->
+    <!--        <chart-card :loading="loading" :title="$t('dashboard.analysis.visits')" :total="8846 | NumberFormat">-->
+    <!--          <a-tooltip :title="$t('dashboard.analysis.introduce')" slot="action">-->
+    <!--            <a-icon type="info-circle-o"/>-->
+    <!--          </a-tooltip>-->
+    <!--          <div>-->
+    <!--            <mini-area/>-->
+    <!--          </div>-->
+    <!--          <template slot="footer">{{ $t('dashboard.analysis.day-visits') }}<span> {{ '1234' | NumberFormat }}</span>-->
+    <!--          </template>-->
+    <!--        </chart-card>-->
+    <!--      </a-col>-->
+    <!--      <a-col :sm="24" :md="12" :xl="12" :style="{ marginBottom: '24px' }">-->
+    <!--        <chart-card :loading="loading" :title="$t('dashboard.analysis.payments')" :total="6560 | NumberFormat">-->
+    <!--          <a-tooltip :title="$t('dashboard.analysis.introduce')" slot="action">-->
+    <!--            <a-icon type="info-circle-o"/>-->
+    <!--          </a-tooltip>-->
+    <!--          <div>-->
+    <!--            <mini-bar/>-->
+    <!--          </div>-->
+    <!--          <template slot="footer">{{ $t('dashboard.analysis.conversion-rate') }} <span>60%</span></template>-->
+    <!--        </chart-card>-->
+    <!--      </a-col>-->
+    <!--      <a-col :sm="24" :md="12" :xl="12" :style="{ marginBottom: '24px' }">-->
+    <!--        <chart-card :loading="loading" :title="$t('dashboard.analysis.operational-effect')" total="78%">-->
+    <!--          <a-tooltip :title="$t('dashboard.analysis.introduce')" slot="action">-->
+    <!--            <a-icon type="info-circle-o"/>-->
+    <!--          </a-tooltip>-->
+    <!--          <div>-->
+    <!--            <mini-progress color="rgb(19, 194, 194)" :target="80" :percentage="78" height="8px"/>-->
+    <!--          </div>-->
+    <!--          <template slot="footer">-->
+    <!--            <trend flag="down" style="margin-right: 16px;">-->
+    <!--              <span slot="term">{{ $t('dashboard.analysis.week') }}</span>-->
+    <!--              12%-->
+    <!--            </trend>-->
+    <!--            <trend flag="up">-->
+    <!--              <span slot="term">{{ $t('dashboard.analysis.day') }}</span>-->
+    <!--              80%-->
+    <!--            </trend>-->
+    <!--          </template>-->
+    <!--        </chart-card>-->
+    <!--      </a-col>-->
+    <!--    </a-row>-->
+    <!--    <div class="antd-pro-pages-dashboard-analysis-twoColLayout" :class="!isMobile && 'desktop'">-->
+    <!--      <a-row :gutter="24" type="flex">-->
+    <!--        <a-col :xl="12" :lg="24" :md="24" :sm="24" :xs="24">-->
+    <!--          <a-card-->
+    <!--            :loading="loading"-->
+    <!--            :bordered="false"-->
+    <!--            :title="$t('dashboard.analysis.online-top-search')"-->
+    <!--            :style="{ height: '100%' }">-->
+    <!--            <a-dropdown :trigger="['click']" placement="bottomLeft" slot="extra">-->
+    <!--              <a class="ant-dropdown-link" href="#">-->
+    <!--                <a-icon type="ellipsis"/>-->
+    <!--              </a>-->
+    <!--              <a-menu slot="overlay">-->
+    <!--                <a-menu-item>-->
+    <!--                  <a href="javascript:;">{{ $t('dashboard.analysis.dropdown-option-one') }}</a>-->
+    <!--                </a-menu-item>-->
+    <!--                <a-menu-item>-->
+    <!--                  <a href="javascript:;">{{ $t('dashboard.analysis.dropdown-option-two') }}</a>-->
+    <!--                </a-menu-item>-->
+    <!--              </a-menu>-->
+    <!--            </a-dropdown>-->
+    <!--            <div class="ant-table-wrapper">-->
+    <!--              <a-table-->
+    <!--                row-key="index"-->
+    <!--                size="small"-->
+    <!--                :columns="searchTableColumns"-->
+    <!--                :dataSource="searchData"-->
+    <!--                :pagination="{ pageSize: 5 }"-->
+    <!--              >-->
+    <!--                <span slot="range" slot-scope="text, record">-->
+    <!--                  <trend :flag="record.status === 0 ? 'up' : 'down'">-->
+    <!--                    {{ text }}%-->
+    <!--                  </trend>-->
+    <!--                </span>-->
+    <!--              </a-table>-->
+    <!--            </div>-->
+    <!--          </a-card>-->
+    <!--        </a-col>-->
+    <!--        <a-col :xl="12" :lg="24" :md="24" :sm="24" :xs="24">-->
+    <!--          <a-card-->
+    <!--            class="antd-pro-pages-dashboard-analysis-salesCard"-->
+    <!--            :loading="loading"-->
+    <!--            :bordered="false"-->
+    <!--            :title="$t('dashboard.analysis.the-proportion-of-sales')"-->
+    <!--            :style="{ height: '100%' }">-->
+    <!--            <div slot="extra" style="height: inherit;">-->
+    <!--              &lt;!&ndash; style="bottom: 12px;display: inline-block;" &ndash;&gt;-->
+    <!--              <span class="dashboard-analysis-iconGroup">-->
+    <!--                <a-dropdown :trigger="['click']" placement="bottomLeft">-->
+    <!--                  <a-icon type="ellipsis" class="ant-dropdown-link"/>-->
+    <!--                  <a-menu slot="overlay">-->
+    <!--                    <a-menu-item>-->
+    <!--                      <a href="javascript:;">{{ $t('dashboard.analysis.dropdown-option-one') }}</a>-->
+    <!--                    </a-menu-item>-->
+    <!--                    <a-menu-item>-->
+    <!--                      <a href="javascript:;">{{ $t('dashboard.analysis.dropdown-option-two') }}</a>-->
+    <!--                    </a-menu-item>-->
+    <!--                  </a-menu>-->
+    <!--                </a-dropdown>-->
+    <!--              </span>-->
+    <!--              <div class="analysis-salesTypeRadio">-->
+    <!--                <a-radio-group defaultValue="a">-->
+    <!--                  <a-radio-button value="a">{{ $t('dashboard.analysis.channel.all') }}</a-radio-button>-->
+    <!--                  <a-radio-button value="b">{{ $t('dashboard.analysis.channel.online') }}</a-radio-button>-->
+    <!--                  <a-radio-button value="c">{{ $t('dashboard.analysis.channel.stores') }}</a-radio-button>-->
+    <!--                </a-radio-group>-->
+    <!--              </div>-->
 
-            </div>
-            <h4>{{ $t('dashboard.analysis.sales') }}</h4>
-            <div>
-              <!-- style="width: calc(100% - 240px);" -->
-              <div>
-                <v-chart :force-fit="true" :height="405" :data="pieData" :scale="pieScale">
-                  <v-tooltip :showTitle="false" dataKey="item*percent"/>
-                  <v-axis/>
-                  <!-- position="right" :offsetX="-140" -->
-                  <v-legend dataKey="item"/>
-                  <v-pie position="percent" color="item" :vStyle="pieStyle"/>
-                  <v-coord type="theta" :radius="0.75" :innerRadius="0.6"/>
-                </v-chart>
-              </div>
+    <!--            </div>-->
+    <!--            <h4>{{ $t('dashboard.analysis.sales') }}</h4>-->
+    <!--            <div>-->
+    <!--              &lt;!&ndash; style="width: calc(100% - 240px);" &ndash;&gt;-->
+    <!--              <div>-->
+    <!--                <v-chart :force-fit="true" :height="405" :data="pieData" :scale="pieScale">-->
+    <!--                  <v-tooltip :showTitle="false" dataKey="item*percent"/>-->
+    <!--                  <v-axis/>-->
+    <!--                  &lt;!&ndash; position="right" :offsetX="-140" &ndash;&gt;-->
+    <!--                  <v-legend dataKey="item"/>-->
+    <!--                  <v-pie position="percent" color="item" :vStyle="pieStyle"/>-->
+    <!--                  <v-coord type="theta" :radius="0.75" :innerRadius="0.6"/>-->
+    <!--                </v-chart>-->
+    <!--              </div>-->
 
-            </div>
-          </a-card>
-        </a-col>
-      </a-row>
-    </div>
+    <!--            </div>-->
+    <!--          </a-card>-->
+    <!--        </a-col>-->
+    <!--      </a-row>-->
+    <!--    </div>-->
   </div>
 </template>
 
@@ -309,12 +309,14 @@ export default {
   },
   methods: {
     deepseekinit () {
+      this.loading = true
       const dateFrom = this.pickDate[0].format('YYYY-MM-DD')
       const dateTo = this.pickDate[1].format('YYYY-MM-DD')
       this.deepseekApiCount(this.deepseekChat, dateFrom, dateTo)
       this.deepseekApiCount(this.deepseekReasoner, dateFrom, dateTo)
       this.deepseekTokenCount(this.deepseekChat, dateFrom, dateTo)
       this.deepseekTokenCount(this.deepseekReasoner, dateFrom, dateTo)
+      this.loading = false
     },
     deepseekApiCount (model, dateFrom, dateTo) {
       deepseekApiCount({ model: model, dateFrom: dateFrom, dateTo: dateTo }).then((res) => {
@@ -422,11 +424,6 @@ export default {
         }
       ]
     }
-  },
-  created () {
-    setTimeout(() => {
-      this.loading = !this.loading
-    }, 1000)
   }
 }
 </script>
