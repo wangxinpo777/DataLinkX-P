@@ -1,4 +1,4 @@
-package com.datalinkx.deepseek.bean;
+package com.datalinkx.deepseek.bean.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,8 +35,8 @@ public class MessageBean {
     private String content;
     @Column(name = "reasoning_content", columnDefinition = "text comment '推理模型所产生的思维链'")
     private String reasoningContent;
-    @Column(name = "created_at")
-    private Timestamp createdAt;
+    @Column(name = "created_time")
+    private Timestamp createdTime;
     @Column(name = "completion_tokens", columnDefinition = "int default 0 comment '模型 completion 产生的 token 数'")
     private int completionTokens; // 模型 completion 产生的 token 数。
     @Column(name = "prompt_tokens", columnDefinition = "int default 0 comment '用户 prompt 所包含的 token 数'")

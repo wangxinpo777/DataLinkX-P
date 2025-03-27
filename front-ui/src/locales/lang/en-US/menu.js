@@ -14,7 +14,7 @@ export default {
   'menu.taskrelationmap': 'TaskBlood',
   'menu.taskrelationlist': 'TaskRelationList',
   'menu.systemMonitor': 'systemMonitor',
-  // 'menu.dashboard': 'Dashboard',
+  'menu.dashboard': 'Dashboard',
   // 'menu.dashboard.analysis': 'Analysis',
   // 'menu.dashboard.monitor': 'Monitor',
   // 'menu.dashboard.workplace': 'Workplace',
@@ -33,6 +33,8 @@ export default {
   // 'menu.list.search-list.articles': 'Search List(articles)',
   // 'menu.list.search-list.projects': 'Search List(projects)',
   // 'menu.list.search-list.applications': 'Search List(applications)',
+  'menu.system.management': 'System Management',
+  'menu.role.management': 'Role Management',
   'menu.profile': 'Profile',
   'menu.profile.basic': 'Basic Profile',
   'menu.profile.advanced': 'Advanced Profile',
@@ -48,5 +50,6 @@ export default {
   'menu.account.center': 'Account Center',
   'menu.account.settings': 'Account Settings',
   'menu.account.trigger': 'Trigger Error',
-  'menu.account.logout': 'Logout'
+  'menu.account.logout': 'Logout',
+  'VisualAnalysis': 'VisualAnalysis'
 }

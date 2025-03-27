@@ -17,7 +17,7 @@ export default {
   'menu.systemMonitor': '系统监控',
   'menu.systemMenu': '菜单管理',
 
-  // 'menu.dashboard': '仪表盘',
+  'menu.dashboard': '仪表盘',
   // 'menu.dashboard.analysis': '分析页',
   // 'menu.dashboard.monitor': '监控页',
   // 'menu.dashboard.workplace': '工作台',
@@ -36,6 +36,8 @@ export default {
   // 'menu.list.search-list.articles': '搜索列表（文章）',
   // 'menu.list.search-list.projects': '搜索列表（项目）',
   // 'menu.list.search-list.applications': '搜索列表（应用）',
+  'menu.system.management': '系统管理',
+  'menu.role.management': '角色管理',
   'menu.profile': '详情页',
   'menu.profile.basic': '基础详情页',
   'menu.profile.advanced': '高级详情页',
@@ -51,5 +53,6 @@ export default {
   'menu.account.center': '个人中心',
   'menu.account.settings': '个人设置',
   'menu.account.trigger': '触发报错',
-  'menu.account.logout': '退出登录'
+  'menu.account.logout': '退出登录',
+  'VisualAnalysis': '可视化分析'
 }
