@@ -1,6 +1,34 @@
-在作者（SplitfireUptown）原项目<a href=https://github.com/SplitfireUptown/datalinkx>DatalinkX</a>基础上深度融合安全管控与AI能力，构建了包含用户权限管理、多模型智能对话、可视化BI分析的全栈解决方案。通过Spring Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对话与文件解析，创新性拓展Python/HTML脚本执行环境，并打造拖拽式数据看板实现多源数据动态可视化
+在作者（SplitfireUptown）原项目<a href=https://github.com/SplitfireUptown/datalinkx>DatalinkX</a>
+基础上深度融合安全管控与AI能力，构建了包含用户权限管理、多模型智能对话、可视化BI分析的全栈解决方案。通过Spring
+Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对话与文件解析，创新性拓展Python/HTML脚本执行环境，并打造拖拽式数据看板实现多源数据动态可视化
 
 ## 扩展点
+
+### 前端：
+
+### 1.添加仪表盘
+
+![输入图片说明](datalinkx-server/src/main/resources/readme/dashboard.png)
+
+### 2.添加DeepSeek大模型（支持文件上传、模型切换`DeepSeek-R1`、`DeepSeek-V3`））
+
+![输入图片说明](datalinkx-server/src/main/resources/readme/deepseek.png)
+
+### 3.支持直接运行Python脚本、HTML代码
+
+![输入图片说明](datalinkx-server/src/main/resources/readme/Python.png)
+
+### 4.添加可视化BI,支持`上传数据`、`从数据库读取`、`自定义可视化`、`动态编辑`
+
+![输入图片说明](datalinkx-server/src/main/resources/readme/BI.png)
+
+![输入图片说明](datalinkx-server/src/main/resources/readme/BI2.png)
+
+### 5.添加用户管理
+
+![输入图片说明](datalinkx-server/src/main/resources/readme/security.png)
+
+#### 以及其他样式调整、功能优化等
 
 ### 后端：
 
@@ -19,29 +47,11 @@
 
 - DeepSeek大模型模块
 
-### 前端：
-
-### 1.添加用户管理
-
-![输入图片说明](datalinkx-server/src/main/resources/readme/security.png)
-
-### 2.添加DeepSeek大模型（支持文件上传、模型切换`DeepSeek-R1`、`DeepSeek-V3`））
-
-![输入图片说明](datalinkx-server/src/main/resources/readme/deepseek.png)
-
-### 3.支持直接运行Python脚本、HTML代码
-
-![输入图片说明](datalinkx-server/src/main/resources/readme/Python.png)
-
-### 4.添加可视化BI,支持`上传数据`、`从数据库读取`、`自定义可视化`、`动态编辑`
-
-![输入图片说明](datalinkx-server/src/main/resources/readme/BI.png)
-
-![输入图片说明](datalinkx-server/src/main/resources/readme/BI2.png)
-
 ## 项目启动
+
 1. 在`datalinkx-server`模块下编辑`application.yml`，配置mysql、redis、deepseek API key即可，启动`datalinkx-server`后端服务
 2. 在`front-ui`目录下运行`yarn install`安装前端项目依赖模块，再运行`yarn serve`即可启动前端服务
+
 ### 完成后就可以愉快的体验啦
 
 ## 异构数据源同步服务DatalinkX介绍
