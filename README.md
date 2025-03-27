@@ -4,23 +4,6 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 
 ## 扩展点
 
-### 后端：
-
-### 1.添加用户管理模块`datalinkx-security`
-
-基于RuoYi，通过引入SpringSecurity和JWT实现了用户管理模块，包括用户管理、角色管理、权限管理、菜单管理等功能
-
-- 用户管理
-- 角色管理
-- 权限管理
-- 菜单管理
-
-### 2.添加DeepSeek大模型模块`datalinkx-deepseek`
-
-接入DeepSeekAPI，通过SSE（Server-Send Events）实现了大模型流式输出，多伦对话等功能
-
-- DeepSeek大模型模块
-
 ### 前端：
 
 ### 1.添加仪表盘
@@ -46,6 +29,23 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 ![输入图片说明](datalinkx-server/src/main/resources/readme/security.png)
 
 #### 以及其他样式调整、功能优化等
+
+### 后端：
+
+### 1.添加用户管理模块`datalinkx-security`
+
+基于RuoYi，通过引入SpringSecurity和JWT实现了用户管理模块，包括用户管理、角色管理、权限管理、菜单管理等功能
+
+- 用户管理
+- 角色管理
+- 权限管理
+- 菜单管理
+
+### 2.添加DeepSeek大模型模块`datalinkx-deepseek`
+
+接入DeepSeekAPI，通过SSE（Server-Send Events）实现了大模型流式输出，多伦对话等功能
+
+- DeepSeek大模型模块
 
 ## 项目启动
 
