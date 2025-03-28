@@ -316,7 +316,9 @@ export default {
       this.deepseekApiCount(this.deepseekReasoner, dateFrom, dateTo)
       this.deepseekTokenCount(this.deepseekChat, dateFrom, dateTo)
       this.deepseekTokenCount(this.deepseekReasoner, dateFrom, dateTo)
-      this.loading = false
+      setTimeout(() => {
+        this.loading = false
+      }, 1000)
     },
     deepseekApiCount (model, dateFrom, dateTo) {
       deepseekApiCount({ model: model, dateFrom: dateFrom, dateTo: dateTo }).then((res) => {

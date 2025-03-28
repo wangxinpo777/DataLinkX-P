@@ -109,9 +109,9 @@ PS D:\Data\datalinkx> cd .\front-ui\
 PS D:\Data\datalinkx\front-ui> yarn install
 PS D:\Data\datalinkx\front-ui> yarn run serve
 ```
+### 完成后就可以愉快的体验啦，可以使用默认用户（admin）或者自己注册
 
-
-### 完成后就可以愉快的体验啦
+![输入图片说明](datalinkx-server/src/main/resources/readme/login.png)
 
 ## 异构数据源同步服务DatalinkX介绍
 
