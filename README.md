@@ -52,7 +52,7 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 
 - 编辑`datalinkx-server/src/main/resources/application.yml`
 
-- 修改`redis`密码`password为`自己的密码
+- 修改`redis`密码`password`为自己的密码
 
 ```yml
 redis:
