@@ -202,7 +202,4 @@ a {
 *::before,*::after{
   box-sizing: border-box;
 }
-::v-deep input {
-  border-radius: 8px;
-}
 </style>

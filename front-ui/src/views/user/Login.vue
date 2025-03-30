@@ -91,7 +91,7 @@
 import TwoStepCaptcha from '@/components/tools/TwoStepCaptcha'
 import { mapActions } from 'vuex'
 import { timeFix } from '@/utils/util'
-import { getSmsCaptcha, get2step } from '@/api/login'
+import { get2step, getSmsCaptcha } from '@/api/login'
 import { encrypt } from '@/utils/encrypt'
 
 export default {
@@ -320,5 +320,8 @@ export default {
       float: right;
     }
   }
+}
+::v-deep input {
+  border-radius: 8px;
 }
 </style>

@@ -90,12 +90,17 @@
             <div class="checkbox-item">
               <a-checkbox v-model="showMarkLine">显示标记线</a-checkbox>
             </div>
-            <div class="checkbox-group-container">
+            <div class="checkbox-group-container" v-if="YIndex.length > 0">
               <a-checkbox-group v-model="selectedYIndex">
                 <div class="checkbox-item" v-for="option in YIndex" :key="option" @click="chooseLine = option" :class="{ activeLine: chooseLine === option }">
                   <a-checkbox :value="option">{{ option }}</a-checkbox>
                 </div>
               </a-checkbox-group>
+            </div>
+            <div style="margin-top: 5px;text-align: right" class="checkbox-item" v-if="YIndex.length > 0">
+              <a-checkbox :indeterminate="indeterminate" :checked="checkAll" @change="onCheckAllChange">
+                全选
+              </a-checkbox>
             </div>
           </div>
           <div v-show="activeKey === 'X-Index'">
@@ -129,40 +134,38 @@
               <a-checkbox v-model="chartStyles[chooseLine].showDataLabel">显示数据标签</a-checkbox>
             </div>
           </div>
-          <div class="table-item">
-            <template v-if="chartStyles[chooseLine].showDataLabel">
-              <div class="section-title">数据标签设置</div>
-              <p>位置</p>
-              <a-select v-model="chartStyles[chooseLine].position" style="width: 100%;margin-bottom: 10px;" placeholder="位置" :options="positions">
-              </a-select>
-              <p>颜色</p>
-              <compact
-                v-model="chartStyles[chooseLine].labelColor"
-                style="width: 100%; margin-bottom: 10px;"/>
-              <p>格式化</p>
-              <a-select
-                v-model="chartStyles[chooseLine].formatter"
-                style="width: 100%; margin-bottom: 10px;"
-                placeholder="格式化"
-                :options="formatterOptions">
-              </a-select>
-              <p>字体大小</p>
-              <a-input-number
-                v-model="chartStyles[chooseLine].fontSize"
-                :min="12"
-                :max="24"
-                style="width: 100%; margin-bottom: 10px;"
-                placeholder="字体大小"
-              />
-              <p>字体粗细</p>
-              <a-select
-                v-model="chartStyles[chooseLine].fontWeight"
-                style="width: 100%; margin-bottom: 10px;"
-                placeholder="字体粗细">
-                <a-select-option value="normal">正常</a-select-option>
-                <a-select-option value="bold">加粗</a-select-option>
-              </a-select>
-            </template>
+          <div class="table-item" v-if="chartStyles[chooseLine].showDataLabel">
+            <div class="section-title">数据标签设置</div>
+            <p>位置</p>
+            <a-select v-model="chartStyles[chooseLine].position" style="width: 100%;margin-bottom: 10px;" placeholder="位置" :options="positions">
+            </a-select>
+            <p>颜色</p>
+            <compact
+              v-model="chartStyles[chooseLine].labelColor"
+              style="width: 100%; margin-bottom: 10px;"/>
+            <p>格式化</p>
+            <a-select
+              v-model="chartStyles[chooseLine].formatter"
+              style="width: 100%; margin-bottom: 10px;"
+              placeholder="格式化"
+              :options="formatterOptions">
+            </a-select>
+            <p>字体大小</p>
+            <a-input-number
+              v-model="chartStyles[chooseLine].fontSize"
+              :min="12"
+              :max="24"
+              style="width: 100%; margin-bottom: 10px;"
+              placeholder="字体大小"
+            />
+            <p>字体粗细</p>
+            <a-select
+              v-model="chartStyles[chooseLine].fontWeight"
+              style="width: 100%; margin-bottom: 10px;"
+              placeholder="字体粗细">
+              <a-select-option value="normal">正常</a-select-option>
+              <a-select-option value="bold">加粗</a-select-option>
+            </a-select>
           </div>
         </a-card>
       </div>
@@ -200,9 +203,11 @@ export default {
       form: this.$form.createForm(this),
       showTable: false,
       showDataSource: false,
+      indeterminate: true,
+      checkAll: false,
       // 基础设置
       chartType: 'line',
-      chartTypes: [{ 'icon-type': 'line-chart', label: '折线图', type: 'line' }, { 'icon-type': 'bar-chart', label: '柱状图', type: 'bar' }, { 'icon-type': 'dot-chart', label: '散点图', type: 'scatter' }],
+      chartTypes: [{ 'icon-type': 'line-chart', label: '折线图', type: 'line' }, { 'icon-type': 'bar-chart', label: '柱状图', type: 'bar' }, { 'icon-type': 'dot-chart', label: '散点图', type: 'scatter' }, { 'icon-type': 'pie-chart', label: '饼图', type: 'pie' }],
       showToolbox: true,
 
       // 坐标轴设置
@@ -307,22 +312,29 @@ export default {
           this.hot.destroy()
         }
         const container = this.$refs.chartTable
+        // 确保 chartJsonData 至少有列头
+        if (!this.chartJsonData || this.chartJsonData.length === 0) {
+          this.chartJsonData = [['列1', '列2', '列3', '列4', '列5'], ['', '', '', '', '']]
+        }
         this.hot = new Handsontable(container, {
-          data: this.chartJsonData.slice(1),
+          data: this.chartJsonData.slice(1), // 只填充数据部分
           contextMenu: true,
           language: 'zh-CN',
           rowHeaders: true,
-          colHeaders: this.chartJsonData[0],
+          colHeaders: this.chartJsonData[0], // 第一行作为列头
           height: '50%',
           autoWrapRow: false,
           autoWrapCol: false,
+          minRows: 5, // 设置最少行数，确保空表格可编辑
+          minCols: this.chartJsonData[0].length || 5, // 保持列数
           afterChange: (changes) => {
             if (changes) {
               this.chartJsonData = [this.hot.getColHeader()].concat(this.hot.getData())
+              this.initChartData()
               this.chartData = this.convertJsonToObject()
             }
           },
-          licenseKey: 'non-commercial-and-evaluation' // 如果你是非商业用户
+          licenseKey: 'non-commercial-and-evaluation'
         })
       }, 300)
     },
@@ -340,9 +352,9 @@ export default {
       return result
     },
     initChartData () {
-      this.YIndex = this.chartJsonData[0]
+      this.YIndex = this.chartJsonData[0].filter((item) => item)
       this.XIndex = this.chartJsonData[0]
-      this.selectedYIndex = this.YIndex
+      this.selectedYIndex = this.YIndex.slice(1).filter((item) => item)
       this.selectedXIndex = this.XIndex[0]
       this.chooseLine = this.selectedYIndex[0]
       this.chartData = this.convertJsonToObject()
@@ -399,6 +411,13 @@ export default {
           this.chartJsonData = data
           this.initChartData()
         }
+      })
+    },
+    onCheckAllChange (e) {
+      Object.assign(this, {
+        selectedYIndex: e.target.checked ? this.YIndex : [],
+        indeterminate: false,
+        checkAll: e.target.checked
       })
     },
     fetchDsList () {
