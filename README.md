@@ -48,6 +48,11 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 - DeepSeek大模型模块
 
 ## 项目启动
+
+### 数据库准备
+
+在数据库连接工具运行项目目录/datalinkx-server/src/main/resources/db.sql文件（默认创建数据库`datalinkx`）
+
 ### 后端
 
 - 编辑`datalinkx-server/src/main/resources/application.yml`
@@ -63,7 +68,7 @@ redis:
   timeout: 10000
 ```
 
-- 修改`MySQL`数据库`url`中的`datalinkx`为自己的数据库，`password`为自己的密码
+- 修改`MySQL`数据库`url`中的`datalinkx`为自己的数据库（默认可以不用更换），`password`为自己的密码
 
 ```yml
 datasource:
