@@ -117,12 +117,13 @@
 <script>
 import { fetchTables, listQuery } from '@/api/datasource/datasource'
 import { getObj, streamAddObj, streamModifyObj } from '@/api/job/job'
-import LoadingDx from './../../components/common/loading-dx.vue'
 import { dsImgObj } from './../datasource/const'
+import LoadingData from '@/components/common/loading-data.vue'
 
 export default {
   components: {
-    LoadingDx
+    LoadingData
+
   },
   data () {
     return {

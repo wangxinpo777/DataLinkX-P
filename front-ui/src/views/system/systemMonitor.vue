@@ -1,6 +1,6 @@
 <template>
-  <a-card title="系统状态">
-    <a-descriptions column="1">
+  <a-card title="系统状态" :loading="loading">
+    <a-descriptions>
       <a-descriptions-item label="磁盘总量">{{ systemStatus.totalDisk }}</a-descriptions-item>
       <a-descriptions-item label="磁盘空闲量">{{ systemStatus.freeDisk }}</a-descriptions-item>
       <a-descriptions-item label="操作系统">{{ systemStatus.systemOs }}</a-descriptions-item>
@@ -17,7 +17,7 @@
   </a-card>
 </template>
 <script>
-import { Card, Table } from 'ant-design-vue'
+import { Card } from 'ant-design-vue'
 import { getSystemMonitor } from '@/api/system/monitor'
 
 export default {
@@ -26,6 +26,7 @@ export default {
   },
   data () {
     return {
+      loading: false,
       systemStatus: {
         totalDisk: '',
         freeDisk: '',
@@ -43,8 +44,12 @@ export default {
     }
   },
   created () {
+    this.loading = true
     getSystemMonitor().then(res => {
       this.systemStatus = res.result
+      this.loading = false
+    }).catch(() => {
+      this.loading = false
     })
   }
 }
