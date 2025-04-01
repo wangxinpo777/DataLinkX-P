@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { pageQuery, delObj, exec, stop } from '@/api/job/job'
+import { delObj, exec, pageQuery, stop } from '@/api/job/job'
 import { closeConnect } from '@/api/job/sse'
 import JobSaveOrUpdate from '../job/JobSaveOrUpdate.vue'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
@@ -250,7 +250,7 @@ export default {
     }
   },
   beforeDestroy () {
-    this.eventSource.close()
+    this.eventSource && this.eventSource.close()
     closeConnect('jobList')
   },
   created () {
