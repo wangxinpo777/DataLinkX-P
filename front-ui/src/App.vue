@@ -1,5 +1,6 @@
 <template>
   <a-config-provider :locale="locale">
+    <loading v-if="isLoading" />
     <div id="app">
       <router-view v-if="ifRouterAlive" />
       <!--      <div class="chat-container">-->
@@ -35,8 +36,15 @@ import { domTitle, setDocumentTitle } from '@/utils/domUtil'
 import { i18nRender } from '@/locales'
 import EVA from '@/assets/eva.png'
 import TitleImg from '@/assets/titleImg.png'
+import Loading from '@/components/common/loading.vue'
 
 export default {
+  components: { Loading },
+  created () {
+    setTimeout(() => {
+      this.isLoading = false
+    }, 500)
+  },
   provide () {
     return {
       reload: this.reload
@@ -44,6 +52,7 @@ export default {
   },
   data () {
     return {
+      isLoading: true,
       ifRouterAlive: true,
       msg: '聊天浮球',
       participants: [
@@ -98,7 +107,7 @@ export default {
     },
     onMessageWasSent (message) {
       // called when the user sends a message
-      this.messageList = [ ...this.messageList, message ]
+      this.messageList = [...this.messageList, message]
       const lastChild = document.querySelector('.sc-message-list').lastElementChild
       lastChild.style.display = 'block'
 
@@ -115,11 +124,11 @@ export default {
         console.log(answerId)
         let flag = 0
         for (const message of self.messageList) {
-           if (message.id === answerId) {
-             flag = 1
-             console.log(message.data.text)
-             message.data.text = message.data.text.concat(modelMessage.message.content)
-           }
+          if (message.id === answerId) {
+            flag = 1
+            console.log(message.data.text)
+            message.data.text = message.data.text.concat(modelMessage.message.content)
+          }
         }
         if (flag === 0) {
           const answer = {
@@ -181,25 +190,31 @@ export default {
 h1, h2 {
   font-weight: normal;
 }
+
 ul {
   list-style-type: none;
   padding: 0;
 }
+
 li {
   display: inline-block;
   margin: 0 10px;
 }
+
 a {
   color: #42b983;
 }
+
 .chat-container {
   position: relative;
   z-index: 9999;
 }
+
 * {
   box-sizing: border-box;
 }
-*::before,*::after{
+
+*::before, *::after {
   box-sizing: border-box;
 }
 </style>
