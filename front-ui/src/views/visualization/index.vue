@@ -502,8 +502,9 @@ export default {
   margin-bottom: 10px;
 }
 .chart-div{
-  max-height: 85vh;
-  border: 2px solid #f7f7f7;
+  max-height: 84vh;
+  min-height: 84vh;
+  border: 1px solid #e8e8e8;
   border-radius: 5px;
   .main-content {
     flex: 1;
