@@ -285,7 +285,7 @@ export default {
         { dataKey: 'value', alias: '数值' }
       ],
       deepseekChat: 'deepseek-chat',
-      deepseekReasoner: 'deepseek-easoner',
+      deepseekReasoner: 'deepseek-reasoner',
       rankList,
 
       // 搜索用户数
