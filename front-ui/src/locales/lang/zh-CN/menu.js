@@ -13,7 +13,7 @@ export default {
   'menu.computeTaskList': '任务列表',
   'menu.tasklistlog': '任务执行日志',
   'menu.taskrelationlist': '任务级联配置',
-  'menu.taskrelationmap': '任务血缘',
+  'menu.taskrelationmap': '任务级联',
   'menu.systemMonitor': '系统监控',
   'menu.systemMenu': '菜单管理',
 

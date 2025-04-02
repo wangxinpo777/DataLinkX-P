@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { pageQuery, delObj, streamStop, streamExec } from '@/api/job/job'
+import { delObj, pageQuery, streamExec, streamStop } from '@/api/job/job'
 import JobSaveOrUpdateStreaming from '@/views/job/JobSaveOrUpdateStreaming.vue'
 // 0:CREATE|1:SYNCING|2:SYNC_FINISH|3:SYNC_ERROR|4:QUEUING
 const StatusType = [
@@ -29,19 +29,19 @@ const StatusType = [
     value: 0
   },
   {
-    label: '流转中',
+    label: '同步中',
     value: 1
   },
   {
-    label: '流转停止',
+    label: '同步停止',
     value: 2
   },
   {
-    label: '流转失败',
+    label: '同步失败',
     value: 3
   },
   {
-    label: '流转停止',
+    label: '同步停止',
     value: 4
   }
 ]

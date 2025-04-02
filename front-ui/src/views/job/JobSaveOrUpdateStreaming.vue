@@ -1,6 +1,6 @@
 <template>
   <a-modal
-    title="新增流式流转任务"
+    title="新增流式同步任务"
     :width="640"
     :visible="visible"
     :maskClosable="false"
@@ -163,7 +163,7 @@ export default {
         if (!err) {
           this.confirmLoading = true
           if (this.selectedTargetTable.length > 1) {
-            this.$message.error('仅支持单表流转')
+            this.$message.error('仅支持单表同步')
             this.confirmLoading = false
             return
           }

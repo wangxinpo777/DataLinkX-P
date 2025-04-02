@@ -1,6 +1,6 @@
 <template>
   <a-modal
-    title="新增数据流转任务"
+    title="新增数据同步任务"
     :width="640"
     :visible="visible"
     :maskClosable="false"

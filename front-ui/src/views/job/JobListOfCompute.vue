@@ -33,19 +33,19 @@ import JobCompute from '../job/JobCompute.vue'
       value: 0
     },
     {
-      label: '流转中',
+      label: '同步中',
       value: 1
     },
     {
-      label: '流转完成',
+      label: '同步完成',
       value: 2
     },
     {
-      label: '流转失败',
+      label: '同步失败',
       value: 3
     },
     {
-      label: '流转停止',
+      label: '同步停止',
       value: 4
     }
   ]
@@ -112,7 +112,7 @@ import JobCompute from '../job/JobCompute.vue'
                 <a-divider type="vertical" />
                 <a href="javascript:;"onClick={(e) => this.execJob(record)}>手动触发</a>
               <a-divider type="vertical" />
-                <a href="javascript:;"onClick={(e) => this.stopJob(record)}>停止流转</a>
+                <a href="javascript:;"onClick={(e) => this.stopJob(record)}>停止同步</a>
               </div>
             )
             }

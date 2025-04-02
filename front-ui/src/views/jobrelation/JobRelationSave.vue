@@ -10,12 +10,12 @@
     <a-spin :spinning="confirmLoading">
       <a-form :form="form">
         <a-form-item
-          label="流转任务"
+          label="同步任务"
           :labelCol="labelCol"
           :wrapperCol="wrapperCol"
         >
           <a-select
-            v-decorator="['job_id', {rules: [{required: true, message: '选择流转任务'}]}]"
+            v-decorator="['job_id', {rules: [{required: true, message: '选择同步任务'}]}]"
             :options="selectJobs"
             v-model="job_id"
             style="display: inline-block; width: 70%"
@@ -25,12 +25,12 @@
         </a-form-item>
 
         <a-form-item
-          label="流转子任务"
+          label="同步子任务"
           :labelCol="labelCol"
           :wrapperCol="wrapperCol"
         >
           <a-select
-            v-decorator="['sub_job_id', {rules: [{required: true, message: '选择级联触发流转子任务'}]}]"
+            v-decorator="['sub_job_id', {rules: [{required: true, message: '选择级联触发同步子任务'}]}]"
             :options="selectJobs"
             v-model="sub_job_id"
             style="display: inline-block; width: 70%"
@@ -70,6 +70,7 @@
 import { addObj } from '@/api/job/jobrelation.js'
 import { listQuery } from '@/api/job/job'
 import JobSaveOrUpdate from '../job/JobSaveOrUpdate.vue'
+
 const selectTables = []
 
 export default {

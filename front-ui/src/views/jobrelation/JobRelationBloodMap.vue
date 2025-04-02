@@ -1,7 +1,7 @@
 <template>
   <div style="height: 90%;background-color: white">
     <div class="data-lineage-graph">
-      <h1 class="header">任务血缘关系图</h1>
+      <h1 class="header">任务级联关系图</h1>
       <div class="task-select">
         <b>任务选择：</b>
         <a-select v-model="selectedTask" @change="handleTaskChange" style="width: 400px;">
@@ -18,6 +18,7 @@ import { Network } from 'vis-network/standalone/esm/vis-network'
 import { EventEmitter } from 'events'
 import { listQuery } from '@/api/job/job'
 import { relationInfo } from '@/api/job/jobrelation'
+
 EventEmitter.defaultMaxListeners = 0 // 根据你的需要设置适当的数量
 
 export default {

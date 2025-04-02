@@ -61,7 +61,7 @@
           </div>
         </a-row>
       </a-form-item>
-      <a-form-item label="选择流转字段">
+      <a-form-item label="选择同步字段">
         <a-row :gutter="16" v-for="(mapping, index) in mappings" :key="index">
           <a-col :span="8">
             <a-select v-model="mapping.sourceField" placeholder="请选择来源字段" class="input-full-width">
