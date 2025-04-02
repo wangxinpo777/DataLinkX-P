@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import { pageQuery, delObj, getDsGroup } from '@/api/datasource/datasource'
+import { delObj, getDsGroup, pageQuery } from '@/api/datasource/datasource'
 import HttpDsSaveOrUpdate from './HttpDsSaveOrUpdate.vue'
 import DsConfig from './DsConfig.vue'
 import { dsTypeList } from './const'
@@ -278,7 +278,6 @@ export default {
   .list-left {
     border-radius: 0px;
     overflow: auto;
-    cursor: pointer;
     background-color: #fff;
     box-shadow: 0px 0px 1px rgba(15, 34, 67, 0.3), 0px 1px 3px rgba(15, 34, 67, 0.08), 0px 4px 8px rgba(15, 34, 67, 0.03);
     ul, li {

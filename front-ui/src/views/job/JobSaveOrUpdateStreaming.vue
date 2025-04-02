@@ -104,7 +104,7 @@
           </a-col>
         </a-row>
       </a-form-item>
-      <LoadingDx size="'size-1x'" v-if="selectloading"></LoadingDx>
+      <loading-data v-if="selectloading" :size="25"/>
     </a-form>
 
     <template slot="footer">
@@ -116,12 +116,14 @@
 
 <script>
 import { fetchTables, listQuery } from '@/api/datasource/datasource'
-import { streamAddObj, getObj, streamModifyObj } from '@/api/job/job'
-import LoadingDx from './../../components/common/loading-dx.vue'
+import { getObj, streamAddObj, streamModifyObj } from '@/api/job/job'
 import { dsImgObj } from './../datasource/const'
+import LoadingData from '@/components/common/loading-data.vue'
+
 export default {
   components: {
-    LoadingDx
+    LoadingData
+
   },
   data () {
     return {

@@ -9,7 +9,7 @@
       @close="onClose"
       width="700"
     >
-      <LoadingDx size="'size-1x'" v-if="selectloading"></LoadingDx>
+      <loading-data v-if="selectloading" :size="25"/>
       <div class="select-container">
         来源数据源
         <a-select
@@ -112,7 +112,7 @@
       <br>
       <span class="">
         select
-        <a-icon type="sync"  @click="cleanSelect"/>
+        <a-icon type="sync" @click="cleanSelect"/>
       </span>
       <a-textarea @drop="handleDrop" @dragover.prevent v-model="sqlOperatorValue" :disabled="disabledTrue" placeholder="基于上游节点字段, 从上面的标签中拖拽至此处"/>
       <span>from</span>
@@ -143,7 +143,7 @@
       @close="onClose"
       width="500"
     >
-      <LoadingDx size="'size-1x'" v-if="selectloading"></LoadingDx>
+      <loading-data v-if="selectloading" :size="25"/>
       <div class="select-container">任务名称<a-input v-model="jobName"/></div>
       <div class="select-container"><a href="https://tool.lu/crontab" target="_blank">定时配置（Spring crontab表达式）</a><a-input v-model="schedulerConf"/></div>
       <div class="select-container">
@@ -252,27 +252,27 @@
         </a-layout-content>
       </a-layout>
     </a-layout>
-    <LoadingDx size="'size-1x'" v-if="selectloading"></LoadingDx>
+    <loading-data v-if="selectloading" :size="25"/>
   </div>
 </template>
 
 <script>
-  import { dsImgObj } from './../datasource/const'
-  import { Graph } from '@antv/x6'
-  import LoadingDx from './../../components/common/loading-dx.vue'
-  import { Selection } from '@antv/x6-plugin-selection'
-  import { Snapline } from '@antv/x6-plugin-snapline'
-  import { Keyboard } from '@antv/x6-plugin-keyboard'
-  import { Clipboard } from '@antv/x6-plugin-clipboard'
-  import { MiniMap } from '@antv/x6-plugin-minimap'
-  import { Dnd } from '@antv/x6-plugin-dnd'
-  import { History } from '@antv/x6-plugin-history'
-  import { fetchTables, getDsTbFieldsInfo, listQuery } from '@/api/datasource/datasource'
-  import { addObj, getObj, modifyObj } from '@/api/job/job'
+import { dsImgObj } from './../datasource/const'
+import { Graph } from '@antv/x6'
+import { Selection } from '@antv/x6-plugin-selection'
+import { Snapline } from '@antv/x6-plugin-snapline'
+import { Keyboard } from '@antv/x6-plugin-keyboard'
+import { Clipboard } from '@antv/x6-plugin-clipboard'
+import { MiniMap } from '@antv/x6-plugin-minimap'
+import { Dnd } from '@antv/x6-plugin-dnd'
+import { History } from '@antv/x6-plugin-history'
+import { fetchTables, getDsTbFieldsInfo, listQuery } from '@/api/datasource/datasource'
+import { addObj, getObj, modifyObj } from '@/api/job/job'
+import LoadingData from '@/components/common/loading-data.vue'
 
-  export default {
+export default {
     components: {
-      LoadingDx
+      LoadingData
     },
     data () {
       return {
@@ -1273,7 +1273,7 @@
           const cells = this.graph.getSelectedCells()
           if (cells.length) {
             this.graph.removeCells(cells)
-            console.log("remove cell####################")
+            console.log('remove cell####################')
           }
         })
 

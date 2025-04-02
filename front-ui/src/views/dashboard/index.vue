@@ -1,6 +1,6 @@
 <template>
   <div class="dash-main" style="overflow-y: hidden; padding: 20px">
-    <a-card :loading="loading" :bordered="false" :title="'DeepSeek用量信息'" style="margin-bottom: 24px">
+    <a-card :loading="loading" :bordered="false" :title="'DeepSeek用量信息'" style="margin-bottom: 24px;border-radius: 8px;">
       <template v-slot:extra>
         <a-menu mode="horizontal" v-model="selectedDate" @click="handleMenuClick">
           <a-menu-item key="week">{{ $t('dashboard.analysis.all-week') }}</a-menu-item>
@@ -176,15 +176,15 @@
 <script>
 import moment from 'moment'
 import {
+  Bar,
   ChartCard,
   MiniArea,
   MiniBar,
   MiniProgress,
-  RankList,
-  Bar,
-  Trend,
+  MiniSmoothArea,
   NumberInfo,
-  MiniSmoothArea
+  RankList,
+  Trend
 } from '@/components'
 import { baseMixin } from '@/store/app-mixin'
 import { deepseekApiCount, deepseekTokenCount } from '@/api/deepseek/api'
@@ -312,14 +312,21 @@ export default {
       this.loading = true
       const dateFrom = this.pickDate[0].format('YYYY-MM-DD')
       const dateTo = this.pickDate[1].format('YYYY-MM-DD')
-      this.deepseekApiCount(this.deepseekChat, dateFrom, dateTo)
-      this.deepseekApiCount(this.deepseekReasoner, dateFrom, dateTo)
-      this.deepseekTokenCount(this.deepseekChat, dateFrom, dateTo)
-      this.deepseekTokenCount(this.deepseekReasoner, dateFrom, dateTo)
-      this.loading = false
+      // 发送多个 API 请求并等待它们全部完成
+      Promise.all([
+        this.deepseekApiCount(this.deepseekChat, dateFrom, dateTo),
+        this.deepseekApiCount(this.deepseekReasoner, dateFrom, dateTo),
+        this.deepseekTokenCount(this.deepseekChat, dateFrom, dateTo),
+        this.deepseekTokenCount(this.deepseekReasoner, dateFrom, dateTo)
+      ]).then(() => {
+        this.loading = false // 所有请求完成后关闭 loading
+      }).catch(error => {
+        console.error('API 请求失败：', error)
+        this.loading = false // 即使失败，也要关闭 loading
+      })
     },
     deepseekApiCount (model, dateFrom, dateTo) {
-      deepseekApiCount({ model: model, dateFrom: dateFrom, dateTo: dateTo }).then((res) => {
+      return deepseekApiCount({ model: model, dateFrom: dateFrom, dateTo: dateTo }).then((res) => {
         const list = res.result
         if (list.length === 0) {
           list.push({
@@ -344,7 +351,7 @@ export default {
       })
     },
     deepseekTokenCount (model, dateFrom, dateTo) {
-      deepseekTokenCount({ model: model, dateFrom: dateFrom, dateTo: dateTo }).then((res) => {
+      return deepseekTokenCount({ model: model, dateFrom: dateFrom, dateTo: dateTo }).then((res) => {
         let list = res.result
         if (list.length === 0) {
           list.push({

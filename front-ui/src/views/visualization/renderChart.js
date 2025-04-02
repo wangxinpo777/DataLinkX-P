@@ -4,7 +4,6 @@ export function renderChart (VueIns) {
 
   VueIns.selectedYIndex.forEach(YIndex => {
     const ChartStyle = VueIns.chartStyles[YIndex] || {}
-    // 基础配置项
     const labelConfig = {
       show: ChartStyle.showDataLabel,
       position: ChartStyle.position,
@@ -16,93 +15,83 @@ export function renderChart (VueIns) {
 
     switch (VueIns.chartType) {
       case 'scatter':
-        // Scatter 不支持 lineStyle 和 smooth
-        const scatterConfig = {
+        seriesData.push({
           name: YIndex,
           type: 'scatter',
           data: xAxisData.map(XIndex => [XIndex, VueIns.chartData[XIndex][YIndex]]),
-          itemStyle: {
-            color: ChartStyle.lineColor?.hex
-          },
+          itemStyle: { color: ChartStyle.lineColor?.hex },
           label: labelConfig,
-          markPoint: {
-            data: VueIns.showMarkPoint ? VueIns.markPointData : []
-          },
-          markLine: {
-            data: VueIns.showMarkLine ? VueIns.markLineData : []
-          }
-        }
-        seriesData.push(scatterConfig)
+          markPoint: { data: VueIns.showMarkPoint ? VueIns.markPointData : [] },
+          markLine: { data: VueIns.showMarkLine ? VueIns.markLineData : [] }
+        })
         break
 
       case 'bar':
-        // Bar 不支持 lineStyle 和 smooth
-        const barConfig = {
+        seriesData.push({
           name: YIndex,
           type: 'bar',
           data: xAxisData.map(XIndex => VueIns.chartData[XIndex][YIndex]),
-          itemStyle: {
-            color: ChartStyle.lineColor?.hex
-          },
+          itemStyle: { color: ChartStyle.lineColor?.hex },
           label: labelConfig,
-          markPoint: {
-            data: VueIns.showMarkPoint ? VueIns.markPointData : []
-          },
-          markLine: {
-            data: VueIns.showMarkLine ? VueIns.markLineData : []
-          }
-        }
-        seriesData.push(barConfig)
+          markPoint: { data: VueIns.showMarkPoint ? VueIns.markPointData : [] },
+          markLine: { data: VueIns.showMarkLine ? VueIns.markLineData : [] }
+        })
         break
 
       case 'line':
-        // Line 支持 lineStyle 和 smooth，但不支持 itemStyle
-        const lineConfig = {
+        seriesData.push({
           name: YIndex,
           type: 'line',
           data: xAxisData.map(XIndex => VueIns.chartData[XIndex][YIndex]),
-          lineStyle: {
-            color: ChartStyle.lineColor?.hex,
-            type: ChartStyle.lineStyle
-          },
+          lineStyle: { color: ChartStyle.lineColor?.hex, type: ChartStyle.lineStyle },
           label: labelConfig,
           smooth: ChartStyle.smooth,
-          markPoint: {
-            data: VueIns.showMarkPoint ? VueIns.markPointData : []
-          },
-          markLine: {
-            data: VueIns.showMarkLine ? VueIns.markLineData : []
-          }
-        }
-        seriesData.push(lineConfig)
+          markPoint: { data: VueIns.showMarkPoint ? VueIns.markPointData : [] },
+          markLine: { data: VueIns.showMarkLine ? VueIns.markLineData : [] }
+        })
+        // console.log('seriesData', seriesData)
+        // console.log('xAxisData', xAxisData)
+        break
+
+      case 'pie':
+        seriesData.push({
+          name: YIndex,
+          type: 'pie',
+          radius: ChartStyle.radius || '50%',
+          center: ChartStyle.center || ['50%', '50%'],
+          data: xAxisData.map(XIndex => ({
+            name: XIndex,
+            value: VueIns.chartData[XIndex][YIndex]
+          })),
+          label: labelConfig
+        })
         break
 
       default:
         console.warn(`Unsupported chart type: ${VueIns.chartType}`)
-        break
     }
   })
 
   const option = {
     title: { text: VueIns.chartTitle },
-    tooltip: { trigger: 'axis' },
-    legend: {
+    tooltip: { trigger: VueIns.chartType === 'pie' ? 'item' : 'axis' },
+    legend: VueIns.chartType === 'pie' ? { data: xAxisData } : {
       data: VueIns.selectedYIndex,
       [VueIns.legendPosition]: VueIns.legendPosition
     },
-    xAxis: {
+    xAxis: VueIns.chartType !== 'pie' ? {
       type: 'category',
       data: xAxisData,
       name: VueIns.xAxisTitle,
       axisLabel: { rotate: VueIns.xAxisRotate }
-    },
-    yAxis: {
+    } : undefined,
+    yAxis: VueIns.chartType !== 'pie' ? {
       type: 'value',
       name: VueIns.yAxisTitle,
       min: VueIns.yMin,
       max: VueIns.yMax,
       splitLine: { show: VueIns.yAxisSplitLine }
-    },
+    } : undefined,
     series: seriesData,
     toolbox: VueIns.showToolbox ? {
       feature: {

@@ -24,9 +24,9 @@
 </template>
 
 <script>
-  import { pageQuery, delObj, exec, stop } from '@/api/job/job'
-  import JobCompute from '../job/JobCompute.vue'
-  // 0:CREATE|1:SYNCING|2:SYNC_FINISH|3:SYNC_ERROR|4:QUEUING
+import { delObj, exec, pageQuery, stop } from '@/api/job/job'
+import JobCompute from '../job/JobCompute.vue'
+// 0:CREATE|1:SYNCING|2:SYNC_FINISH|3:SYNC_ERROR|4:QUEUING
   const StatusType = [
     {
       label: '新建',
@@ -219,7 +219,7 @@
       }
     },
     beforeDestroy () {
-      this.eventSource.close()
+      this.eventSource && this.eventSource.close()
     },
     created () {
       this.init()

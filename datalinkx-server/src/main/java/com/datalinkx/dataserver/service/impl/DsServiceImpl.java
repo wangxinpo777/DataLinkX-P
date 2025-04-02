@@ -320,7 +320,7 @@ public class DsServiceImpl implements DsService {
 
 			// 将数据转换为适合图表的数据格式
 			while (resultSet.next()) {
-				Map<String, Object> row = new HashMap<>();
+				Map<String, Object> row = new LinkedHashMap<>(); // 保留插入顺序
 				for (int i = 1; i <= columnCount; i++) {
 					row.put(metaData.getColumnName(i), resultSet.getObject(i));
 				}
