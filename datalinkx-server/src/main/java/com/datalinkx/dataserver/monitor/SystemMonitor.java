@@ -1,12 +1,12 @@
 package com.datalinkx.dataserver.monitor;
 
+import com.datalinkx.dataserver.bean.vo.SystemMonitorVo;
+import com.sun.management.OperatingSystemMXBean;
+
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
-
-import com.datalinkx.dataserver.bean.vo.SystemMonitorVo;
-import com.sun.management.OperatingSystemMXBean;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,7 +36,8 @@ public class SystemMonitor {
         long freeMemory = runtime.freeMemory(); // 可用内存
         long usedMemory = totalMemory - freeMemory; // 已使用内存
         long maxMemory = runtime.maxMemory(); // 最大可用内存
-        double useMemoryRate = (double) usedMemory / maxMemory * 100;
+        //保留两位小数
+        String useMemoryRate = String.format("%.2f", (double) usedMemory / maxMemory * 100) + "%";
 
         // 操作系统
         String osName = System.getProperty("os.name");
@@ -65,7 +66,7 @@ public class SystemMonitor {
         // 计算CPU使用率
         double cpuUsage = (processCpuTime2 - processCpuTime) / (1000000.0 /* 转换为秒 */ * osmxb.getAvailableProcessors());
 
-        result.setCpuUsage(String.format("%.2f", cpuUsage * 100));
+        result.setCpuUsage(String.format("%.2f", cpuUsage * 100) + "%");
         result.setSystemOs(osName);
         result.setProgramRunTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(ManagementFactory.getRuntimeMXBean().getStartTime())));
         result.setPid(System.getProperty("PID"));
@@ -74,7 +75,7 @@ public class SystemMonitor {
         result.setJvmMemorySize(new DecimalFormat("#.#").format(initTotalMemorySize * 1.0 / 1024 / 1024) + "M");
         result.setJvmMemoryUsed(new DecimalFormat("#.#").format(usedMemorySize * 1.0 / 1024 / 1024) + "M");
         result.setMachineMemorySize(totalMemorySize);
-        result.setMemoryRate(String.valueOf(useMemoryRate));
+        result.setMemoryRate(useMemoryRate);
 
         return result;
     }

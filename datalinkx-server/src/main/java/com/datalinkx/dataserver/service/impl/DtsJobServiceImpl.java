@@ -1,14 +1,5 @@
 package com.datalinkx.dataserver.service.impl;
 
-import static com.datalinkx.common.constants.MetaConstants.JobStatus.JOB_STATUS_SYNCING;
-import static com.datalinkx.compute.transform.ITransformFactory.TRANSFORM_DRIVER_MAP;
-
-import java.sql.Timestamp;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
 import com.datalinkx.common.constants.MessageHubConstants;
 import com.datalinkx.common.constants.MetaConstants;
 import com.datalinkx.common.exception.DatalinkXServerException;
@@ -29,6 +20,8 @@ import com.datalinkx.dataserver.repository.JobLogRepository;
 import com.datalinkx.dataserver.repository.JobRelationRepository;
 import com.datalinkx.dataserver.repository.JobRepository;
 import com.datalinkx.dataserver.service.DtsJobService;
+import com.datalinkx.deepseek.client.response.DeepSeekResponse;
+import com.datalinkx.deepseek.service.DeepSeekService;
 import com.datalinkx.driver.dsdriver.DsDriverFactory;
 import com.datalinkx.driver.dsdriver.IDsReader;
 import com.datalinkx.driver.dsdriver.base.model.DbTableField;
@@ -43,6 +36,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
+
+import javax.annotation.Resource;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.datalinkx.common.constants.MetaConstants.JobStatus.JOB_STATUS_SYNCING;
+import static com.datalinkx.compute.transform.ITransformFactory.TRANSFORM_DRIVER_MAP;
 
 /**
  * @author: uptown
@@ -73,6 +74,9 @@ public class DtsJobServiceImpl implements DtsJobService {
 
     @Autowired
     JobClientApi jobClientApi;
+
+    @Autowired
+    DeepSeekService deepSeekService;
 
     @Value("${data-transfer.fetch-size:1000}")
     Integer fetchSize;
@@ -324,7 +328,6 @@ public class DtsJobServiceImpl implements DtsJobService {
     }
 
 
-
     @Transactional(rollbackFor = Exception.class)
     @Override
     public String updateJobStatus(JobStateForm jobStateForm) {
@@ -362,6 +365,16 @@ public class DtsJobServiceImpl implements DtsJobService {
                 : jobStateForm.getErrmsg() == null ? "" : jobStateForm.getErrmsg());
         jobRepository.save(jobBean);
 
+        String errorAnalysis = "";
+        //使用大模型分析错误日志
+        if (!StringUtils.equalsIgnoreCase(jobStateForm.getErrmsg(), "success")) {
+            String errorMsg = jobStateForm.getErrmsg();
+            if (StringUtils.isNotEmpty(errorMsg)) {
+                DeepSeekResponse result = deepSeekService.getErrorAnalysis("deepseek-chat", errorMsg);
+                errorAnalysis = (result.getChoices().get(0).getMessage().getContent());
+            }
+        }
+
         // 3、保存流转任务执行日志
         if (!ObjectUtils.isEmpty(jobStateForm.getErrmsg())) {
             jobLogRepository.save(JobLogBean.builder()
@@ -372,6 +385,7 @@ public class DtsJobServiceImpl implements DtsJobService {
                     .costTime(ObjectUtils.isEmpty(jobStateForm.getEndTime()) ? 0 : (int) ((jobStateForm.getEndTime() - jobStateForm.getStartTime()) / 1000))
                     .errorMsg(StringUtils.equalsIgnoreCase(jobStateForm.getErrmsg(), "success") ? "任务成功" : jobStateForm.getErrmsg())
                     .count(JsonUtils.toJson(countVo))
+                    .errorAnalysis(errorAnalysis)
                     .isDel(0)
                     .build());
         }

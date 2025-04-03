@@ -1,24 +1,6 @@
 <template>
   <div class="dash-main" style="overflow-y: hidden; padding: 20px">
-    <a-card :loading="loading" :bordered="false" :title="'DeepSeek用量信息'" style="margin-bottom: 24px;border-radius: 8px;">
-      <template v-slot:extra>
-        <a-menu mode="horizontal" v-model="selectedDate" @click="handleMenuClick">
-          <a-menu-item key="week">{{ $t('dashboard.analysis.all-week') }}</a-menu-item>
-          <a-menu-item key="month">{{ $t('dashboard.analysis.all-month') }}</a-menu-item>
-          <a-menu-item key="year">{{ $t('dashboard.analysis.all-year') }}</a-menu-item>
-        </a-menu>
-      </template>
-      <APITokenCount
-        :deepseek-reasoner-token-count-data="deepseekReasonerTokenCountData"
-        :deepseek-chat-token-count-data="deepseekChatTokenCountData"
-        :deepseek-reasoner-api-count-data="deepseekReasonerApiCountData"
-        :deepseek-chat-api-count-data="deepseekChatApiCountData"
-        :api-scale="apiScale"
-        :token-scale="tokenScale"/>
-      <div style="text-align: right;">
-        <a-range-picker :allowClear="false" v-model="pickDate" :style="{width: '256px'}" @change="selectedDate=[];deepseekinit()"/>
-      </div>
-    </a-card>
+    <APITokenCount/>
     <!--    <a-row :gutter="24">-->
     <!--      <a-col :sm="24" :md="12" :xl="12" :style="{ marginBottom: '24px' }">-->
     <!--        <chart-card :loading="loading" :title="$t('dashboard.analysis.total-sales')" total="￥126,560">-->
@@ -187,7 +169,6 @@ import {
   Trend
 } from '@/components'
 import { baseMixin } from '@/store/app-mixin'
-import { deepseekApiCount, deepseekTokenCount } from '@/api/deepseek/api'
 import APITokenCount from '@/views/dashboard/APITokenCount.vue'
 
 const barData = []
@@ -271,21 +252,6 @@ export default {
   },
   data () {
     return {
-      loading: true,
-      selectedDate: ['week'],
-      // 默认本周
-      pickDate: [moment().startOf('week'), moment().endOf('week')],
-      deepseekChatApiCountData: [],
-      deepseekChatTokenCountData: [],
-      deepseekReasonerApiCountData: [],
-      deepseekReasonerTokenCountData: [],
-      apiScale: [{ dataKey: 'x', alias: '时间' }, { dataKey: 'y', alias: '次数' }],
-      tokenScale: [
-        { dataKey: 'date', alias: '日期' },
-        { dataKey: 'value', alias: '数值' }
-      ],
-      deepseekChat: 'deepseek-chat',
-      deepseekReasoner: 'deepseek-reasoner',
       rankList,
 
       // 搜索用户数
@@ -302,108 +268,6 @@ export default {
         stroke: '#fff',
         lineWidth: 1
       }
-    }
-  },
-  mounted () {
-    this.deepseekinit()
-  },
-  methods: {
-    deepseekinit () {
-      this.loading = true
-      const dateFrom = this.pickDate[0].format('YYYY-MM-DD')
-      const dateTo = this.pickDate[1].format('YYYY-MM-DD')
-      // 发送多个 API 请求并等待它们全部完成
-      Promise.all([
-        this.deepseekApiCount(this.deepseekChat, dateFrom, dateTo),
-        this.deepseekApiCount(this.deepseekReasoner, dateFrom, dateTo),
-        this.deepseekTokenCount(this.deepseekChat, dateFrom, dateTo),
-        this.deepseekTokenCount(this.deepseekReasoner, dateFrom, dateTo)
-      ]).then(() => {
-        this.loading = false // 所有请求完成后关闭 loading
-      }).catch(error => {
-        console.error('API 请求失败：', error)
-        this.loading = false // 即使失败，也要关闭 loading
-      })
-    },
-    deepseekApiCount (model, dateFrom, dateTo) {
-      return deepseekApiCount({ model: model, dateFrom: dateFrom, dateTo: dateTo }).then((res) => {
-        const list = res.result
-        if (list.length === 0) {
-          list.push({
-            date: moment().subtract(1, 'days').format('YYYY-MM-DD'),
-            count: 0
-          })
-          list.push({
-            date: moment().format('YYYY-MM-DD'),
-            count: 0
-          })
-        } else if (list.length === 1) {
-          list.unshift({
-            date: moment(list[0].x).subtract(1, 'days').format('YYYY-MM-DD'),
-            count: 0
-          })
-        }
-        if (model === 'deepseek-chat') {
-          this.deepseekChatApiCountData = list
-        } else {
-          this.deepseekReasonerApiCountData = list
-        }
-      })
-    },
-    deepseekTokenCount (model, dateFrom, dateTo) {
-      return deepseekTokenCount({ model: model, dateFrom: dateFrom, dateTo: dateTo }).then((res) => {
-        let list = res.result
-        if (list.length === 0) {
-          list.push({
-            date: moment().subtract(1, 'days').format('YYYY-MM-DD'),
-            promptCacheHitTokens: 0,
-            promptCacheMissTokens: 0,
-            completionTokens: 0
-          })
-          list.push({
-            date: moment().format('YYYY-MM-DD'),
-            promptCacheHitTokens: 0,
-            promptCacheMissTokens: 0,
-            completionTokens: 0
-          })
-        } else if (list.length === 1) {
-          list.unshift({
-            date: moment(list[0].x).subtract(1, 'days').format('YYYY-MM-DD'),
-            promptCacheHitTokens: 0,
-            promptCacheMissTokens: 0,
-            completionTokens: 0
-          })
-        }
-        // 数据源：长表格式，每个日期对应多个类型和值
-        list = list.reduce((acc, cur) => {
-          acc.push({
-            date: cur.date,
-            type: '输入（命中缓存）',
-            value: cur.promptCacheHitTokens
-          })
-          acc.push({
-            date: cur.date,
-            type: '输入（未命中缓存）',
-            value: cur.promptCacheMissTokens
-          })
-          acc.push({
-            date: cur.date,
-            type: '输出',
-            value: cur.completionTokens
-          })
-          return acc
-        }, [])
-        if (model === 'deepseek-chat') {
-          this.deepseekChatTokenCountData = list
-        } else {
-          this.deepseekReasonerTokenCountData = list
-        }
-      })
-    },
-    handleMenuClick (e) {
-      this.selectedDate = e.key
-      this.pickDate = [moment().startOf(e.key), moment().endOf(e.key)]
-      this.deepseekinit()
     }
   },
   computed: {
