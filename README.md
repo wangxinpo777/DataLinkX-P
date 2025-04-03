@@ -18,13 +18,16 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 
 ![输入图片说明](datalinkx-server/src/main/resources/readme/Python.png)
 
-### 4.添加可视化BI,支持`上传数据`、`从数据库读取`、`自定义可视化`、`动态编辑`
+### 4.错误日志大模型自动分析
+![输入图片说明](datalinkx-server/src/main/resources/readme/errorlog.png)
+
+### 5.添加可视化BI,支持`上传数据`、`从数据库读取`、`自定义可视化`、`动态编辑`
 
 ![输入图片说明](datalinkx-server/src/main/resources/readme/BI.png)
 
 ![输入图片说明](datalinkx-server/src/main/resources/readme/BI2.png)
 
-### 5.添加用户管理
+### 6.添加用户管理
 
 ![输入图片说明](datalinkx-server/src/main/resources/readme/security.png)
 
