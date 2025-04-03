@@ -1,12 +1,19 @@
 <template>
   <a-card :title="'任务统计'" :loading="loading" style="margin-bottom: 24px;border-radius: 8px;">
+    <template v-slot:extra>
+      <a-menu mode="horizontal" v-model="selectedDate" @click="handleMenuClick">
+        <a-menu-item key="week">{{ $t('dashboard.analysis.all-week') }}</a-menu-item>
+        <a-menu-item key="month">{{ $t('dashboard.analysis.all-month') }}</a-menu-item>
+        <a-menu-item key="year">{{ $t('dashboard.analysis.all-year') }}</a-menu-item>
+      </a-menu>
+    </template>
     <div class="job-count">
       <a-row :gutter="16">
         <a-col :span="8">
           <number-info
-            :total="0"
-            :sub-total="Math.abs(0)"
-            :status="0 > 0 ? 'up' : 'down'">
+            :total="totalJobs"
+            :sub-total="Math.abs(compareJobCount)"
+            :status="compareJobCount > 0 ? 'up' : 'down'">
             <span slot="subtitle">
               <span>总任务</span>
             </span>
@@ -14,9 +21,9 @@
         </a-col>
         <a-col :span="8">
           <number-info
-            :total="0"
-            :sub-total="Math.abs(0)"
-            :status="0 > 0 ? 'up' : 'down'">
+            :total="successJobs"
+            :sub-total="Math.abs(computeSuccessJobCount)"
+            :status="compareJobCount > 0 ? 'up' : 'down'">
             <span slot="subtitle">
               <span>成功任务</span>
             </span>
@@ -24,9 +31,9 @@
         </a-col>
         <a-col :span="8">
           <number-info
-            :total="0"
-            :sub-total="Math.abs(0)"
-            :status="0 > 0 ? 'up' : 'down'">
+            :total="failedJobs"
+            :sub-total="Math.abs(computeFailedJobCount)"
+            :status="computeFailedJobCount > 0 ? 'up' : 'down'">
             <span slot="subtitle">
               <span>失败任务</span>
             </span>
@@ -44,16 +51,18 @@
               :scale="areaScale"
               :padding="[40, 40, 40, 40]">
               <v-tooltip />
-              <v-smooth-line position="date*value" :size="2" />
-              <v-smooth-area position="date*value" />
-              <v-axis dataKey="year" :visible="true" />
+              <!-- 堆叠面积图 -->
+              <v-stack-area position="date*success" color="#1890FF" :adjust="[{ type: 'stack' }]" />
+              <v-stack-area position="date*failed" color="#2FC25B" :adjust="[{ type: 'stack' }]" />
+
+              <v-axis dataKey="date" :visible="true" />
               <v-axis dataKey="value" :visible="true" />
             </v-chart>
           </div>
         </a-col>
         <a-col :xs="24" :sm="12" :style="{ marginBottom: '24px' }">
           <!-- 饼图 -->
-          <div class="ant-pro-pie">
+          <div class="ant-pro-pie" v-if="pieChartData.length">
             <v-chart
               :force-fit="true"
               :height="200"
@@ -70,16 +79,28 @@
         </a-col>
       </a-row>
     </div>
+    <div style="text-align: right;">
+      <a-range-picker
+        :allowClear="false"
+        v-model="pickDate"
+        :style="{width: '256px'}"
+        @change="selectedDate=[];jobInit()" />
+    </div>
   </a-card>
 </template>
 <script>
 import { NumberInfo } from '@/components'
+import moment from 'moment/moment'
+import { jobCount } from '@/api/job/joblog'
 
 export default {
   name: 'JobCount',
   components: { NumberInfo },
   data () {
     return {
+      selectedDate: ['week'],
+      // 默认本周
+      pickDate: [moment().startOf('week'), moment().endOf('week')],
       pieStyle: {
         stroke: '#fff',
         lineWidth: 1
@@ -91,33 +112,23 @@ export default {
       }],
       loading: false,
       // 线性面积图数据
-      areaChartData: [
-        { date: '2023-10-01', value: 3 },
-        { date: '2023-10-02', value: 4 },
-        { date: '2023-10-03', value: 3.5 },
-        { date: '2023-10-04', value: 5 },
-        { date: '2023-10-05', value: 4.9 },
-        { date: '2023-10-06', value: 6 },
-        { date: '2023-10-07', value: 7 },
-        { date: '2023-10-08', value: 9 },
-        { date: '2023-10-09', value: 13 }
-      ],
+      areaChartData: [],
       areaScale: [
         {
-          dataKey: 'year',
+          dataKey: 'date',
           alias: '年份'
         },
         {
-          dataKey: 'value',
-          alias: '任务数量',
-          min: 0
+          dataKey: 'success',
+          alias: '成功任务'
+        },
+        {
+          dataKey: 'failed',
+          alias: '失败任务'
         }
       ],
       // 饼图数据
-      pieChartData: [
-        { type: '成功任务', value: 60 },
-        { type: '失败任务', value: 40 }
-      ],
+      pieChartData: [],
       pieScale: [
         {
           dataKey: 'value',
@@ -130,11 +141,84 @@ export default {
       ]
     }
   },
+  methods: {
+    jobInit () {
+      this.loading = true
+      const dateFrom = this.pickDate[0].format('YYYY-MM-DD')
+      const dateTo = this.pickDate[1].format('YYYY-MM-DD')
+      jobCount({ dateFrom, dateTo }).then(res => {
+        this.areaChartData = res.result
+        if (this.areaChartData.length === 0) {
+          this.areaChartData = [
+            { date: moment().subtract(1, 'days').format('YYYY-MM-DD'), success: 0, failed: 0 },
+            { date: moment().format('YYYY-MM-DD'), success: 0, failed: 0 }
+          ]
+          this.pieChartData = []
+        } else {
+          this.pieChartData = [
+            { type: '成功任务', value: this.successJobs },
+            { type: '失败任务', value: this.failedJobs }
+          ]
+        }
+        this.loading = false
+      }).catch(err => {
+        console.error(err)
+        this.loading = false
+      })
+    },
+    handleMenuClick (e) {
+      this.selectedDate = e.key
+      this.pickDate = [moment().startOf(e.key), moment().endOf(e.key)]
+      this.jobInit()
+    }
+  },
   mounted () {
-    this.loading = true
-    setTimeout(() => {
-      this.loading = false
-    }, 500)
+    this.jobInit()
+  },
+  computed: {
+    // 计算总任务数
+    totalJobs () {
+      return this.successJobs + this.failedJobs
+    },
+    // 计算成功任务数
+    successJobs () {
+      return this.areaChartData.reduce((acc, cur) => {
+        return acc + (cur.success || 0) // 累加当前项的 success 值
+      }, 0) // 初始值为 0
+    },
+    // 计算失败任务数
+    failedJobs () {
+      return this.areaChartData.reduce((acc, cur) => {
+        return acc + (cur.failed || 0) // 累加当前项的 failed 值
+      }, 0) // 初始值为 0
+    },
+    computeSuccessJobCount () {
+      if (this.areaChartData.length > 1) {
+        return this.areaChartData[0].success - this.areaChartData[1].success
+      }
+      if (this.areaChartData.length === 1) {
+        return this.areaChartData[0].success
+      }
+      if (this.areaChartData.length === 0) {
+        return 0
+      }
+      return 0
+    },
+    computeFailedJobCount () {
+      if (this.areaChartData.length > 1) {
+        return this.areaChartData[0].failed - this.areaChartData[1].failed
+      }
+      if (this.areaChartData.length === 1) {
+        return this.areaChartData[0].failed
+      }
+      if (this.areaChartData.length === 0) {
+        return 0
+      }
+      return 0
+    },
+    compareJobCount () {
+      return this.computeSuccessJobCount + this.computeFailedJobCount
+    }
   }
 }
 </script>

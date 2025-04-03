@@ -243,12 +243,6 @@ export default {
             count: 0,
             model: model
           })
-        } else if (list.length === 1) {
-          list.push({
-            date: moment().format('YYYY-MM-DD'),
-            count: 0,
-            model: model
-          })
         }
         if (model === 'deepseek-chat') {
           this.deepseekChatApiCountData = list
@@ -268,14 +262,6 @@ export default {
             completionTokens: 0,
             model: model
           })
-          list.push({
-            date: moment().format('YYYY-MM-DD'),
-            promptCacheHitTokens: 0,
-            promptCacheMissTokens: 0,
-            completionTokens: 0,
-            model: model
-          })
-        } else if (list.length === 1) {
           list.push({
             date: moment().format('YYYY-MM-DD'),
             promptCacheHitTokens: 0,
@@ -317,7 +303,7 @@ export default {
     },
     // 计算和昨天相比的增长
     compareChatApiCount () {
-      return this.deepseekChatApiCountData.length > 1 && this.deepseekChatApiCountData[this.deepseekChatApiCountData.length - 1].count - this.deepseekChatApiCountData[this.deepseekChatApiCountData.length - 2].count
+      return this.deepseekChatApiCountData.length > 1 && this.deepseekChatApiCountData[0].count - this.deepseekChatApiCountData[1].count
     },
     sumChatTokenCount () {
       return this.deepseekChatTokenCountData.reduce((acc, cur) => acc + cur.value, 0)
@@ -333,7 +319,7 @@ export default {
       return this.deepseekReasonerApiCountData.reduce((acc, cur) => acc + cur.count, 0)
     },
     compareReasonerApiCount () {
-      return this.deepseekReasonerApiCountData.length > 1 && this.deepseekReasonerApiCountData[this.deepseekReasonerApiCountData.length - 1].count - this.deepseekReasonerApiCountData[this.deepseekReasonerApiCountData.length - 2].count
+      return this.deepseekReasonerApiCountData.length > 1 && this.deepseekReasonerApiCountData[0].count - this.deepseekReasonerApiCountData[1].count
     },
     sumReasonerTokenCount () {
       return this.deepseekReasonerTokenCountData.reduce((acc, cur) => acc + cur.value, 0)

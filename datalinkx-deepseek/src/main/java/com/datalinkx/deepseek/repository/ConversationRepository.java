@@ -25,7 +25,7 @@ public interface ConversationRepository extends JpaRepository<ConversationBean, 
             + "AND (:dateTo IS NULL OR m.createdTime <= :dateTo) "
             + "AND m.role = 'user' "
             + "GROUP BY FUNCTION('DATE_FORMAT', m.createdTime, '%Y-%m-%d'), m.model "
-            + "ORDER BY FUNCTION('DATE_FORMAT', m.createdTime, '%Y-%m-%d') ASC")
+            + "ORDER BY FUNCTION('DATE_FORMAT', m.createdTime, '%Y-%m-%d') DESC")
     List<ChatApiCountDTO> chatApiCount(String model,
                                        Timestamp dateFrom,
                                        Timestamp dateTo);

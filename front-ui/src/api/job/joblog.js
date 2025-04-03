@@ -7,3 +7,11 @@ export function pageQuery (params) {
     params: params
   })
 }
+
+export function jobCount (params) {
+  return axios({
+    url: '/api/job/log/count',
+    method: 'GET',
+    params: params
+  })
+}
