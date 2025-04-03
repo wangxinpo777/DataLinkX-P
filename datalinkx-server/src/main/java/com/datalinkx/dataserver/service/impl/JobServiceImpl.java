@@ -8,6 +8,7 @@ import com.datalinkx.common.utils.JsonUtils;
 import com.datalinkx.dataserver.bean.domain.DsBean;
 import com.datalinkx.dataserver.bean.domain.JobBean;
 import com.datalinkx.dataserver.bean.domain.JobLogBean;
+import com.datalinkx.dataserver.bean.dto.JobCountDto;
 import com.datalinkx.dataserver.bean.dto.JobDto;
 import com.datalinkx.dataserver.bean.vo.JobVo;
 import com.datalinkx.dataserver.bean.vo.PageVo;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -294,6 +296,14 @@ public class JobServiceImpl implements JobService {
 		result.setTotalPage(jobLogBeans.getTotalPages());
 		result.setTotal(jobLogBeans.getTotalElements());
 		return result;
+	}
+
+	@Override
+	public List<JobCountDto> logCount(String jobId, String dateFrom, String dateTo) {
+		// 转换为 Timestamp
+		Timestamp dateFromTimestamp = Timestamp.valueOf(dateFrom + " 00:00:00");
+		Timestamp dateToTimestamp = Timestamp.valueOf(dateTo + " 23:59:59");
+		return jobLogRepository.count(jobId, dateFromTimestamp, dateToTimestamp);
 	}
 
 	@Transactional(rollbackFor = Exception.class)

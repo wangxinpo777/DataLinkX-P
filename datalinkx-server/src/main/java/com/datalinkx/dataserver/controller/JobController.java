@@ -1,6 +1,7 @@
 package com.datalinkx.dataserver.controller;
 
 import com.datalinkx.common.result.WebResult;
+import com.datalinkx.dataserver.bean.dto.JobCountDto;
 import com.datalinkx.dataserver.bean.vo.JobVo;
 import com.datalinkx.dataserver.bean.vo.PageVo;
 import com.datalinkx.dataserver.controller.form.JobForm;
@@ -87,6 +88,15 @@ public class JobController {
 	@RequestMapping("/log/page")
 	public PageVo<List<JobVo.JobLogPageVo>> logPage(JobForm.JobLogPageForm jobLogPageForm) {
 		return jobServiceImpl.logPage(jobLogPageForm);
+	}
+
+	@ApiOperation("流转任务-统计")
+	@RequestMapping("/log/count")
+	public WebResult<List<JobCountDto>> logCount(
+			@RequestParam(value = "jobId", required = false) String jobId,
+			@RequestParam(value = "dateFrom") String dateFrom,
+			@RequestParam(value = "dateTo") String dateTo) {
+		return WebResult.of(jobServiceImpl.logCount(jobId, dateFrom, dateTo));
 	}
 
 	@ApiOperation("任务依赖-配置分页查询")

@@ -1,10 +1,11 @@
 package com.datalinkx.dataserver.service;
 
-import java.util.List;
-
+import com.datalinkx.dataserver.bean.dto.JobCountDto;
 import com.datalinkx.dataserver.bean.vo.JobVo;
 import com.datalinkx.dataserver.bean.vo.PageVo;
 import com.datalinkx.dataserver.controller.form.JobForm;
+
+import java.util.List;
 
 /**
  * 业务流转任务service
@@ -34,6 +35,10 @@ public interface JobService {
      * 任务日志分页查询
      */
     PageVo<List<JobVo.JobLogPageVo>> logPage(JobForm.JobLogPageForm jobLogPageForm);
+    /**
+     * 任务统计
+     */
+    List<JobCountDto> logCount(String jobId, String dateFrom, String dateTo);
     /**
      * 任务停止
      */
