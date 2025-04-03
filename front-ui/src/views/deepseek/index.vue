@@ -80,7 +80,7 @@
           </template>
           <template v-else>
             <a-icon class="avatar" style="color: rgba(59,130,246)" :component="deepSeek" />
-            <div class="message-content">
+            <div class="message-content" @mouseenter="copyBtnVisible = true" @mouseleave="copyBtnVisible = false">
               <div
                 class="bubble2"
                 v-if="message.reasoningContent"
@@ -91,9 +91,10 @@
               <div class="bubble1" v-html="renderMdText(message)"></div>
               <!-- 复制按钮 -->
               <a-button
-                class="copyBtn"
+                :class="['copyBtn', { 'copyBtnVisible': copyBtnVisible }]"
                 type="link"
                 size="small"
+                style="transition: all 0.3s; opacity: 0;"
                 @click="copyText(message.id)"
                 icon="copy"
               />
@@ -168,8 +169,9 @@ export default {
   name: 'AIVisualization',
   data () {
     return {
+      count: 0,
       loadedPython: false,
-      pythonResult: '',
+      copyBtnVisible: false,
       runningPython: false,
       markdownRender: new MarkdownIt({
         html: true,
@@ -249,24 +251,19 @@ export default {
     }
   },
   mounted () {
-    window.runCode = runCode
-    window.vueInstance = this
+    window.runCode = this.runCode
     this.initDeepSeek()
     pyodideWorker.onmessage = (event) => {
       const { result, error } = event.data
-      if (error) {
-        console.error('Pyodide Error:', error)
+      if (result === 'True') {
+        this.loadedPython = true
+        console.log('Pyodide 加载成功')
       } else {
-        if (result === 'True') {
-          this.loadedPython = true
-          console.log('Pyodide 加载成功')
-        } else {
-          console.log('Pyodide Result:', result)
-          this.pythonResult = result
-          document.querySelector('.result-container').innerHTML += '运行结果：' + `<pre>${result}</pre>`
-          document.querySelector('.run-btn').innerHTML = '运行Python'
-          this.runningPython = false
-        }
+        result && console.log('Pyodide Result:', result)
+        error && console.error('Pyodide Error:', error)
+        document.querySelector('.result-container-' + this.count).innerHTML = 'Python运行中...\n' + '运行结果：' + (error ? `<pre>${error}</pre>` : `<pre>${result}</pre>`)
+        document.querySelector('.run-btn-' + this.count).innerHTML = '运行Python'
+        this.runningPython = false
       }
     }
     pyodideWorker.postMessage({ pythonCode: 'Test' })
@@ -537,48 +534,48 @@ export default {
     },
     renderUserMarkdownRender (message) {
         return this.userMarkdownRender.render(message.content)
+    },
+    runCode (button, lang) {
+      if (lang === 'html') {
+        const html = button.previousElementSibling.textContent.trim()
+        const blob = new Blob([html], { type: 'text/html' })
+        const url = URL.createObjectURL(blob)
+        window.open(url, '_blank')
+      } else if (lang === 'python') {
+        if (!this.loadedPython) {
+          this.$message.error('Python环境加载中，请稍后再试')
+          return
+        }
+        if (this.runningPython) {
+          this.$message.error('Python脚本正在运行中，请稍后再试')
+          return
+        }
+        button.classList.add('run-btn-' + this.count)
+        button.innerHTML = 'Python运行中...'
+        this.runningPython = true
+        const code = button.previousElementSibling.textContent
+        // 获取按钮的父级元素
+        const parentElement = button.parentNode
+        // 获取父级元素的父级元素
+        const grandParentElement = parentElement.parentNode
+        // 检查是否已经存在结果 div，避免重复创建
+        let resultDiv = grandParentElement.querySelector('.result-container')
+        if (!resultDiv) {
+          // 创建一个新的 div 元素
+          resultDiv = document.createElement('div')
+          resultDiv.classList.add('result-container', 'result-container-' + this.count)
+          resultDiv.innerHTML = '正在运行中...\n'
+          // 将结果 div 插入到父级同级
+          grandParentElement.appendChild(resultDiv)
+        }
+        pyodideWorker.postMessage({ pythonCode: code })
+      } else {
+        const data = button.previousElementSibling.textContent
+        const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
+        const url = URL.createObjectURL(blob)
+        window.open(url, '_blank')
+      }
     }
-  }
-}
-const runCode = function (button, lang) {
-  if (lang === 'html') {
-    const html = button.previousElementSibling.textContent.trim()
-    const blob = new Blob([html], { type: 'text/html' })
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
-  } else if (lang === 'python') {
-    const { vueInstance } = window
-    if (!vueInstance.loadedPython) {
-      vueInstance.$message.error('Python环境加载中，请稍后再试')
-      return
-    }
-    if (vueInstance.runningPython) {
-      vueInstance.$message.error('Python脚本正在运行中，请稍后再试')
-      return
-    }
-    button.innerHTML = 'Python运行中...'
-    vueInstance.runningPython = true
-    const code = button.previousElementSibling.textContent
-    // 获取按钮的父级元素
-    const parentElement = button.parentNode
-    // 获取父级元素的父级元素
-    const grandParentElement = parentElement.parentNode
-    // 检查是否已经存在结果 div，避免重复创建
-    let resultDiv = grandParentElement.querySelector('.result-container')
-    if (!resultDiv) {
-      // 创建一个新的 div 元素
-      resultDiv = document.createElement('div')
-      resultDiv.className = 'result-container'
-      resultDiv.innerHTML = '正在运行中...\n'
-      // 将结果 div 插入到父级同级
-      grandParentElement.appendChild(resultDiv)
-    }
-    pyodideWorker.postMessage({ pythonCode: code })
-  } else {
-    const data = button.previousElementSibling.textContent
-    const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
   }
 }
 </script>
@@ -621,8 +618,11 @@ const runCode = function (button, lang) {
 
 .copyBtn {
   position: absolute;
-  right: 0;
-  top: 0;
+  right: 3px;
+  top: 3px;
+}
+.copyBtnVisible {
+  opacity: 1 !important;
 }
 
 ::v-deep .ant-card-body {

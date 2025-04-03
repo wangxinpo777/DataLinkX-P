@@ -6,6 +6,8 @@ import com.datalinkx.deepseek.bean.domain.ConversationBean;
 import com.datalinkx.deepseek.bean.domain.MessageBean;
 import com.datalinkx.deepseek.bean.dto.ChatApiCountDTO;
 import com.datalinkx.deepseek.bean.dto.ChatTokenCountDTO;
+import com.datalinkx.deepseek.client.request.ChatReq;
+import com.datalinkx.deepseek.client.response.DeepSeekResponse;
 import com.datalinkx.deepseek.model.EventRequest;
 import com.datalinkx.deepseek.repository.ConversationRepository;
 import com.datalinkx.deepseek.service.DeepSeekService;
@@ -28,6 +30,11 @@ public class DeepSeekController {
     private DeepSeekService deepSeekService;
     @Autowired
     private ConversationRepository conversationRepository;
+
+    @PostMapping("/chat")
+    public WebResult<DeepSeekResponse> chat(@RequestParam String model, @RequestBody List<ChatReq.Content> contents) {
+        return WebResult.of(deepSeekService.chat(model, contents));
+    }
 
     @PostMapping("/stream/chat")
     public WebResult<String> streamChat(@RequestParam String model, @RequestBody EventRequest eventRequest) {

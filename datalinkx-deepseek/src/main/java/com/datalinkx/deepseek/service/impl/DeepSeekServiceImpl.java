@@ -55,6 +55,17 @@ public class DeepSeekServiceImpl implements DeepSeekService {
     private ConversationRepository conversationRepository;
 
     @Transactional(rollbackFor = Exception.class)
+
+    @Override
+    public DeepSeekResponse chat(String model, List<ChatReq.Content> contents) {
+        ChatReq chatReq = ChatReq.builder()
+                .messages(contents)
+                .stream(false)
+                .model(StringUtils.isNotEmpty(model) ? model : this.model)
+                .build();
+        return deepSeekClient.chat(chatReq, "Bearer " + apiKey);
+    }
+
     @Override
     public String streamChat(String model, String content, String conversationId, Long userId) {
         ChatReq.Content chatContent = ChatReq.Content.builder()
@@ -125,6 +136,20 @@ public class DeepSeekServiceImpl implements DeepSeekService {
         Timestamp dateFromTimestamp = Timestamp.valueOf(dateFrom + " 00:00:00");
         Timestamp dateToTimestamp = Timestamp.valueOf(dateTo + " 23:59:59");
         return conversationRepository.chatTokenCount(model, dateFromTimestamp, dateToTimestamp);
+    }
+
+    @Override
+    public DeepSeekResponse getErrorAnalysis(String model, String content) {
+        content += "请你帮我分析一下这段代码的错误，给出详细的错误分析和解决方案,使用中文回答";
+        ChatReq chatReq = ChatReq.builder()
+                .messages(Collections.singletonList(ChatReq.Content.builder()
+                        .role("user")
+                        .content(content)
+                        .build()))
+                .stream(false)
+                .model(StringUtils.isNotEmpty(model) ? model : this.model)
+                .build();
+        return deepSeekClient.chat(chatReq, "Bearer " + apiKey);
     }
 
     private List<ChatReq.Content> getContents(List<ChatReq.Content> contents) {

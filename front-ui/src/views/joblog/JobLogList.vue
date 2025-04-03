@@ -22,16 +22,38 @@
       :rowKey="record => record.id"
       @change="handleTableChange"
     >
+      <template v-slot:error_analysis="error_analysis">
+        <a v-if="error_analysis" @click="errorLogData=error_analysis;errorLogVisible=true">
+          查看
+        </a>
+        <span v-else>--</span>
+      </template>
       <span slot="status" slot-scope="text, record" style="display: flex;align-items: center;">
         <div :style="getTableCss(record.status)"></div>
         <span>{{ record.status ? '失败' : '成功' }}</span>
       </span>
     </a-table>
+    <a-modal
+      title="错误日志分析"
+      v-if="errorLogVisible"
+      :visible="errorLogVisible"
+      @cancel="() => {errorLogVisible = false}"
+      :width="800"
+      :dialog-style="{ top: '50px' }"
+      :footer="null"
+    >
+      <div v-html="renderErrorLog" style="overflow-y: auto;max-height: 70vh"></div>
+      <div style="text-align: end">
+        <a-button type="primary" @click="errorLogVisible = false" style="margin-top: 16px;">确定</a-button>
+      </div>
+    </a-modal>
   </a-card>
 </template>
 
 <script>
 import { pageQuery } from '@/api/job/joblog'
+import MarkdownIt from 'markdown-it'
+import hljs from 'highlight.js'
 // 0:CREATE|1:SYNCING|2:SYNC_FINISH|3:SYNC_ERROR|4:QUEUING
 export default {
   name: 'ContainerBottom',
@@ -40,6 +62,8 @@ export default {
   },
   data () {
     return {
+      errorLogVisible: false,
+      errorLogData: '',
       loading: false,
       columns: [
         {
@@ -78,6 +102,13 @@ export default {
           scopedSlots: { customRender: 'status' }
         },
         {
+          title: '错误日志分析',
+          width: '10%',
+          dataIndex: 'error_analysis',
+          ellipsis: true,
+          scopedSlots: { customRender: 'error_analysis' }
+        },
+        {
           title: '新增条数',
           width: '10%',
           dataIndex: 'append_count',
@@ -97,7 +128,22 @@ export default {
       },
       queryParam: {
         jobId: ''
-      }
+      },
+      markdownRender: new MarkdownIt({
+        html: true,
+        linkify: true,
+        typographer: true,
+        highlight: (str, lang) => {
+          if (lang && hljs.getLanguage(lang)) {
+            try {
+              return `<div class="code-wrapper"><pre class="hljs"><code>${hljs.highlight(lang, str, true).value}</code></pre></div>`
+            } catch (err) {
+              console.error('代码高亮失败:', err) // 可选：打印错误
+            }
+          }
+          return `<div class="code-wrapper"><pre class="hljs"><code>` + this.markdownRender.utils.escapeHtml(str) + `</code></pre></div>`
+        }
+      })
     }
   },
   methods: {
@@ -134,9 +180,19 @@ export default {
   },
   created () {
     this.init()
+  },
+  computed: {
+    renderErrorLog () {
+      return this.markdownRender.render(this.errorLogData)
+    }
   }
 }
 </script>
 
 <style scoped lang="less">
+@import '~highlight.js/styles/vs.css';
+::v-deep pre{
+  background-color: #f5f5f5;
+  margin-bottom: 0;
+}
 </style>
