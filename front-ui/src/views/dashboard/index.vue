@@ -1,6 +1,7 @@
 <template>
   <div class="dash-main" style="overflow-y: hidden; padding: 20px">
     <APITokenCount/>
+    <JobCount/>
     <!--    <a-row :gutter="24">-->
     <!--      <a-col :sm="24" :md="12" :xl="12" :style="{ marginBottom: '24px' }">-->
     <!--        <chart-card :loading="loading" :title="$t('dashboard.analysis.total-sales')" total="￥126,560">-->
@@ -170,6 +171,7 @@ import {
 } from '@/components'
 import { baseMixin } from '@/store/app-mixin'
 import APITokenCount from '@/views/dashboard/APITokenCount.vue'
+import JobCount from '@/views/dashboard/JobCount.vue'
 
 const barData = []
 const barData2 = []
@@ -239,6 +241,7 @@ export default {
   name: 'Analysis',
   mixins: [baseMixin],
   components: {
+    JobCount,
     APITokenCount,
     ChartCard,
     MiniArea,

@@ -31,8 +31,8 @@
                 <v-tooltip/>
                 <v-smooth-line position="date*count" :size="2"/>
                 <v-smooth-area position="date*count"/>
-                <v-axis dataKey="x" :visible="true"/><!-- 显示 Y 轴 -->
-                <v-axis dataKey="y" :visible="true"/>
+                <v-axis dataKey="date" :visible="true"/>
+                <v-axis dataKey="count" :visible="true"/>
               </v-chart>
             </div>
           </div>
@@ -106,9 +106,8 @@
                 <v-tooltip/>
                 <v-smooth-line position="date*count" :size="2"/>
                 <v-smooth-area position="date*count"/>
-                <v-axis dataKey="x" :visible="true"/>
-                <!-- 显示 Y 轴 -->
-                <v-axis dataKey="y" :visible="true"/>
+                <v-axis dataKey="date" :visible="true"/>
+                <v-axis dataKey="count" :visible="true"/>
               </v-chart>
             </div>
           </div>
@@ -197,7 +196,7 @@ export default {
       deepseekChatTokenCountData: [],
       deepseekReasonerApiCountData: [],
       deepseekReasonerTokenCountData: [],
-      apiScale: [{ dataKey: 'x', alias: '时间' }, { dataKey: 'y', alias: '次数' }],
+      apiScale: [{ dataKey: 'date', alias: '时间' }, { dataKey: 'count', alias: '次数' }],
       tokenScale: [
         { dataKey: 'date', alias: '日期' },
         { dataKey: 'value', alias: '数值' }
