@@ -1,5 +1,5 @@
 <template>
-  <a-card title="可视化图表">
+  <a-card title="可视化图表" style="overflow: hidden;">
     <template v-slot:extra>
       <!--excel或者csv-->
       <a-upload
@@ -9,39 +9,10 @@
       >
         <a-button> <a-icon type="upload" /> 上传数据 </a-button>
       </a-upload>
-      <a-button @click="() => { showDataSource = !showDataSource;fetchDsList() }">{{ showDataSource ? '取消':'从数据源获取数据' }}</a-button>
-      <a-button @click="() => { showTable = !showTable;initializeHandsontable() }">{{ showTable ? '隐藏数据表格' : '显示数据表格' }}
+      <a-button @click="() => { showDataSource = !showDataSource;fetchDsList() }">{{ '从数据源获取数据' }}</a-button>
+      <a-button @click="() => { showTable = !showTable;initializeHandsontable() }">{{ '显示数据表格' }}
       </a-button>
     </template>
-    <div class="data-source" :class="{'show-data-source': showDataSource}">
-      <div class="data-source-header" v-show="showDataSource">
-        <a-card title="数据源设置" style="margin-bottom: 10px;">
-          <a-form :form="form" layout="inline">
-            <a-form-item label="来源数据源" class="data-source-item" :wrapper-col="{span: 12 }" :label-col="{span: 6}">
-              <a-select
-                @change="handleFromChange"
-                v-decorator="['selectedDataSource', {rules: [{required: true, message: '请选择来源数据源'}]}]">
-                <a-select-option v-for="table in fromDsList" :value="table.dsId" :key="table.name">
-                  <div>
-                    <span class="ds-icon">
-                      <img :src="dsImgObj[table.type]" alt="">
-                    </span>
-                    <span>{{ table.name }}</span>
-                  </div>
-                </a-select-option>
-              </a-select>
-            </a-form-item>
-            <a-form-item label="来源数据源表" class="data-source-item" :wrapper-col="{span: 12 }" :label-col="{span: 6}">
-              <a-select @change="handleFromTbChange" v-decorator="['selectedSourceTable', {rules: [{required: true, message: '请选择来源数据源表'}]}]">
-                <a-select-option v-for="table in sourceTables" :value="table" :key="table">
-                  {{ table }}
-                </a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-form>
-        </a-card>
-      </div>
-    </div>
     <div style="display: flex;" class="chart-div">
       <div class="left-sidebar">
         <div v-for="type in chartTypes" :key="type.type" class="icon-div" :class="{ activeChartType: chartType === type.type }" @click="chartType = type.type">
@@ -52,8 +23,7 @@
       <div class="main-content" >
         <div class="chart-container" ref="chart"/>
       </div>
-      <div class="right-sidebar" :class="{'show-chart-table': showTable}">
-        <div v-show="showTable" class="chart-table" ref="chartTable"/>
+      <div class="right-sidebar">
         <!-- 图例设置 -->
         <a-card title="图例设置" style="margin-bottom: 10px;">
           <a-select v-model="legendPosition" style="width: 100%;" placeholder="图例位置" :options="legendPositions">
@@ -170,6 +140,71 @@
         </a-card>
       </div>
     </div>
+    <div class="dataTable">
+      <a-drawer
+        title="数据表格"
+        placement="right"
+        :closable="false"
+        :visible="showTable"
+        :bodyStyle="{overflow: 'hidden', padding: 0}"
+        :maskStyle="{ background: 'rgba(0, 0, 0, 0)' }"
+        :width="'30vw'"
+        @close="showTable = false"
+      >
+        <div style="margin: 30px 20px" class="chart-table" ref="chartTable"></div>
+      </a-drawer>
+    </div>
+    <div class="dataSource">
+      <a-drawer
+        title="数据源设置"
+        placement="right"
+        :closable="false"
+        :visible="showDataSource"
+        :bodyStyle="{overflow: 'hidden', padding: 0}"
+        :maskStyle="{ background: 'rgba(0, 0, 0, 0)' }"
+        :width="'30vw'"
+        @close="showDataSource = false"
+      >
+        <div class="data-source">
+          <div class="data-source-header" v-show="showDataSource">
+            <a-form :form="form" layout="vertical">
+              <a-row type="flex" justify="space-around" style="margin-top: 24px;">
+                <!-- 第一列：来源数据源 -->
+                <a-col :span="10">
+                  <a-form-item label="来源数据源" class="data-source-item">
+                    <a-select
+                      @change="handleFromChange"
+                      v-decorator="['selectedDataSource', { rules: [{ required: true, message: '请选择来源数据源' }] }]">
+                      <a-select-option v-for="table in fromDsList" :value="table.dsId" :key="table.name">
+                        <div style="display: flex; align-items: center;">
+                          <span class="ds-icon" style="margin-right: 8px;">
+                            <img :src="dsImgObj[table.type]" alt="" style="width: 16px; height: 16px;" />
+                          </span>
+                          <span>{{ table.name }}</span>
+                        </div>
+                      </a-select-option>
+                    </a-select>
+                  </a-form-item>
+                </a-col>
+
+                <!-- 第二列：来源数据源表 -->
+                <a-col :span="10">
+                  <a-form-item label="来源数据源表" class="data-source-item">
+                    <a-select
+                      @change="handleFromTbChange"
+                      v-decorator="['selectedSourceTable', { rules: [{ required: true, message: '请选择来源数据源表' }] }]">
+                      <a-select-option v-for="table in sourceTables" :value="table" :key="table">
+                        {{ table }}
+                      </a-select-option>
+                    </a-select>
+                  </a-form-item>
+                </a-col>
+              </a-row>
+            </a-form>
+          </div>
+        </div>
+      </a-drawer>
+    </div>
   </a-card>
 </template>
 
@@ -238,7 +273,14 @@ export default {
       chartTitle: '',
       lineStyles: [{ label: '实线', value: 'solid' }, { label: '虚线', value: 'dashed' }, { label: '点线', value: 'dotted' }],
       positions: [{ label: '顶部', value: 'top' }, { label: '底部', value: 'bottom' }, { label: '中间', value: 'middle' }, { label: '内部', value: 'inside' }, { label: '外部', value: 'outside' }, { label: '左侧', value: 'left' }, { label: '右侧', value: 'right' }],
-      formatterOptions: [{ label: '数值', value: '{c}' }, { label: 'Y轴', value: '{a}' }, { label: 'X轴', value: '{b}' }],
+      formatterOptions: [
+        { label: '数值', value: '{c}' },
+        { label: 'Y轴', value: '{a}' },
+        { label: 'X轴', value: '{b}' },
+        { label: '数值 (保留1位小数)', value: '{c|toFixed(1)}' },
+        { label: '数值 (保留2位小数)', value: '{c|toFixed(2)}' },
+        { label: '数值 (保留3位小数)', value: '{c|toFixed(3)}' }
+      ],
       chartStyles: {},
 
       // 图例设置
@@ -312,26 +354,34 @@ export default {
           this.hot.destroy()
         }
         const container = this.$refs.chartTable
-        // 确保 chartJsonData 至少有列头
-        if (!this.chartJsonData || this.chartJsonData.length === 0) {
-          this.chartJsonData = [['列1', '列2', '列3', '列4', '列5'], ['', '', '', '', '']]
-        }
         this.hot = new Handsontable(container, {
-          data: this.chartJsonData.slice(1), // 只填充数据部分
+          data: this.chartJsonData.length > 0 ? this.chartJsonData : [[]],
           contextMenu: true,
           language: 'zh-CN',
           rowHeaders: true,
-          colHeaders: this.chartJsonData[0], // 第一行作为列头
-          height: '50%',
+          colHeaders: [],
           autoWrapRow: false,
           autoWrapCol: false,
-          minRows: 5, // 设置最少行数，确保空表格可编辑
-          minCols: this.chartJsonData[0].length || 5, // 保持列数
+          minRows: 10, // 设置最少行数，确保空表格可编辑
+          minCols: 10, // 保持列数
+          height: '87vh',
           afterChange: (changes) => {
             if (changes) {
-              this.chartJsonData = [this.hot.getColHeader()].concat(this.hot.getData())
-              this.initChartData()
-              this.chartData = this.convertJsonToObject()
+              this.chartJsonData = this.hot.getData()
+                .map((row) => row.filter((value) => value !== '' && value !== null)) // 过滤掉空元素
+                .filter((row) => row.length > 0) // 跳过完全为空的行
+              if (this.chartJsonData.length > 0) {
+                const YIndex = this.chartJsonData[0]
+                if (JSON.stringify(YIndex) !== JSON.stringify(this.YIndex)) {
+                  this.initChartData()
+                } else {
+                  this.chartData = this.convertJsonToObject()
+                  this.xAxisData = Object.keys(this.chartData)
+                }
+              } else {
+                this.chartJsonData = [[]]
+                this.initChartData()
+              }
             }
           },
           licenseKey: 'non-commercial-and-evaluation'
@@ -352,9 +402,9 @@ export default {
       return result
     },
     initChartData () {
-      this.YIndex = this.chartJsonData[0].filter((item) => item)
-      this.XIndex = this.chartJsonData[0]
-      this.selectedYIndex = this.YIndex.slice(1).filter((item) => item)
+      this.YIndex = this.chartJsonData[0].filter((item) => item !== '' && item !== null)
+      this.XIndex = this.chartJsonData[0].filter((item) => item !== '' && item !== null)
+      this.selectedYIndex = this.YIndex.slice(1)
       this.selectedXIndex = this.XIndex[0]
       this.chooseLine = this.selectedYIndex[0]
       this.chartData = this.convertJsonToObject()
@@ -368,7 +418,7 @@ export default {
           // 随机颜色
           lineColor: { hex: `#${Math.floor(Math.random() * 16777215).toString(16)}` },
           // 随机线条样式
-          lineStyle: this.lineStyles[Math.floor(Math.random() * this.lineStyles.length)].value,
+          lineStyle: 'solid',
           showDataLabel: false,
           position: 'top',
           labelColor: { hex: `#${Math.floor(Math.random() * 16777215).toString(16)}` },
@@ -381,7 +431,6 @@ export default {
     },
     changeXIndex () {
       this.chartData = this.convertJsonToObject()
-      this.xAxisData = Object.keys(this.chartData)
     },
     renderChart () {
       renderChart(this)
@@ -423,7 +472,7 @@ export default {
     fetchDsList () {
       listQuery().then(res => {
         const record = res.result
-        this.fromDsList = record.reduce((acc, item) => {
+        this.fromDsList = record.length > 0 && record.reduce((acc, item) => {
           if (item.type === 1) {
             acc.push({
               dsId: item.dsId,
@@ -488,18 +537,6 @@ export default {
       padding: 14px 0;
     }
   }
-}
-.data-source{
-  width: 100%;
-  height: 0;
-  transition: all 0.3s;
-}
-.show-chart-table {
-  width: 50%;
-}
-.show-data-source {
-  height: auto;
-  margin-bottom: 10px;
 }
 .chart-div{
   max-height: 84vh;
@@ -600,8 +637,5 @@ p{
     padding: 0;
     border: 0;
   }
-}
-.data-source-item{
-  width: 30%;
 }
 </style>

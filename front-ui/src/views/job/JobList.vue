@@ -99,6 +99,17 @@ export default {
           dataIndex: 'progress'
         },
         {
+          title: '查看日志',
+          width: '10%',
+          customRender: (record) => {
+            return (
+              <div>
+                <a href="javascript:;" onClick={() => this.goToJobLog(record.job_id)}>查看</a>
+              </div>
+            )
+          }
+        },
+        {
           title: '操作',
           width: '15%',
           customRender: (record) => {
@@ -247,6 +258,15 @@ export default {
       } else {
         console.log('browser not support SSE')
       }
+    },
+    goToJobLog (jobId) {
+      // 使用 Vue Router 的编程式导航跳转到 jobLog 页面
+      this.$router.push({
+        name: 'JobLog', // 路由名称
+        query: { jobId } // 通过 query 参数传递 jobId
+        // 或者使用 params（如果路由配置了动态参数）
+        // params: { jobId }
+      })
     }
   },
   beforeDestroy () {

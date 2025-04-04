@@ -10,7 +10,7 @@
           </a-col>
           <a-col :md="8" :sm="24">
             <a-button @click="() => {this.queryData()}" type="primary">查询</a-button>
-            <a-button @click="() => queryParam = {}" style="margin-left: 8px">重置</a-button>
+            <a-button @click="() => {queryParam = {};this.init()}" style="margin-left: 8px">重置</a-button>
           </a-col>
         </a-row>
       </a-form>
@@ -158,7 +158,6 @@ export default {
         this.loading = false
       }).finally(() => {
         this.loading = false
-        this.queryParam.jobId = ''
       })
     },
     getTableCss (status) {
@@ -179,6 +178,10 @@ export default {
     }
   },
   created () {
+    const jobId = this.$route.query.jobId // 从 query 参数中获取 jobId
+    if (jobId) {
+      this.queryParam.jobId = jobId // 将 jobId 赋值给 queryParam
+    }
     this.init()
   },
   computed: {
