@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { pageQuery, delObj, streamStop, streamExec } from '@/api/job/job'
+import { delObj, pageQuery, streamExec, streamStop } from '@/api/job/job'
 import JobSaveOrUpdateStreaming from '@/views/job/JobSaveOrUpdateStreaming.vue'
 // 0:CREATE|1:SYNCING|2:SYNC_FINISH|3:SYNC_ERROR|4:QUEUING
 const StatusType = [
@@ -85,6 +85,17 @@ export default {
                     return <span>{item.label}</span>
                   }
                 })}
+              </div>
+            )
+          }
+        },
+        {
+          title: '查看日志',
+          width: '10%',
+          customRender: (record) => {
+            return (
+              <div>
+                <a href="javascript:;" onClick={() => this.goToJobLog(record.job_id)}>查看</a>
               </div>
             )
           }
@@ -195,6 +206,15 @@ export default {
     queryData () {
       this.pages.current = 1
       this.init()
+    },
+    goToJobLog (jobId) {
+      // 使用 Vue Router 的编程式导航跳转到 jobLog 页面
+      this.$router.push({
+        name: 'JobLog', // 路由名称
+        query: { jobId } // 通过 query 参数传递 jobId
+        // 或者使用 params（如果路由配置了动态参数）
+        // params: { jobId }
+      })
     }
   },
   created () {

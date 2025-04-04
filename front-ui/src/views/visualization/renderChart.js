@@ -1,3 +1,26 @@
+function getFormatter (value) {
+  return function (params) {
+    let result = value // 初始值
+    const regex = /\{c\|toFixed\((\d+)\)\}/
+    const match = value.match(regex)
+    if (match) {
+      const decimalPlaces = parseInt(match[1], 10) // 获取小数位数
+      const numericValue = parseFloat(params.value || params.data?.value) // 获取数值
+      if (!isNaN(numericValue)) {
+        result = numericValue.toFixed(decimalPlaces) // 格式化数值
+      }
+    } else {
+      // 替换标准占位符
+      result = result
+        .replace('{c}', params.value || params.data?.value)
+        .replace('{a}', params.seriesName)
+        .replace('{b}', params.name)
+    }
+
+    return result
+  }
+}
+
 export function renderChart (VueIns) {
   const seriesData = []
   const xAxisData = VueIns.xAxisData
@@ -8,7 +31,9 @@ export function renderChart (VueIns) {
       show: ChartStyle.showDataLabel,
       position: ChartStyle.position,
       color: ChartStyle.labelColor?.hex,
-      formatter: ChartStyle.formatter,
+      formatter: (params) => {
+        return getFormatter(ChartStyle.formatter)(params)
+      },
       fontSize: ChartStyle.fontSize,
       fontWeight: ChartStyle.fontWeight
     }
