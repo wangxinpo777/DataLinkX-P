@@ -366,4 +366,13 @@ export default {
   padding: 12px 24px 0 24px;
   margin-bottom: 24px;
 }
+ul.ant-menu.ant-menu-horizontal.ant-menu-root.ant-menu-light {
+  background-color: initial;
+}
+::v-deep span.ant-calendar-picker-input.ant-input{
+  background-color: unset;
+  background-image: none;
+  border: 1px solid #ff0000;
+  border-radius: 8px;
+}
 </style>
