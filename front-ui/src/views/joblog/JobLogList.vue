@@ -39,7 +39,8 @@
       :visible="errorLogVisible"
       @cancel="() => {errorLogVisible = false}"
       :width="800"
-      :dialog-style="{ top: '50px' }"
+      :dialog-style="{ top: '50px'}"
+      :body-style="{ borderRadius: '8px' }"
       :footer="null"
     >
       <div v-html="renderErrorLog" style="overflow-y: auto;max-height: 70vh"></div>
