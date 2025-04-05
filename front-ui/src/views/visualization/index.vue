@@ -1,211 +1,213 @@
 <template>
-  <a-card title="可视化图表" style="overflow: hidden;">
-    <template v-slot:extra>
-      <!--excel或者csv-->
-      <a-upload
-        :showUploadList="false"
-        :accept="'.csv,.xls,.xlsx'"
-        :beforeUpload="beforeUpload"
-      >
-        <a-button> <a-icon type="upload" /> 上传数据 </a-button>
-      </a-upload>
-      <a-button @click="() => { showDataSource = !showDataSource;fetchDsList() }">{{ '从数据源获取数据' }}</a-button>
-      <a-button @click="() => { showTable = !showTable;initializeHandsontable() }">{{ '显示数据表格' }}
-      </a-button>
-    </template>
-    <div style="display: flex;" class="chart-div">
-      <div class="left-sidebar">
-        <div v-for="type in chartTypes" :key="type.type" class="icon-div" :class="{ activeChartType: chartType === type.type }" @click="chartType = type.type">
-          <a-icon :type="type['icon-type']" class="sidebar-icon"/>
-          <span>{{ type.label }}</span>
-        </div>
-      </div>
-      <div class="main-content" >
-        <div class="chart-container" ref="chart"/>
-      </div>
-      <div class="right-sidebar">
-        <!-- 图例设置 -->
-        <a-card title="图例设置" style="margin-bottom: 10px;">
-          <a-select v-model="legendPosition" style="width: 100%;" placeholder="图例位置" :options="legendPositions">
-          </a-select>
-        </a-card>
-
-        <!-- 基础设置 -->
-        <a-card title="基础设置" style="margin-bottom: 10px;">
-          <a-input v-model="chartTitle" placeholder="图表标题" style="margin-bottom: 10px;"/>
-          <a-checkbox v-model="showToolbox">显示工具栏</a-checkbox>
-        </a-card>
-
-        <!-- 坐标轴设置 -->
-        <a-card
-          title="坐标轴设置"
-          style="margin-bottom: 10px;"
+  <div class="main">
+    <a-card title="可视化图表" style="overflow: hidden;border-radius: 8px">
+      <template v-slot:extra>
+        <!--excel或者csv-->
+        <a-upload
+          :showUploadList="false"
+          :accept="'.csv,.xls,.xlsx'"
+          :beforeUpload="beforeUpload"
         >
-          <a-tabs v-model="activeKey">
-            <a-tab-pane key="Y-Index" tab="Y轴设置"/>
-            <a-tab-pane key="X-Index" tab="X轴设置"/>
-          </a-tabs>
-          <div v-show="activeKey === 'Y-Index'">
-            <a-input v-model="yAxisTitle" placeholder="Y轴标题" style="margin-bottom: 10px;"/>
-            <div style="display: flex; gap: 10px;margin-bottom: 10px;">
-              <a-input-number v-model="yMin" placeholder="最小值" style="width: 100%;"/>
-              <a-input-number v-model="yMax" placeholder="最大值" style="width: 100%;"/>
-            </div>
-            <div class="checkbox-item">
-              <a-checkbox v-model="yAxisSplitLine">显示网格线</a-checkbox>
-            </div>
-            <div class="checkbox-item">
-              <a-checkbox v-model="showMarkPoint">显示标记点</a-checkbox>
-            </div>
-            <div class="checkbox-item">
-              <a-checkbox v-model="showMarkLine">显示标记线</a-checkbox>
-            </div>
-            <div class="checkbox-group-container" v-if="YIndex.length > 0">
-              <a-checkbox-group v-model="selectedYIndex">
-                <div class="checkbox-item" v-for="option in YIndex" :key="option" @click="chooseLine = option" :class="{ activeLine: chooseLine === option }">
-                  <a-checkbox :value="option">{{ option }}</a-checkbox>
-                </div>
-              </a-checkbox-group>
-            </div>
-            <div style="margin-top: 5px;text-align: right" class="checkbox-item" v-if="YIndex.length > 0">
-              <a-checkbox :indeterminate="indeterminate" :checked="checkAll" @change="onCheckAllChange">
-                全选
-              </a-checkbox>
-            </div>
-          </div>
-          <div v-show="activeKey === 'X-Index'">
-            <a-select style="width: 100%;margin-bottom: 10px" placeholder="选择X轴" @change="changeXIndex" v-model="selectedXIndex">
-              <a-select-option v-for="option in XIndex" :key="option" :value="option">{{ option }}</a-select-option>
-            </a-select>
-            <a-input v-model="xAxisTitle" placeholder="X轴标题" style="margin-bottom: 10px;"/>
-            <a-input-number
-              v-model="xAxisRotate"
-              :min="0"
-              :max="90"
-              style="width: 100%;"
-              placeholder="标签旋转角度"
-            />
-          </div>
-        </a-card>
-
-        <!-- 系列样式 -->
-        <a-card :title="`系列样式 - ${chooseLine}`" style="margin-bottom: 10px;" v-if="chartStyles[chooseLine]">
-          <div class="table-item">
-            <div class="section-title">实例设置</div>
-            <compact
-              v-model="chartStyles[chooseLine].lineColor"
-              style="width: 100%; margin-bottom: 10px;"/>
-            <a-select v-model="chartStyles[chooseLine].lineStyle" style="width: 100%; margin-bottom: 10px;" placeholder="线条样式" :options="lineStyles">
-            </a-select>
-            <div class="checkbox-item">
-              <a-checkbox v-model="chartStyles[chooseLine].smooth">平滑曲线</a-checkbox>
-            </div>
-            <div class="checkbox-item">
-              <a-checkbox v-model="chartStyles[chooseLine].showDataLabel">显示数据标签</a-checkbox>
-            </div>
-          </div>
-          <div class="table-item" v-if="chartStyles[chooseLine].showDataLabel">
-            <div class="section-title">数据标签设置</div>
-            <p>位置</p>
-            <a-select v-model="chartStyles[chooseLine].position" style="width: 100%;margin-bottom: 10px;" placeholder="位置" :options="positions">
-            </a-select>
-            <p>颜色</p>
-            <compact
-              v-model="chartStyles[chooseLine].labelColor"
-              style="width: 100%; margin-bottom: 10px;"/>
-            <p>格式化</p>
-            <a-select
-              v-model="chartStyles[chooseLine].formatter"
-              style="width: 100%; margin-bottom: 10px;"
-              placeholder="格式化"
-              :options="formatterOptions">
-            </a-select>
-            <p>字体大小</p>
-            <a-input-number
-              v-model="chartStyles[chooseLine].fontSize"
-              :min="12"
-              :max="24"
-              style="width: 100%; margin-bottom: 10px;"
-              placeholder="字体大小"
-            />
-            <p>字体粗细</p>
-            <a-select
-              v-model="chartStyles[chooseLine].fontWeight"
-              style="width: 100%; margin-bottom: 10px;"
-              placeholder="字体粗细">
-              <a-select-option value="normal">正常</a-select-option>
-              <a-select-option value="bold">加粗</a-select-option>
-            </a-select>
-          </div>
-        </a-card>
-      </div>
-    </div>
-    <div class="dataTable">
-      <a-drawer
-        title="数据表格"
-        placement="right"
-        :closable="false"
-        :visible="showTable"
-        :bodyStyle="{overflow: 'hidden', padding: 0}"
-        :maskStyle="{ background: 'rgba(0, 0, 0, 0)' }"
-        :width="'30vw'"
-        @close="showTable = false"
-      >
-        <div style="margin: 30px 20px" class="chart-table" ref="chartTable"></div>
-      </a-drawer>
-    </div>
-    <div class="dataSource">
-      <a-drawer
-        title="数据源设置"
-        placement="right"
-        :closable="false"
-        :visible="showDataSource"
-        :bodyStyle="{overflow: 'hidden', padding: 0}"
-        :maskStyle="{ background: 'rgba(0, 0, 0, 0)' }"
-        :width="'30vw'"
-        @close="showDataSource = false"
-      >
-        <div class="data-source">
-          <div class="data-source-header" v-show="showDataSource">
-            <a-form :form="form" layout="vertical">
-              <a-row type="flex" justify="space-around" style="margin-top: 24px;">
-                <!-- 第一列：来源数据源 -->
-                <a-col :span="10">
-                  <a-form-item label="来源数据源" class="data-source-item">
-                    <a-select
-                      @change="handleFromChange"
-                      v-decorator="['selectedDataSource', { rules: [{ required: true, message: '请选择来源数据源' }] }]">
-                      <a-select-option v-for="table in fromDsList" :value="table.dsId" :key="table.name">
-                        <div style="display: flex; align-items: center;">
-                          <span class="ds-icon" style="margin-right: 8px;">
-                            <img :src="dsImgObj[table.type]" alt="" style="width: 16px; height: 16px;" />
-                          </span>
-                          <span>{{ table.name }}</span>
-                        </div>
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-
-                <!-- 第二列：来源数据源表 -->
-                <a-col :span="10">
-                  <a-form-item label="来源数据源表" class="data-source-item">
-                    <a-select
-                      @change="handleFromTbChange"
-                      v-decorator="['selectedSourceTable', { rules: [{ required: true, message: '请选择来源数据源表' }] }]">
-                      <a-select-option v-for="table in sourceTables" :value="table" :key="table">
-                        {{ table }}
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-              </a-row>
-            </a-form>
+          <a-button> <a-icon type="upload" /> 上传数据 </a-button>
+        </a-upload>
+        <a-button @click="() => { showDataSource = !showDataSource;fetchDsList() }">{{ '从数据源获取数据' }}</a-button>
+        <a-button @click="() => { showTable = !showTable;initializeHandsontable() }">{{ '显示数据表格' }}
+        </a-button>
+      </template>
+      <div style="display: flex;" class="chart-div">
+        <div class="left-sidebar">
+          <div v-for="type in chartTypes" :key="type.type" class="icon-div" :class="{ activeChartType: chartType === type.type }" @click="chartType = type.type">
+            <a-icon :type="type['icon-type']" class="sidebar-icon"/>
+            <span>{{ type.label }}</span>
           </div>
         </div>
-      </a-drawer>
-    </div>
-  </a-card>
+        <div class="main-content" >
+          <div class="chart-container" ref="chart"/>
+        </div>
+        <div class="right-sidebar">
+          <!-- 图例设置 -->
+          <a-card title="图例设置" style="margin-bottom: 10px;">
+            <a-select v-model="legendPosition" style="width: 100%;" placeholder="图例位置" :options="legendPositions">
+            </a-select>
+          </a-card>
+
+          <!-- 基础设置 -->
+          <a-card title="基础设置" style="margin-bottom: 10px;">
+            <a-input v-model="chartTitle" placeholder="图表标题" style="margin-bottom: 10px;"/>
+            <a-checkbox v-model="showToolbox">显示工具栏</a-checkbox>
+          </a-card>
+
+          <!-- 坐标轴设置 -->
+          <a-card
+            title="坐标轴设置"
+            style="margin-bottom: 10px;"
+          >
+            <a-tabs v-model="activeKey">
+              <a-tab-pane key="Y-Index" tab="Y轴设置"/>
+              <a-tab-pane key="X-Index" tab="X轴设置"/>
+            </a-tabs>
+            <div v-show="activeKey === 'Y-Index'">
+              <a-input v-model="yAxisTitle" placeholder="Y轴标题" style="margin-bottom: 10px;"/>
+              <div style="display: flex; gap: 10px;margin-bottom: 10px;">
+                <a-input-number v-model="yMin" placeholder="最小值" style="width: 100%;"/>
+                <a-input-number v-model="yMax" placeholder="最大值" style="width: 100%;"/>
+              </div>
+              <div class="checkbox-item">
+                <a-checkbox v-model="yAxisSplitLine">显示网格线</a-checkbox>
+              </div>
+              <div class="checkbox-item">
+                <a-checkbox v-model="showMarkPoint">显示标记点</a-checkbox>
+              </div>
+              <div class="checkbox-item">
+                <a-checkbox v-model="showMarkLine">显示标记线</a-checkbox>
+              </div>
+              <div class="checkbox-group-container" v-if="YIndex.length > 0">
+                <a-checkbox-group v-model="selectedYIndex">
+                  <div class="checkbox-item" v-for="option in YIndex" :key="option" @click="chooseLine = option" :class="{ activeLine: chooseLine === option }">
+                    <a-checkbox :value="option">{{ option }}</a-checkbox>
+                  </div>
+                </a-checkbox-group>
+              </div>
+              <div style="margin-top: 5px;text-align: right" class="checkbox-item" v-if="YIndex.length > 0">
+                <a-checkbox :indeterminate="indeterminate" :checked="checkAll" @change="onCheckAllChange">
+                  全选
+                </a-checkbox>
+              </div>
+            </div>
+            <div v-show="activeKey === 'X-Index'">
+              <a-select style="width: 100%;margin-bottom: 10px" placeholder="选择X轴" @change="changeXIndex" v-model="selectedXIndex">
+                <a-select-option v-for="option in XIndex" :key="option" :value="option">{{ option }}</a-select-option>
+              </a-select>
+              <a-input v-model="xAxisTitle" placeholder="X轴标题" style="margin-bottom: 10px;"/>
+              <a-input-number
+                v-model="xAxisRotate"
+                :min="0"
+                :max="90"
+                style="width: 100%;"
+                placeholder="标签旋转角度"
+              />
+            </div>
+          </a-card>
+
+          <!-- 系列样式 -->
+          <a-card :title="`系列样式 - ${chooseLine}`" style="margin-bottom: 10px;" v-if="chartStyles[chooseLine]">
+            <div class="table-item">
+              <div class="section-title">实例设置</div>
+              <compact
+                v-model="chartStyles[chooseLine].lineColor"
+                style="width: 100%; margin-bottom: 10px;"/>
+              <a-select v-model="chartStyles[chooseLine].lineStyle" style="width: 100%; margin-bottom: 10px;" placeholder="线条样式" :options="lineStyles">
+              </a-select>
+              <div class="checkbox-item">
+                <a-checkbox v-model="chartStyles[chooseLine].smooth">平滑曲线</a-checkbox>
+              </div>
+              <div class="checkbox-item">
+                <a-checkbox v-model="chartStyles[chooseLine].showDataLabel">显示数据标签</a-checkbox>
+              </div>
+            </div>
+            <div class="table-item" v-if="chartStyles[chooseLine].showDataLabel">
+              <div class="section-title">数据标签设置</div>
+              <p>位置</p>
+              <a-select v-model="chartStyles[chooseLine].position" style="width: 100%;margin-bottom: 10px;" placeholder="位置" :options="positions">
+              </a-select>
+              <p>颜色</p>
+              <compact
+                v-model="chartStyles[chooseLine].labelColor"
+                style="width: 100%; margin-bottom: 10px;"/>
+              <p>格式化</p>
+              <a-select
+                v-model="chartStyles[chooseLine].formatter"
+                style="width: 100%; margin-bottom: 10px;"
+                placeholder="格式化"
+                :options="formatterOptions">
+              </a-select>
+              <p>字体大小</p>
+              <a-input-number
+                v-model="chartStyles[chooseLine].fontSize"
+                :min="12"
+                :max="24"
+                style="width: 100%; margin-bottom: 10px;"
+                placeholder="字体大小"
+              />
+              <p>字体粗细</p>
+              <a-select
+                v-model="chartStyles[chooseLine].fontWeight"
+                style="width: 100%; margin-bottom: 10px;"
+                placeholder="字体粗细">
+                <a-select-option value="normal">正常</a-select-option>
+                <a-select-option value="bold">加粗</a-select-option>
+              </a-select>
+            </div>
+          </a-card>
+        </div>
+      </div>
+      <div class="dataTable">
+        <a-drawer
+          title="数据表格"
+          placement="right"
+          :closable="false"
+          :visible="showTable"
+          :bodyStyle="{overflow: 'hidden', padding: 0}"
+          :maskStyle="{ background: 'rgba(0, 0, 0, 0)' }"
+          :width="'30vw'"
+          @close="showTable = false"
+        >
+          <div style="margin: 30px 20px" class="chart-table" ref="chartTable"></div>
+        </a-drawer>
+      </div>
+      <div class="dataSource">
+        <a-drawer
+          title="数据源设置"
+          placement="right"
+          :closable="false"
+          :visible="showDataSource"
+          :bodyStyle="{overflow: 'hidden', padding: 0}"
+          :maskStyle="{ background: 'rgba(0, 0, 0, 0)' }"
+          :width="'30vw'"
+          @close="showDataSource = false"
+        >
+          <div class="data-source">
+            <div class="data-source-header" v-show="showDataSource">
+              <a-form :form="form" layout="vertical">
+                <a-row type="flex" justify="space-around" style="margin-top: 24px;">
+                  <!-- 第一列：来源数据源 -->
+                  <a-col :span="10">
+                    <a-form-item label="来源数据源" class="data-source-item">
+                      <a-select
+                        @change="handleFromChange"
+                        v-decorator="['selectedDataSource', { rules: [{ required: true, message: '请选择来源数据源' }] }]">
+                        <a-select-option v-for="table in fromDsList" :value="table.dsId" :key="table.name">
+                          <div style="display: flex; align-items: center;">
+                            <span class="ds-icon" style="margin-right: 8px;">
+                              <img :src="dsImgObj[table.type]" alt="" style="width: 16px; height: 16px;" />
+                            </span>
+                            <span>{{ table.name }}</span>
+                          </div>
+                        </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+
+                  <!-- 第二列：来源数据源表 -->
+                  <a-col :span="10">
+                    <a-form-item label="来源数据源表" class="data-source-item">
+                      <a-select
+                        @change="handleFromTbChange"
+                        v-decorator="['selectedSourceTable', { rules: [{ required: true, message: '请选择来源数据源表' }] }]">
+                        <a-select-option v-for="table in sourceTables" :value="table" :key="table">
+                          {{ table }}
+                        </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+              </a-form>
+            </div>
+          </div>
+        </a-drawer>
+      </div>
+    </a-card>
+  </div>
 </template>
 
 <script>
@@ -539,8 +541,8 @@ export default {
   }
 }
 .chart-div{
-  max-height: 84vh;
-  min-height: 84vh;
+  max-height: 79vh;
+  min-height: 79vh;
   border: 1px solid #e8e8e8;
   border-radius: 5px;
   .main-content {
@@ -637,5 +639,8 @@ p{
     padding: 0;
     border: 0;
   }
+}
+.main{
+  padding: 24px 24px 16px 24px;
 }
 </style>
