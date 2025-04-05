@@ -8,161 +8,172 @@
       </a-menu>
     </template>
     <div class="ApiTokenCount">
-      <p style="margin-bottom: 10px;font-size: 20px">deepseek-chat</p>
-      <a-row :gutter="68">
-        <a-col :xs="24" :sm="12" :style="{ marginBottom: ' 24px'}">
-          <number-info
-            :total="sumChatApiCount"
-            :sub-total="Math.abs(compareChatApiCount)"
-            :status="compareChatApiCount > 0 ? 'up' : 'down'">
-            <span slot="subtitle">
-              <span>API 请求次数</span>
-            </span>
-          </number-info>
-          <!-- miniChart -->
-          <div class="ant-pro-smooth-area">
-            <div class="chart-wrapper" :style="{ height: 100 }">
-              <v-chart
-                :force-fit="true"
-                :height="150"
-                :data="deepseekChatApiCountData"
-                :scale="apiScale"
-                :padding="[40, 40, 40, 40]">
-                <v-tooltip/>
-                <v-smooth-line position="date*count" :size="2"/>
-                <v-smooth-area position="date*count"/>
-                <v-axis dataKey="date" :visible="true"/>
-                <v-axis dataKey="count" :visible="true"/>
-              </v-chart>
+      <div class="deepseekDash">
+        <p style="margin-bottom: 10px;font-size: 20px">deepseek-chat</p>
+        <a-row :gutter="68">
+          <a-col :xs="24" :sm="12" >
+            <number-info
+              :total="sumChatApiCount"
+              :sub-total="Math.abs(compareChatApiCount)"
+              :status="compareChatApiCount > 0 ? 'up' : 'down'">
+              <span slot="subtitle">
+                <span>API 请求次数</span>
+              </span>
+            </number-info>
+            <!-- miniChart -->
+            <div class="ant-pro-smooth-area">
+              <div class="chart-wrapper" :style="{ height: 100 }">
+                <v-chart
+                  :force-fit="true"
+                  :height="150"
+                  :data="deepseekChatApiCountData"
+                  :scale="apiScale"
+                  class="chartDiv"
+                  :padding="[40, 40, 40, 40]">
+                  <v-tooltip/>
+                  <v-smooth-line position="date*count" :size="2"/>
+                  <v-smooth-area position="date*count"/>
+                  <v-axis dataKey="date" :visible="true"/>
+                  <v-axis dataKey="count" :visible="true"/>
+                </v-chart>
+                <p style="font-size: 16px;margin-top: 14px">日均请求次数：{{ (sumChatApiCount / this.selectedDate.length) }}</p>
+              </div>
             </div>
-          </div>
-        </a-col>
-        <a-col :xs="24" :sm="12" :style="{ marginBottom: ' 24px'}">
-          <number-info
-            :total="sumChatTokenCount"
-            :sub-total="Math.abs(compareChatTokenCount)"
-            :status="compareChatTokenCount > 0 ? 'up' : 'down'">
-            <span slot="subtitle">
-              <span>Tokens</span>
-            </span>
-          </number-info>
-          <!-- miniChart -->
-          <div class="ant-pro-smooth-area">
-            <div class="chart-wrapper" :style="{ height: 100 }">
-              <v-chart
-                :force-fit="true"
-                :height="150"
-                :data="deepseekChatTokenCountData"
-                :scale="tokenScale"
-                :padding="[40, 40, 40, 40]"><!-- 工具提示 -->
-                <v-tooltip/><!-- 图例 -->
-                <v-legend
-                  position="top"
-                  :item-width="null"
-                  :offset="10"
-                /><!-- 堆叠柱状图 -->
-                <v-bar
-                  position="date*value"
-                  color="type"
-                  :size="20"
-                  :adjust="[{ type: 'stack' }]"
-                /><!-- X 轴 -->
-                <v-axis
-                  dataKey="date"
-                  :visible="true"
-                  :label="{ style: { fill: '#666', fontSize: 12 } }"
-                /><!-- Y 轴 -->
-                <v-axis
-                  dataKey="value"
-                  :visible="true"
-                  :label="{ style: { fill: '#666', fontSize: 12 }, offset: 20}"
-                  :tickInterval="200"
-                />
-              </v-chart>
+          </a-col>
+          <a-col :xs="24" :sm="12" >
+            <number-info
+              :total="sumChatTokenCount"
+              :sub-total="Math.abs(compareChatTokenCount)"
+              :status="compareChatTokenCount > 0 ? 'up' : 'down'">
+              <span slot="subtitle">
+                <span>Tokens</span>
+              </span>
+            </number-info>
+            <!-- miniChart -->
+            <div class="ant-pro-smooth-area">
+              <div class="chart-wrapper" :style="{ height: 100 }">
+                <v-chart
+                  :force-fit="true"
+                  :height="150"
+                  :data="deepseekChatTokenCountData"
+                  :scale="tokenScale"
+                  class="chartDiv"
+                  :padding="[40, 40, 40, 60]"><!-- 工具提示 -->
+                  <v-tooltip/><!-- 图例 -->
+                  <v-legend
+                    position="top"
+                    :item-width="null"
+                    :offset="10"
+                  /><!-- 堆叠柱状图 -->
+                  <v-bar
+                    position="date*value"
+                    color="type"
+                    :size="20"
+                    :adjust="[{ type: 'stack' }]"
+                  /><!-- X 轴 -->
+                  <v-axis
+                    dataKey="date"
+                    :visible="true"
+                    :label="{ style: { fill: '#666', fontSize: 12 } }"
+                  /><!-- Y 轴 -->
+                  <v-axis
+                    dataKey="value"
+                    :visible="true"
+                    :label="{ style: { fill: '#666', fontSize: 12 }, offset: 15}"
+                    :tickInterval="200"
+                  />
+                </v-chart>
+                <p style="font-size: 16px;margin-top: 14px">日均Tokens：{{ (sumChatTokenCount / this.selectedDate.length) }}</p>
+              </div>
             </div>
-          </div>
-        </a-col>
-      </a-row>
-      <p style="margin-bottom: 10px;font-size: 20px">deepseek-reasoner</p>
-      <a-row :gutter="68">
-        <a-col :xs="24" :sm="12" :style="{ marginBottom: ' 24px'}">
-          <number-info
-            :total="sumReasonerApiCount"
-            :sub-total="Math.abs(compareReasonerApiCount)"
-            :status="compareReasonerApiCount > 0 ? 'up' : 'down'">
-            <span slot="subtitle">
-              <span>API 请求次数</span>
-            </span>
-          </number-info>
-          <!-- miniChart -->
-          <div class="ant-pro-smooth-area">
-            <div class="chart-wrapper" :style="{ height: 100 }">
-              <v-chart
-                :force-fit="true"
-                :height="150"
-                :data="deepseekReasonerApiCountData"
-                :scale="apiScale"
-                :padding="[40, 40, 40, 40]">
-                <v-tooltip/>
-                <v-smooth-line position="date*count" :size="2"/>
-                <v-smooth-area position="date*count"/>
-                <v-axis dataKey="date" :visible="true"/>
-                <v-axis dataKey="count" :visible="true"/>
-              </v-chart>
+          </a-col>
+        </a-row>
+      </div>
+      <div class="deepseekDash">
+        <p style="margin-bottom: 10px;font-size: 20px">deepseek-reasoner</p>
+        <a-row :gutter="68">
+          <a-col :xs="24" :sm="12" >
+            <number-info
+              :total="sumReasonerApiCount"
+              :sub-total="Math.abs(compareReasonerApiCount)"
+              :status="compareReasonerApiCount > 0 ? 'up' : 'down'">
+              <span slot="subtitle">
+                <span>API 请求次数</span>
+              </span>
+            </number-info>
+            <!-- miniChart -->
+            <div class="ant-pro-smooth-area">
+              <div class="chart-wrapper" :style="{ height: 100 }">
+                <v-chart
+                  :force-fit="true"
+                  :height="150"
+                  :data="deepseekReasonerApiCountData"
+                  :scale="apiScale"
+                  class="chartDiv"
+                  :padding="[40, 40, 40, 40]">
+                  <v-tooltip/>
+                  <v-smooth-line position="date*count" :size="2"/>
+                  <v-smooth-area position="date*count"/>
+                  <v-axis dataKey="date" :visible="true"/>
+                  <v-axis dataKey="count" :visible="true"/>
+                </v-chart>
+                <p style="font-size: 16px;margin-top: 14px">日均请求次数：{{ (sumReasonerApiCount / this.selectedDate.length) }}</p>
+              </div>
             </div>
-          </div>
-        </a-col>
-        <a-col :xs="24" :sm="12" :style="{ marginBottom: ' 24px'}">
-          <number-info
-            :total="sumReasonerTokenCount"
-            :sub-total="Math.abs(compareReasonerTokenCount)"
-            :status="compareReasonerTokenCount > 0 ? 'up' : 'down'">
-            <span slot="subtitle">
-              <span>Tokens</span>
-            </span>
-          </number-info>
-          <!-- miniChart -->
-          <div class="ant-pro-smooth-area">
-            <div class="chart-wrapper" :style="{ height: 100 }">
-              <v-chart
-                :force-fit="true"
-                :height="150"
-                :data="deepseekReasonerTokenCountData"
-                :scale="tokenScale"
-                :padding="[40, 40, 40, 40]"><!-- 工具提示 -->
-                <v-tooltip/><!-- 图例 -->
-                <v-legend
-                  position="top"
-                  :item-width="null"
-                  :offset="10"
-                /><!-- 堆叠柱状图 -->
-                <v-bar
-                  position="date*value"
-                  color="type"
-                  :size="20"
-                  :adjust="[{ type: 'stack' }]"
-                /><!-- X 轴 -->
-                <v-axis
-                  dataKey="date"
-                  :visible="true"
-                  :label="{ style: { fill: '#666', fontSize: 12 } }"
-                /><!-- Y 轴 -->
-                <v-axis
-                  dataKey="value"
-                  :visible="true"
-                  :label="{ style: { fill: '#666', fontSize: 12 },offset: 20 }"
-                  :tickInterval="200"
-                />
-              </v-chart>
+          </a-col>
+          <a-col :xs="24" :sm="12" >
+            <number-info
+              :total="sumReasonerTokenCount"
+              :sub-total="Math.abs(compareReasonerTokenCount)"
+              :status="compareReasonerTokenCount > 0 ? 'up' : 'down'">
+              <span slot="subtitle">
+                <span>Tokens</span>
+              </span>
+            </number-info>
+            <!-- miniChart -->
+            <div class="ant-pro-smooth-area">
+              <div class="chart-wrapper" :style="{ height: 100 }">
+                <v-chart
+                  :force-fit="true"
+                  :height="150"
+                  :data="deepseekReasonerTokenCountData"
+                  :scale="tokenScale"
+                  class="chartDiv"
+                  :padding="[40, 40, 40, 60]"><!-- 工具提示 -->
+                  <v-tooltip/><!-- 图例 -->
+                  <v-legend
+                    position="top"
+                    :item-width="null"
+                    :offset="10"
+                  /><!-- 堆叠柱状图 -->
+                  <v-bar
+                    position="date*value"
+                    color="type"
+                    :size="20"
+                    :adjust="[{ type: 'stack' }]"
+                  /><!-- X 轴 -->
+                  <v-axis
+                    dataKey="date"
+                    :visible="true"
+                    :label="{ style: { fill: '#666', fontSize: 12 } }"
+                  /><!-- Y 轴 -->
+                  <v-axis
+                    dataKey="value"
+                    :visible="true"
+                    :label="{ style: { fill: '#666', fontSize: 12 },offset: 15}"
+                    :tickInterval="200"
+                  />
+                </v-chart>
+                <p style="font-size: 16px;margin-top: 14px">日均Tokens：{{ (sumReasonerTokenCount / this.selectedDate.length) }}</p>
+              </div>
             </div>
-          </div>
-        </a-col>
-      </a-row>
+          </a-col>
+        </a-row>
+      </div>
     </div>
     <div style="text-align: right;">
       <a-range-picker :allowClear="false" v-model="pickDate" :style="{width: '256px'}" @change="selectedDate=[];deepseekinit()"/>
-    </div>
-  </a-card>
+    </div></a-card>
 </template>
 
 <script>
@@ -343,5 +354,16 @@ export default {
 /* 针对 data-icon="caret-up" 的样式 */
 ::v-deep [data-icon="caret-up"] {
   color: green; /* 设置颜色为绿色 */
+}
+
+::v-deep .chartDiv {
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.deepseekDash {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 12px 24px 0 24px;
+  margin-bottom: 24px;
 }
 </style>
