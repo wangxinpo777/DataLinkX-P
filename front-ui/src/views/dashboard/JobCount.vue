@@ -8,7 +8,7 @@
       </a-menu>
     </template>
     <div class="job-count">
-      <a-row :gutter="16">
+      <a-row :gutter="16" style="border: 1px solid #e8e8e8; border-radius: 8px; padding: 24px;">
         <a-col :span="8">
           <number-info
             :total="totalJobs"
@@ -40,7 +40,7 @@
           </number-info>
         </a-col>
       </a-row>
-      <a-row :gutter="68">
+      <a-row :gutter="68" style="display: flex">
         <a-col :xs="24" :sm="12" :style="{ marginBottom: '24px' }">
           <!-- 线性面积图 -->
           <div class="ant-pro-smooth-area">
@@ -59,13 +59,27 @@
               <v-axis dataKey="value" :visible="true" />
             </v-chart>
           </div>
+          <div class="dataTable">
+            <a-table
+              row-key="index"
+              size="small"
+              :columns="[
+                { title: '日期', dataIndex: 'date', key: 'date' },
+                { title: '成功任务', dataIndex: 'success', key: 'success' },
+                { title: '失败任务', dataIndex: 'failed', key: 'failed' }
+              ]"
+              :dataSource="areaChartData"
+              :pagination="{ pageSize: 5 }"
+              :rowKey="record => record.date" >
+            </a-table>
+          </div>
         </a-col>
         <a-col :xs="24" :sm="12" :style="{ marginBottom: '24px' }">
           <!-- 饼图 -->
-          <div class="ant-pro-pie" v-if="pieChartData.length">
+          <div class="ant-pro-pie" style="height: 100%" ref="pieChart">
             <v-chart
               :force-fit="true"
-              :height="200"
+              :height="pieHeightData"
               :data="pieChartData"
               :scale="pieScale"
               :padding="[0, -200, 20, 0]">
@@ -98,6 +112,7 @@ export default {
   components: { NumberInfo },
   data () {
     return {
+      pieHeightData: 200,
       selectedDate: ['week'],
       // 默认本周
       pickDate: [moment().startOf('week'), moment().endOf('week')],
@@ -160,6 +175,7 @@ export default {
             { type: '失败任务', value: this.failedJobs }
           ]
         }
+        this.pieHeight()
         this.loading = false
       }).catch(err => {
         console.error(err)
@@ -170,6 +186,11 @@ export default {
       this.selectedDate = e.key
       this.pickDate = [moment().startOf(e.key), moment().endOf(e.key)]
       this.jobInit()
+    },
+    pieHeight () {
+      this.$nextTick(() => {
+        this.pieHeightData = this.$refs.pieChart?.clientHeight || 200
+      })
     }
   },
   mounted () {
