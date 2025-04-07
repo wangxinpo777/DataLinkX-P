@@ -140,7 +140,21 @@ public class DeepSeekServiceImpl implements DeepSeekService {
 
     @Override
     public DeepSeekResponse getErrorAnalysis(String model, String content) {
-        content += "请你帮我分析一下这段代码的错误，给出详细的错误分析和解决方案,使用中文回答";
+        content += "请你帮我分析一下这段报错信息，给出详细的错误分析和解决方案,使用中文回答";
+        ChatReq chatReq = ChatReq.builder()
+                .messages(Collections.singletonList(ChatReq.Content.builder()
+                        .role("user")
+                        .content(content)
+                        .build()))
+                .stream(false)
+                .model(StringUtils.isNotEmpty(model) ? model : this.model)
+                .build();
+        return deepSeekClient.chat(chatReq, "Bearer " + apiKey);
+    }
+
+    @Override
+    public DeepSeekResponse getSystemAnalysis(String model, String content) {
+        content += "请你帮我分析一下系统运行状态，只需要输出展示给用户的部分，使用中文回答";
         ChatReq chatReq = ChatReq.builder()
                 .messages(Collections.singletonList(ChatReq.Content.builder()
                         .role("user")

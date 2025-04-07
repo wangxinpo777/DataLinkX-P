@@ -6,3 +6,11 @@ export function getSystemMonitor () {
     method: 'GET'
   })
 }
+
+export function getSystemMonitorAnalysis (params) {
+  return axios({
+    url: '/monitor/server/info/analysis',
+    method: 'GET',
+    params: params
+  })
+}
