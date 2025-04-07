@@ -25,4 +25,6 @@ public interface DeepSeekService {
     List<ChatTokenCountDTO> getChatTokenCount(String model,String dateFrom,String dateTo);
 
     DeepSeekResponse getErrorAnalysis(String model, String content);
+
+    DeepSeekResponse getSystemAnalysis(String model, String content);
 }

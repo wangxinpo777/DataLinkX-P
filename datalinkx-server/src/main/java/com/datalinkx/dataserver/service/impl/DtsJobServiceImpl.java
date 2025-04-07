@@ -371,7 +371,7 @@ public class DtsJobServiceImpl implements DtsJobService {
             String errorMsg = jobStateForm.getErrmsg();
             if (StringUtils.isNotEmpty(errorMsg)) {
                 DeepSeekResponse result = deepSeekService.getErrorAnalysis("deepseek-chat", errorMsg);
-                errorAnalysis = (result.getChoices().get(0).getMessage().getContent());
+                errorAnalysis = result.getChoices().get(0).getMessage().getContent();
             }
         }
 
