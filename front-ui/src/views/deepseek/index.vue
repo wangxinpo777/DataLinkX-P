@@ -207,6 +207,7 @@ export default {
       hoveredItem: null,
       conversations: [],
       conversationId: '',
+      onConversationId: '',
       editConversationId: '',
       tempTitle: '',
       messages: [],
@@ -463,6 +464,7 @@ export default {
       this.scrollToBottom()
       deeepseekStreamChart(content, JSON.parse(localStorage.getItem('User')).userId, this.conversationId, this.model).then(res => {
         this.conversationId = res.result
+        this.onConversationId = this.conversationId
         this.eventSource = fetchEventSource(`api/api/deepseek/get/stream/chat?userId=${JSON.parse(localStorage.getItem('User')).userId}&conversationId=${this.conversationId}`, {
           openWhenHidden: true,
           headers: {
@@ -473,13 +475,13 @@ export default {
           onopen: () => {
             deeepseekConversationsHistory(JSON.parse(localStorage.getItem('User')).userId).then(res => {
               this.conversations = res.result
-              if (this.conversationId === '') {
-                this.conversationId = res.result.length > 0 ? res.result[0].id : ''
-              }
             })
             console.log('SSE 连接已建立')
           },
           onmessage: (event) => {
+            if (this.conversationId === '' || this.conversationId !== this.onConversationId) {
+              return
+            }
             const data = JSON.parse(event.data)
 
             // 在 messages 数组中查找相同 id 的消息
@@ -530,10 +532,10 @@ export default {
       }
     },
     renderMdTextReasoning (message) {
-        return this.markdownRender.render(message.reasoningContent)
+      return this.markdownRender.render(message.reasoningContent)
     },
     renderUserMarkdownRender (message) {
-        return this.userMarkdownRender.render(message.content)
+      return this.userMarkdownRender.render(message.content)
     },
     runCode (button, lang) {
       if (lang === 'html') {
@@ -549,6 +551,14 @@ export default {
         if (this.runningPython) {
           this.$message.error('Python脚本正在运行中，请稍后再试')
           return
+        }
+        // 获取按钮类名中的数字
+        const className = button.className
+        const match = className.match(/run-btn-(\d+)/)
+        if (match) {
+          this.count = match[1]
+        } else {
+          this.count++
         }
         button.classList.add('run-btn-' + this.count)
         button.innerHTML = 'Python运行中...'
@@ -637,7 +647,7 @@ export default {
   border: 1px solid #f0f0f0;
   border-radius: 8px 0 0 8px;
   overflow-y: auto;
-  padding: 0 8px;
+  padding: 16px;
   flex: 1;
 }
 
