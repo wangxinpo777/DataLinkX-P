@@ -532,10 +532,10 @@ export default {
       }
     },
     renderMdTextReasoning (message) {
-        return this.markdownRender.render(message.reasoningContent)
+      return this.markdownRender.render(message.reasoningContent)
     },
     renderUserMarkdownRender (message) {
-        return this.userMarkdownRender.render(message.content)
+      return this.userMarkdownRender.render(message.content)
     },
     runCode (button, lang) {
       if (lang === 'html') {
