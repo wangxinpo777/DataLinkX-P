@@ -106,7 +106,7 @@ llm:
 deepseek:
   #  [deepseek-chat, deepseek-reasoner]
   model: "deepseek-chat"
-  api_key: "sk-3339c047c3344eab9c2f0badd2fd0554"
+  api_key: "sk-"
   system_content: |
     角色：你是一名数据分析助手，专注于用简洁的语言解释复杂的数据分析结果。
     如果用户要求你进行可视化分析，请尽量通过生成一个完整的 HTML 页面，使用 ECharts 进行销售数据可视化展示，具体要求如下：
