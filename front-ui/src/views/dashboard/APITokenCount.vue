@@ -10,7 +10,7 @@
     <div class="ApiTokenCount">
       <div class="deepseekDash">
         <p style="margin-bottom: 10px;font-size: 20px">deepseek-chat</p>
-        <a-row :gutter="68">
+        <a-row :gutter="16">
           <a-col :xs="24" :sm="12" >
             <number-info
               :total="sumChatApiCount"
@@ -91,7 +91,7 @@
       </div>
       <div class="deepseekDash">
         <p style="margin-bottom: 10px;font-size: 20px">deepseek-reasoner</p>
-        <a-row :gutter="68">
+        <a-row :gutter="16">
           <a-col :xs="24" :sm="12" >
             <number-info
               :total="sumReasonerApiCount"
@@ -365,5 +365,11 @@ export default {
   border-radius: 8px;
   padding: 12px 24px 0 24px;
   margin-bottom: 24px;
+}
+li.ant-menu-item.ant-menu-item-selected{
+  box-shadow: none;
+}
+::v-deep span.ant-calendar-picker-input.ant-input{
+  border-radius: 8px;
 }
 </style>

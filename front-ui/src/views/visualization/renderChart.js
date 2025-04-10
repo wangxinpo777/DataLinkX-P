@@ -119,6 +119,8 @@ export function renderChart (VueIns) {
     } : undefined,
     series: seriesData,
     toolbox: VueIns.showToolbox ? {
+      top: '10px',
+      right: '10px',
       feature: {
         saveAsImage: {},
         dataView: {},

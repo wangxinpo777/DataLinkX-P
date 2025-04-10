@@ -244,4 +244,10 @@ export default {
 }
 </script>
 <style scoped lang="less">
+li.ant-menu-item.ant-menu-item-selected{
+  box-shadow: none;
+}
+::v-deep span.ant-calendar-picker-input.ant-input{
+  border-radius: 8px;
+}
 </style>
