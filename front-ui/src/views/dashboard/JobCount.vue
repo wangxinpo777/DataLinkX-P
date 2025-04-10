@@ -253,4 +253,7 @@ ul.ant-menu.ant-menu-horizontal.ant-menu-root.ant-menu-light {
   border: 1px solid #ff0000;
   border-radius: 8px;
 }
+li.ant-menu-item.ant-menu-item-selected{
+  box-shadow: none;
+}
 </style>

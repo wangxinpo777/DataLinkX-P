@@ -548,8 +548,11 @@ export default {
   .main-content {
     flex: 1;
     overflow: hidden;
-    padding: 20px;
+    padding: 12px;
     .chart-container {
+      padding: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;;
       height: 100%;
       width: 100%;
     }

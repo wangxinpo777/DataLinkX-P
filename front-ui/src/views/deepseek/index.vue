@@ -634,6 +634,8 @@ export default {
 }
 
 .chat-box {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px 0 0 8px;
   overflow-y: auto;
   padding: 0 8px;
   flex: 1;
@@ -641,7 +643,8 @@ export default {
 
 .operation {
   border: 1px solid #f0f0f0;
-  border-radius: 8px;
+  border-left: none;
+  border-radius: 0 8px 8px 0;
   padding: 10px;
   display: flex;
   width: 20vw;

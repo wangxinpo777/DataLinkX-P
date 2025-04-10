@@ -10,7 +10,7 @@
     <div class="ApiTokenCount">
       <div class="deepseekDash">
         <p style="margin-bottom: 10px;font-size: 20px">deepseek-chat</p>
-        <a-row :gutter="68">
+        <a-row :gutter="16">
           <a-col :xs="24" :sm="12" >
             <number-info
               :total="sumChatApiCount"
@@ -91,7 +91,7 @@
       </div>
       <div class="deepseekDash">
         <p style="margin-bottom: 10px;font-size: 20px">deepseek-reasoner</p>
-        <a-row :gutter="68">
+        <a-row :gutter="16">
           <a-col :xs="24" :sm="12" >
             <number-info
               :total="sumReasonerApiCount"
@@ -374,5 +374,8 @@ ul.ant-menu.ant-menu-horizontal.ant-menu-root.ant-menu-light {
   background-image: none;
   border: 1px solid #ff0000;
   border-radius: 8px;
+}
+li.ant-menu-item.ant-menu-item-selected{
+  box-shadow: none;
 }
 </style>
