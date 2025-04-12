@@ -99,12 +99,6 @@ export default {
           dataIndex: 'progress'
         },
         {
-          title: '任务上次执行时间',
-          width: '10%',
-          dataIndex: 'start_time',
-          sorter: true
-        },
-        {
           title: '查看日志',
           width: '10%',
           customRender: (record) => {
@@ -114,6 +108,12 @@ export default {
               </div>
             )
           }
+        },
+        {
+          title: '任务上次执行时间',
+          width: '10%',
+          dataIndex: 'start_time',
+          sorter: true
         },
         {
           title: '操作',

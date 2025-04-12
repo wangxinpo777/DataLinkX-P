@@ -26,4 +26,8 @@ public class JobStateForm {
     private String checkpoint;
     @Field("appendCount")
     private Integer appendCount = 0;
+    @Field("filterCount")
+    private Integer filterCount = 0;
+    @Field("allCount")
+    private Integer allCount = 0;
 }

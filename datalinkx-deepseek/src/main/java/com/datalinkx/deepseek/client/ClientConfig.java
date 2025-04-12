@@ -9,6 +9,6 @@ public class ClientConfig {
 
     @Bean
     public DeepSeekClient deepSeekClient(DeepseekProperties clientProperties) {
-        return DatalinkXClientUtils.createClient("deepseek", clientProperties.getDeepseek(), DeepSeekClient.class);
+        return DatalinkXClientUtils.createClient("deepseek", clientProperties.getDeepseek(), DeepSeekClient.class, null);
     }
 }

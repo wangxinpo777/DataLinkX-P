@@ -1,27 +1,19 @@
 package com.datalinkx.dataserver.service.impl;
 
-import static com.datalinkx.common.constants.MetaConstants.JobStatus.JOB_STATUS_SYNCING;
-import static com.datalinkx.compute.transform.ITransformFactory.TRANSFORM_DRIVER_MAP;
-
-import java.sql.Timestamp;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
 import com.datalinkx.common.constants.MessageHubConstants;
 import com.datalinkx.common.constants.MetaConstants;
 import com.datalinkx.common.exception.DatalinkXServerException;
+import com.datalinkx.common.result.DatalinkXJobDetail;
 import com.datalinkx.common.result.StatusCode;
 import com.datalinkx.common.utils.JsonUtils;
 import com.datalinkx.compute.transform.ITransformDriver;
+import com.datalinkx.dataclient.client.xxljob.request.XxlJobParam;
 import com.datalinkx.dataserver.bean.domain.DsBean;
 import com.datalinkx.dataserver.bean.domain.JobBean;
 import com.datalinkx.dataserver.bean.domain.JobLogBean;
 import com.datalinkx.dataserver.bean.domain.JobRelationBean;
 import com.datalinkx.dataserver.bean.dto.JobDto;
 import com.datalinkx.dataserver.client.JobClientApi;
-import com.datalinkx.dataclient.client.xxljob.request.XxlJobParam;
 import com.datalinkx.dataserver.config.properties.CommonProperties;
 import com.datalinkx.dataserver.controller.form.JobForm;
 import com.datalinkx.dataserver.controller.form.JobStateForm;
@@ -30,10 +22,11 @@ import com.datalinkx.dataserver.repository.JobLogRepository;
 import com.datalinkx.dataserver.repository.JobRelationRepository;
 import com.datalinkx.dataserver.repository.JobRepository;
 import com.datalinkx.dataserver.service.DtsJobService;
+import com.datalinkx.deepseek.client.response.DeepSeekResponse;
+import com.datalinkx.deepseek.service.DeepSeekService;
 import com.datalinkx.driver.dsdriver.DsDriverFactory;
 import com.datalinkx.driver.dsdriver.IDsReader;
 import com.datalinkx.driver.dsdriver.base.model.DbTableField;
-import com.datalinkx.common.result.DatalinkXJobDetail;
 import com.datalinkx.messagehub.bean.form.ProducerAdapterForm;
 import com.datalinkx.messagehub.service.MessageHubService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,6 +36,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
+
+import javax.annotation.Resource;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.datalinkx.common.constants.MetaConstants.JobStatus.JOB_STATUS_SYNCING;
+import static com.datalinkx.compute.transform.ITransformFactory.TRANSFORM_DRIVER_MAP;
 
 /**
  * @author: uptown
@@ -76,6 +77,9 @@ public class DtsJobServiceImpl implements DtsJobService {
 
     @Autowired
     CommonProperties commonProperties;
+
+    @Autowired
+    DeepSeekService deepSeekService;
 
     @Override
     public DatalinkXJobDetail getJobExecInfo(String jobId) {
