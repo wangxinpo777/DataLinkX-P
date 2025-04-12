@@ -1,6 +1,12 @@
 package com.datalinkx.dataserver.service.impl;
 
-import cn.hutool.core.lang.Pair;
+import static com.datalinkx.common.utils.IdUtils.genKey;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import com.datalinkx.common.constants.MetaConstants;
 import com.datalinkx.common.exception.DatalinkXServerException;
 import com.datalinkx.common.result.StatusCode;
@@ -10,41 +16,26 @@ import com.datalinkx.common.utils.JsonUtils;
 import com.datalinkx.dataserver.bean.domain.DsBean;
 import com.datalinkx.dataserver.bean.domain.JobBean;
 import com.datalinkx.dataserver.bean.vo.PageVo;
-import com.datalinkx.dataserver.client.HttpConstructor;
 import com.datalinkx.dataserver.controller.form.DsForm;
 import com.datalinkx.dataserver.repository.DsRepository;
 import com.datalinkx.dataserver.repository.JobRepository;
 import com.datalinkx.dataserver.service.DsService;
+import com.datalinkx.dataserver.service.setupgenerator.*;
 import com.datalinkx.driver.dsdriver.DsDriverFactory;
 import com.datalinkx.driver.dsdriver.IDsDriver;
 import com.datalinkx.driver.dsdriver.IDsReader;
 import com.datalinkx.driver.dsdriver.base.model.DbTableField;
-import com.datalinkx.driver.dsdriver.base.model.DbTree;
-import com.datalinkx.driver.dsdriver.esdriver.EsSetupInfo;
-import com.datalinkx.driver.dsdriver.httpdriver.HttpSetupInfo;
-import com.datalinkx.driver.dsdriver.kafkadriver.KafkaSetupInfo;
-import com.datalinkx.driver.dsdriver.mysqldriver.MysqlSetupInfo;
-import com.datalinkx.driver.dsdriver.oracledriver.OracleSetupInfo;
-import com.datalinkx.driver.dsdriver.redisdriver.RedisSetupInfo;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
-import javax.sql.DataSource;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.sql.*;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.datalinkx.common.utils.IdUtils.genKey;
+import javax.annotation.PostConstruct;
 
 
 @Service
@@ -55,8 +46,18 @@ public class DsServiceImpl implements DsService {
 	private DsRepository dsRepository;
 	@Autowired
 	private JobRepository jobRepository;
-	@Autowired
-	private DataSource dataSource;
+
+	private static final Map<Integer, SetupInfoGenerator> SETUP_INFO_GENERATORS = new HashMap<>();
+
+	@PostConstruct
+	public void init() {
+		SETUP_INFO_GENERATORS.put(MetaConstants.DsType.MYSQL, new MysqlSetupInfoGenerator());
+		SETUP_INFO_GENERATORS.put(MetaConstants.DsType.ELASTICSEARCH, new EsSetupInfoGenerator());
+		SETUP_INFO_GENERATORS.put(MetaConstants.DsType.ORACLE, new OracleSetupInfoGenerator());
+		SETUP_INFO_GENERATORS.put(MetaConstants.DsType.REDIS, new RedisSetupInfoGenerator());
+		SETUP_INFO_GENERATORS.put(MetaConstants.DsType.HTTP, new HttpSetupInfoGenerator());
+		SETUP_INFO_GENERATORS.put(MetaConstants.DsType.KAFKA, new KafkaSetupInfoGenerator());
+	}
 
 
 	/**
@@ -141,70 +142,16 @@ public class DsServiceImpl implements DsService {
 	}
 
 	public String getConnectId(DsBean dsBean) {
-		String toType = Optional.ofNullable(MetaConstants.DsType.TYPE_TO_DB_NAME_MAP.get(dsBean.getType())).orElse("").toLowerCase();
-		switch (toType) {
-			case "mysql":
-				MysqlSetupInfo mysqlSetupInfo = new MysqlSetupInfo();
-				mysqlSetupInfo.setServer(dsBean.getHost());
-				mysqlSetupInfo.setPort(dsBean.getPort());
-				mysqlSetupInfo.setType(toType);
-				mysqlSetupInfo.setUid(dsBean.getUsername());
-				mysqlSetupInfo.setPwd(dsBean.getPassword());
-				mysqlSetupInfo.setDatabase(dsBean.getDatabase());
-				return ConnectIdUtils.encodeConnectId(JsonUtils.toJson(mysqlSetupInfo));
-			case "elasticsearch":
-				EsSetupInfo esSetupInfo = new EsSetupInfo();
-				esSetupInfo.setType(toType);
-				esSetupInfo.setAddress(dsBean.getHost() + ":" + dsBean.getPort());
-				esSetupInfo.setPwd(dsBean.getPassword());
-				esSetupInfo.setUid(dsBean.getUsername());
-				return ConnectIdUtils.encodeConnectId(JsonUtils.toJson(esSetupInfo));
-			case "oracle":
-				OracleSetupInfo oracleSetupInfo = new OracleSetupInfo();
-				oracleSetupInfo.setType(toType);
-				oracleSetupInfo.setServer(dsBean.getHost());
-				oracleSetupInfo.setPort(dsBean.getPort());
-				oracleSetupInfo.setPwd(dsBean.getPassword());
-				oracleSetupInfo.setUid(dsBean.getUsername());
-
-				Map configMap = JsonUtils.toObject(dsBean.getConfig(), Map.class);
-				if (configMap.containsKey("sid")) {
-					oracleSetupInfo.setConnectType("SID");
-					oracleSetupInfo.setSid((String) configMap.get("sid"));
-				} else {
-					oracleSetupInfo.setConnectType("SERVERNAME");
-					oracleSetupInfo.setSid((String) configMap.get("servername"));
-				}
-
-				return ConnectIdUtils.encodeConnectId(JsonUtils.toJson(oracleSetupInfo));
-			case "redis":
-				RedisSetupInfo redisSetupInfo = new RedisSetupInfo();
-				redisSetupInfo.setDatabase(Integer.parseInt(StringUtils.hasLength(dsBean.getDatabase()) ? dsBean.getDatabase() : "0"));
-				redisSetupInfo.setHost(dsBean.getHost());
-				redisSetupInfo.setPort(dsBean.getPort());
-				redisSetupInfo.setPwd(dsBean.getPassword());
-				redisSetupInfo.setType(toType);
-				return ConnectIdUtils.encodeConnectId(JsonUtils.toJson(redisSetupInfo));
-			case "http":
-				HttpSetupInfo httpSetupInfo = JsonUtils.toObject(dsBean.getConfig(), HttpSetupInfo.class);
-				Pair<String, Integer> host = HttpConstructor.checkUrlFormat(httpSetupInfo.getUrl());
-				httpSetupInfo.setHost(host.getKey());
-				httpSetupInfo.setPort(host.getValue());
-				httpSetupInfo.setType(toType);
-				return ConnectIdUtils.encodeConnectId(JsonUtils.toJson(httpSetupInfo));
-			case "kafka":
-				KafkaSetupInfo kafkaSetupInfo = new KafkaSetupInfo();
-				kafkaSetupInfo.setServer(dsBean.getHost());
-				kafkaSetupInfo.setPort(dsBean.getPort());
-				kafkaSetupInfo.setType(toType);
-				return ConnectIdUtils.encodeConnectId(JsonUtils.toJson(kafkaSetupInfo));
-			default:
-				Map<String, Object> map = new HashMap<>();
-				map.put("type", MetaConstants.DsType.TYPE_TO_DB_NAME_MAP.get(dsBean.getType()));
-				return ConnectIdUtils.encodeConnectId(JsonUtils.toJson(map));
+		SetupInfoGenerator generator = SETUP_INFO_GENERATORS.get(dsBean.getType());
+		if (!ObjectUtils.isEmpty(generator)) {
+			Object setupInfo = generator.generateSetupInfo(dsBean);
+			return ConnectIdUtils.encodeConnectId(JsonUtils.toJson(setupInfo));
+		} else {
+			Map<String, Object> map = new HashMap<>();
+			map.put("type", MetaConstants.DsType.TYPE_TO_DB_NAME_MAP.get(dsBean.getType()));
+			return ConnectIdUtils.encodeConnectId(JsonUtils.toJson(map));
 		}
 	}
-
 
     public PageVo<List<DsBean>> dsPage(DsForm.DataSourcePageForm dataSourcePageForm) {
 		PageRequest pageRequest = PageRequest.of(dataSourcePageForm.getPageNo() - 1, dataSourcePageForm.getPageSize());
@@ -266,7 +213,7 @@ public class DsServiceImpl implements DsService {
 			IDsDriver dsDriver = DsDriverFactory.getDriver(getConnectId(dsBean));
 			if (dsDriver instanceof IDsReader) {
 				IDsReader dsReader = (IDsReader) dsDriver;
-				tableList = dsReader.treeTable(dsBean.getDatabase(), dsBean.getSchema()).stream().map(DbTree::getName).collect(Collectors.toList());
+				tableList = dsReader.treeTable(dsBean.getDatabase(), dsBean.getSchema());
 			}
 		} catch (Exception e) {
 			log.error("connect error", e);

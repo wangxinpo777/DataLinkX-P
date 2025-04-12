@@ -99,6 +99,12 @@ export default {
           dataIndex: 'progress'
         },
         {
+          title: '任务上次执行时间',
+          width: '10%',
+          dataIndex: 'start_time',
+          sorter: true
+        },
+        {
           title: '查看日志',
           width: '10%',
           customRender: (record) => {
@@ -171,6 +177,7 @@ export default {
       this.$refs.JobSaveOrUpdate.edit('edit', record.job_id)
     },
     delete (record) {
+      this.loading = true
       delObj(record.job_id).then(res => {
         if (res.status === '0') {
           this.$message.info('删除成功')
@@ -186,6 +193,7 @@ export default {
       this.$refs.JobSaveOrUpdate.edit(record.job_id, 'show')
     },
     execJob (record) {
+      this.createEventSource()
       exec(record.job_id).then(res => {
         if (res.status === '0') {
           this.$message.info('触发成功')

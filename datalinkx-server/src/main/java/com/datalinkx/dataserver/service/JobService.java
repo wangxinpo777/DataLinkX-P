@@ -30,7 +30,7 @@ public interface JobService {
     /**
      * 删除任务
      */
-    void del(String jobId);
+    void del(String jobId, Boolean stream);
     /**
      * 任务日志分页查询
      */

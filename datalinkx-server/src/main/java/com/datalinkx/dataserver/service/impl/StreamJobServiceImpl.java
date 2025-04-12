@@ -8,7 +8,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 import com.datalinkx.common.constants.MetaConstants;
@@ -19,25 +18,29 @@ import com.datalinkx.common.utils.ObjectUtils;
 import com.datalinkx.dataclient.client.datalinkxjob.DatalinkXJobClient;
 import com.datalinkx.dataclient.client.flink.FlinkClient;
 import com.datalinkx.dataclient.client.flink.request.FlinkJobStopReq;
+import com.datalinkx.dataclient.client.flink.response.FlinkJobOverview;
 import com.datalinkx.dataserver.bean.domain.DsBean;
 import com.datalinkx.dataserver.bean.domain.JobBean;
 import com.datalinkx.dataserver.bean.vo.JobVo;
 import com.datalinkx.dataserver.bean.vo.PageVo;
-import com.datalinkx.dataserver.client.xxljob.JobClientApi;
+import com.datalinkx.dataserver.client.JobClientApi;
+import com.datalinkx.dataserver.config.properties.CommonProperties;
 import com.datalinkx.dataserver.controller.form.JobForm;
 import com.datalinkx.dataserver.repository.DsRepository;
 import com.datalinkx.dataserver.repository.JobRepository;
 import com.datalinkx.dataserver.service.DtsJobService;
 import com.datalinkx.dataserver.service.StreamJobService;
-import com.datalinkx.driver.model.DataTransJobDetail;
+import com.datalinkx.common.result.DatalinkXJobDetail;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class StreamJobServiceImpl implements StreamJobService {
 
@@ -63,10 +66,8 @@ public class StreamJobServiceImpl implements StreamJobService {
     FlinkClient flinkClient;
 
     @Autowired
-    LinkedBlockingQueue<String> streamTaskQueue;
+    CommonProperties commonProperties;
 
-    @Value("${data-transfer.checkpoint-path:file:///tmp}")
-    String checkpointPath;
 
     @Override
     public String createStreamJob(JobForm.JobCreateForm form) {
@@ -81,8 +82,8 @@ public class StreamJobServiceImpl implements StreamJobService {
         jobBean.setWriterDsId(form.getToDsId());
 
         jobBean.setConfig(toJson(form.getFieldMappings()));
-        jobBean.setFromTbId(form.getFromTbName());
-        jobBean.setToTbId(form.getToTbName());
+        jobBean.setFromTb(form.getFromTbName());
+        jobBean.setToTb(form.getToTbName());
         jobBean.setStatus(MetaConstants.JobStatus.JOB_STATUS_CREATE);
         jobBean.setName(form.getJobName());
 
@@ -97,9 +98,10 @@ public class StreamJobServiceImpl implements StreamJobService {
         jobBean.setReaderDsId(form.getFromDsId());
         jobBean.setWriterDsId(form.getToDsId());
         jobBean.setConfig(toJson(form.getFieldMappings()));
-        jobBean.setFromTbId(form.getFromTbName());
-        jobBean.setToTbId(form.getToTbName());
+        jobBean.setFromTb(form.getFromTbName());
+        jobBean.setToTb(form.getToTbName());
         jobBean.setName(form.getJobName());
+        jobBean.setSyncMode(JsonUtils.toJson(form.getSyncMode()));
         jobRepository.save(jobBean);
         return form.getJobId();
     }
@@ -134,8 +136,8 @@ public class StreamJobServiceImpl implements StreamJobService {
                 .builder()
                 .jobId(jobBean.getJobId())
                 .jobName(jobBean.getName())
-                .fromTbName(dsNameMap.get(jobBean.getReaderDsId()) + "." + jobBean.getFromTbId())
-                .toTbName(dsNameMap.get(jobBean.getWriterDsId()) + "."  + jobBean.getToTbId())
+                .fromTbName(dsNameMap.get(jobBean.getReaderDsId()) + "." + jobBean.getFromTb())
+                .toTbName(dsNameMap.get(jobBean.getWriterDsId()) + "."  + jobBean.getToTb())
                 .startTime(jobBean.getStartTime())
                 .build()).collect(Collectors.toList());
 
@@ -151,7 +153,7 @@ public class StreamJobServiceImpl implements StreamJobService {
     @Async
     @Override
     public void streamJobExec(String jobId, String lockId) {
-        DataTransJobDetail jobExecInfo = dtsJobService.getStreamJobExecInfo(jobId);
+        DatalinkXJobDetail jobExecInfo = dtsJobService.getStreamJobExecInfo(jobId);
         jobExecInfo.setLockId(lockId);
         if (!ObjectUtils.isEmpty(jobExecInfo.getSyncUnit().getCheckpoint())) {
             String checkpoint = jobExecInfo.getSyncUnit().getCheckpoint().replace("file://", "");
@@ -174,11 +176,17 @@ public class StreamJobServiceImpl implements StreamJobService {
     public void stop(String jobId) {
         JobBean jobBean = jobRepository.findByJobId(jobId).orElseThrow(() -> new DatalinkXServerException(StatusCode.JOB_NOT_EXISTS, "job not exist"));
         if (JOB_STATUS_STOP == jobBean.getStatus()) {
-            throw new DatalinkXServerException(StatusCode.JOB_IS_STOP, "任务已停止");
+            return;
         }
 
         // 记录checkpoint
-        this.stopFlinkTask(jobBean);
+        try {
+
+            this.stopFlinkTask(jobBean);
+        } catch (Exception e) {
+
+            log.error("checkpoint失败", e);
+        }
 
         jobBean.setStatus(JOB_STATUS_STOP);
         jobRepository.save(jobBean);
@@ -192,7 +200,7 @@ public class StreamJobServiceImpl implements StreamJobService {
         if (!ObjectUtils.isEmpty(jobBean.getTaskId())) {
             FlinkJobStopReq flinkJobStopReq = new FlinkJobStopReq();
             flinkJobStopReq.setDrain(true);
-            String checkpoint = String.format("%s/%s", checkpointPath, jobBean.getJobId());
+            String checkpoint = String.format("%s/%s", commonProperties.getCheckpointPath(), jobBean.getJobId());
 
             // 如果之前记录的checkpoint目录存在，则删除
             File directory = new File(checkpoint);
@@ -205,8 +213,33 @@ public class StreamJobServiceImpl implements StreamJobService {
                 }
             }
 
-            flinkJobStopReq.setTargetDirectory(checkpoint);
-            flinkClient.jobStop(jobBean.getTaskId(), flinkJobStopReq);
+            boolean isRunning = true;
+            while (isRunning) {
+                flinkJobStopReq.setTargetDirectory(checkpoint);
+                flinkClient.jobStop(jobBean.getTaskId(), flinkJobStopReq);
+
+
+                // 检查任务是否已经停止
+                JsonNode jsonNode = flinkClient.jobOverview();
+                Map<String, FlinkJobOverview> jobId2TaskInfo = JsonUtils.toList(JsonUtils.toJson(jsonNode.get("jobs")), FlinkJobOverview.class)
+                        .stream()
+                        .filter(task -> "RUNNING".equalsIgnoreCase(task.getState()))
+                        .collect(Collectors.toMap(FlinkJobOverview::getName, v -> v));
+
+                if (jobId2TaskInfo.containsKey(jobBean.getJobId())) {
+
+                    FlinkJobOverview flinkJobOverview = jobId2TaskInfo.remove(jobBean.getJobId());
+                    flinkClient.jobStop(flinkJobOverview.getJid(), flinkJobStopReq);
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    isRunning = false;
+                }
+            }
             jobBean.setCheckpoint(checkpoint);
         }
     }
@@ -216,6 +249,8 @@ public class StreamJobServiceImpl implements StreamJobService {
         JobBean jobBean = jobRepository.findByJobId(jobId).orElseThrow(() -> new DatalinkXServerException(StatusCode.JOB_NOT_EXISTS, "job not exist"));
         if (!ObjectUtils.isEmpty(jobBean.getTaskId())) {
             this.stopFlinkTask(jobBean);
+            // 记录checkpoint
+            jobRepository.save(jobBean);
         }
     }
 
@@ -223,6 +258,6 @@ public class StreamJobServiceImpl implements StreamJobService {
     @Override
     public void delete(String jobId) {
         this.stop(jobId);
-        jobService.del(jobId);
+        jobService.del(jobId, true);
     }
 }

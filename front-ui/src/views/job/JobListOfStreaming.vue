@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { delObj, pageQuery, streamExec, streamStop } from '@/api/job/job'
+import { streamDelObj, pageQuery, streamExec, streamStop } from '@/api/job/job'
 import JobSaveOrUpdateStreaming from '@/views/job/JobSaveOrUpdateStreaming.vue'
 // 0:CREATE|1:SYNCING|2:SYNC_FINISH|3:SYNC_ERROR|4:QUEUING
 const StatusType = [
@@ -33,7 +33,7 @@ const StatusType = [
     value: 1
   },
   {
-    label: '流转停止',
+    label: '流转完成',
     value: 2
   },
   {
@@ -101,14 +101,21 @@ export default {
           }
         },
         {
+          title: '任务上次执行时间',
+          dataIndex: 'start_time',
+          sorter: true
+        },
+        {
           title: '操作',
           // width: '20%',
           customRender: (record) => {
             return (
               <div>
-                <a href="javascript:;"onClick={(e) => this.stopJob(record)}>停止</a>
+                <a href="javascript:;" onClick={(e) => this.stopJob(record)}>停止</a>
                 <a-divider type="vertical" />
-                <a href="javascript:;"onClick={(e) => this.execJob(record)}>触发</a>
+                <a href="javascript:;" onClick={(e) => this.execJob(record)}>触发</a>
+                <a-divider type="vertical" />
+                <a href="javascript:;" onClick={(e) => this.edit(record)}>修改</a>
                 <a-divider type="vertical" />
                 <a-popconfirm title="是否删除" onConfirm={() => this.delete(record)} okText="是" cancelText="否">
                   <a-icon slot="icon" type="question-circle-o" style="color: red" />
@@ -156,12 +163,16 @@ export default {
       this.pages.current = pagination.current
       this.init()
     },
-
     edit (record) {
-      this.$refs.JobSaveOrUpdateStreaming.edit('edit', record.job_id)
+      if (record.status === 1) {
+        this.$refs.JobSaveOrUpdateStreaming.edit('show', record.job_id)
+      } else {
+        this.$refs.JobSaveOrUpdateStreaming.edit('edit', record.job_id)
+      }
     },
     delete (record) {
-      delObj(record.job_id).then(res => {
+      this.loading = true
+      streamDelObj(record.job_id).then(res => {
         if (res.status === '0') {
           this.$message.info('删除成功')
           this.init()
@@ -173,6 +184,7 @@ export default {
       })
     },
     execJob (record) {
+      this.loading = true
       streamExec(record.job_id).then(res => {
         if (res.status === '0') {
           this.$message.info('触发成功')
@@ -188,8 +200,8 @@ export default {
       this.$refs.JobSaveOrUpdateStreaming.edit(record.job_id, 'show')
     },
     stopJob (record) {
+      this.loading = true
       streamStop(record.job_id).then(res => {
-        this.loading = false
         if (res.status === '0') {
           this.$message.info('停止成功')
           this.init()

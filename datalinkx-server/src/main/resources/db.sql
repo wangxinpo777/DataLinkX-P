@@ -31,8 +31,8 @@ CREATE TABLE `JOB` (
                        `writer_ds_id` char(40) NOT NULL DEFAULT '' COMMENT '目标数据源id',
                        `config` longtext CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
                        `crontab` varchar(256) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
-                       `from_tb_id` char(40) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '来源数据表id',
-                       `to_tb_id` char(40) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '目标数据表id',
+                       `from_tb` char(40) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '来源数据表id',
+                       `to_tb` char(40) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '目标数据表id',
                        `count` text CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '导出数据统计',
                        `xxl_id` char(40) NOT NULL DEFAULT '' COMMENT 'xxl_job_id',
                        `task_id` char(40) NOT NULL DEFAULT '' COMMENT 'flink_job_id',
@@ -72,21 +72,6 @@ CREATE TABLE `JOB_LOG` (
                            `status` tinyint unsigned DEFAULT NULL,
                            PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 ROW_FORMAT=COMPACT COMMENT='流转任务日志';
-
-CREATE TABLE `MESSAGEHUB_TOPIC` (
-                                    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增id',
-                                    `topic` varchar(256) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT '消息主题',
-                                    `fields` text COLLATE utf8_unicode_ci COMMENT '字段描述',
-                                    `info_type` varchar(50) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL DEFAULT 'REDIS_QUEUE' COMMENT '消息类型',
-                                    `ctime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-                                    `utime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-                                    `is_del` tinyint NOT NULL DEFAULT '0' COMMENT '是否删除 0否1是',
-                                    `desc` text COLLATE utf8_unicode_ci NOT NULL COMMENT 'topic描述',
-                                    PRIMARY KEY (`id`),
-                                    UNIQUE KEY `topic_type_key` (`topic`,`info_type`,`is_del`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='消息队列白名单';
-
-INSERT INTO `MESSAGEHUB_TOPIC` (`topic`, `fields`, `info_type`, `desc`) VALUES ('JOB_PROGRESS', '', 'REDIS_STREAM', '任务状态刷新');
 
 
 -- ----------------------------
@@ -372,5 +357,7 @@ alter table JOB ADD COLUMN `type` tinyint NOT NULL DEFAULT '0' COMMENT '是否�
 alter table JOB ADD COLUMN `checkpoint` longtext CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '流式任务端点续传';
 
 alter table JOB ADD COLUMN `start_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+alter table JOB ADD COLUMN `retry_time` int NOT NULL DEFAULT '0' COMMENT '流式任务重试次数';
 
 alter table JOB ADD COLUMN `graph` longtext CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '计算画布';

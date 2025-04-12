@@ -1,21 +1,16 @@
 package com.datalinkx.driver.dsdriver.esdriver;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.datalinkx.common.utils.ConnectIdUtils;
 import com.datalinkx.common.utils.JsonUtils;
 import com.datalinkx.common.utils.ObjectUtils;
-import com.datalinkx.common.utils.RefUtils;
 import com.datalinkx.driver.dsdriver.IDsReader;
 import com.datalinkx.driver.dsdriver.IDsWriter;
 import com.datalinkx.driver.dsdriver.base.AbstractDriver;
 import com.datalinkx.driver.dsdriver.base.column.MetaColumn;
 import com.datalinkx.driver.dsdriver.base.model.DbTableField;
-import com.datalinkx.driver.dsdriver.base.model.DbTree;
 import com.datalinkx.driver.dsdriver.base.model.FlinkActionMeta;
 import com.datalinkx.driver.dsdriver.base.reader.ReaderInfo;
 import com.datalinkx.driver.dsdriver.base.writer.WriterInfo;
@@ -86,11 +81,6 @@ public class EsDriver implements AbstractDriver<EsSetupInfo, EsReader, EsWriter>
 
     @Override
     public String retrieveMax(FlinkActionMeta param, String maxField) throws Exception {
-        String fieldType = param.getReaderFieldType(maxField);
-        if (!"number".equals(fieldType) && !"date".equals(fieldType)) {
-            throw new Exception(String.format("字段%s类型为%s, 不支持增量同步", maxField, fieldType));
-        }
-
         Map<String, Object> boolMap = getBoolQuery(param);
         Map<String, Object> queryMap = new HashMap<String, Object>() {
             {
@@ -156,19 +146,11 @@ public class EsDriver implements AbstractDriver<EsSetupInfo, EsReader, EsWriter>
 
 
     @Override
-    public List<DbTree.DbTreeTable> treeTable(String catalog, String schema) throws Exception {
-        List<DbTree.DbTreeTable> dbTreeTables = new ArrayList<>();
+    public List<String> treeTable(String catalog, String schema) throws Exception {
+        List<String> dbTreeTables = new ArrayList<>();
         if ("".equals(catalog)) {
             List<String> indexes = esService.getIndexes();
-            indexes.forEach(idx -> {
-                DbTree.DbTreeTable dbTreeTable = new DbTree.DbTreeTable();
-                dbTreeTable.setName(idx);
-                dbTreeTable.setRemark("");
-                dbTreeTable.setType("table");
-                dbTreeTable.setLevel("table");
-                dbTreeTable.setRef(RefUtils.encode(Lists.newArrayList("", null, idx)));
-                dbTreeTables.add(dbTreeTable);
-            });
+            dbTreeTables.addAll(indexes);
         }
         return dbTreeTables;
     }
@@ -209,5 +191,14 @@ public class EsDriver implements AbstractDriver<EsSetupInfo, EsReader, EsWriter>
                         .collect(Collectors.toList()))
                 .build());
         return writerInfo;
+    }
+
+
+    @Override
+    public Set<String> incrementalFields() {
+        return new HashSet<String>() {{
+            add("number");
+            add("date");
+        }};
     }
 }
