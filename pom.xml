@@ -25,6 +25,7 @@
         <module>datalinkx-copilot</module>
         <module>datalinkx-deepseek</module>
         <module>datalinkx-security</module>
+        <module>datalinkx-visualization</module>
     </modules>
 
 

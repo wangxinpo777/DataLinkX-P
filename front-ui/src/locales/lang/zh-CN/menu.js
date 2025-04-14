@@ -54,5 +54,6 @@ export default {
   'menu.account.settings': '个人设置',
   'menu.account.trigger': '触发报错',
   'menu.account.logout': '退出登录',
-  'VisualAnalysis': '可视化分析'
+  'VisualAnalysis': '可视化分析',
+  'HistoryChart': '历史图片'
 }
