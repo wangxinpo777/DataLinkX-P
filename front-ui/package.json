@@ -50,6 +50,7 @@
     "or": "^0.2.0",
     "sass-loader": "^16.0.2",
     "store": "^2.0.12",
+    "viewerjs": "^1.11.7",
     "vis-network": "^9.1.9",
     "viser-vue": "^2.4.8",
     "vue": "^2.6.14",

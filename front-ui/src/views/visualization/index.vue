@@ -2,17 +2,18 @@
   <div class="main">
     <a-card title="可视化图表" style="overflow: hidden;border-radius: 8px">
       <template v-slot:extra>
+        <a-button type="primary" @click="showSaveModal()">{{ '保存图片' }}</a-button>
+        <a-button type="primary" @click="goToHistoryPage()">{{ '历史图片' }}</a-button>
         <!--excel或者csv-->
         <a-upload
           :showUploadList="false"
           :accept="'.csv,.xls,.xlsx'"
           :beforeUpload="beforeUpload"
         >
-          <a-button> <a-icon type="upload" /> 上传数据 </a-button>
+          <a-button type="primary"> <a-icon type="upload" /> 上传数据 </a-button>
         </a-upload>
-        <a-button @click="() => { showDataSource = !showDataSource;fetchDsList() }">{{ '从数据源获取数据' }}</a-button>
-        <a-button @click="() => { showTable = !showTable;initializeHandsontable() }">{{ '显示数据表格' }}
-        </a-button>
+        <a-button type="primary" @click="() => { showDataSource = !showDataSource;fetchDsList() }">{{ '从数据源获取数据' }}</a-button>
+        <a-button type="primary" @click="() => { showTable = !showTable;initializeHandsontable() }">{{ '显示数据表格' }}</a-button>
       </template>
       <div style="display: flex;" class="chart-div">
         <div class="left-sidebar">
@@ -207,6 +208,19 @@
         </a-drawer>
       </div>
     </a-card>
+    <a-modal
+      :visible="saveModalVisible"
+      @cancel="saveModalVisible = false"
+      title="请输入图片描述"
+      ok-text="保存"
+      cancel-text="取消"
+      @ok="saveChart()"
+    >
+      <a-input
+        v-model="chartDescription"
+        placeholder="请输入该图表的描述"
+      />
+    </a-modal>
   </div>
 </template>
 
@@ -219,6 +233,7 @@ import Handsontable from 'handsontable'
 import { fetchTables, getTableData, listQuery } from '@/api/datasource/datasource'
 import { renderChart } from '@/views/visualization/renderChart'
 import { dsImgObj } from '@/views/datasource/const'
+import { saveVisualization } from '@/api/visualization'
 
 const { registerLanguageDictionary, zhCN } = require('handsontable/i18n')
 registerLanguageDictionary(zhCN)
@@ -235,6 +250,8 @@ export default {
   },
   data () {
     return {
+      saveModalVisible: false,
+      chartDescription: undefined,
       fromDsList: [],
       sourceTables: [],
       form: this.$form.createForm(this),
@@ -297,6 +314,34 @@ export default {
     }
   },
   methods: {
+    // 显示弹窗
+    showSaveModal () {
+      this.chartDescription = ''
+      this.saveModalVisible = true
+    },
+    saveChart () {
+      // 获取图表的 Base64 图片数据
+      const chartImage = this.chart.getDataURL({
+        type: 'png', // 图片格式：png, jpeg, svg
+        pixelRatio: 2, // 分辨率倍数，默认为 1
+        backgroundColor: '#fff' // 背景颜色
+      })
+      saveVisualization({
+        userId: this.$store.getters.userInfo.userId,
+        image: chartImage,
+        description: this.chartDescription
+      }).then(res => {
+        if (res.result) {
+          this.$message.success('保存成功')
+          this.saveModalVisible = false
+        } else {
+          this.$message.error('保存失败')
+        }
+      })
+    },
+    goToHistoryPage () {
+      this.$router.push({ name: 'HistoryChart' })
+    },
     beforeUpload (file) {
       // 判断文件类型
       const fileType = file.type
