@@ -353,6 +353,8 @@ public class DtsJobServiceImpl implements DtsJobService {
                 .build();
         if (!ObjectUtils.isEmpty(jobStateForm.getStartTime())) {
             jobBean.setStartTime(new Timestamp(jobStateForm.getStartTime()));
+        } else {
+            jobStateForm.setStartTime(jobBean.getStartTime().getTime());
         }
         jobBean.setStatus(status);
         jobBean.setCount(JsonUtils.toJson(countVo));

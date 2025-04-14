@@ -1,8 +1,5 @@
 package com.datalinkx.driver.dsdriver.base.model;
 
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.datalinkx.common.result.DatalinkXJobDetail;
 import com.datalinkx.driver.dsdriver.IDsReader;
 import com.datalinkx.driver.dsdriver.IDsWriter;

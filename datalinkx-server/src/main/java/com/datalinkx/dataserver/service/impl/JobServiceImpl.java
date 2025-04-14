@@ -5,6 +5,7 @@ import com.datalinkx.common.constants.MetaConstants;
 import com.datalinkx.common.exception.DatalinkXServerException;
 import com.datalinkx.common.result.StatusCode;
 import com.datalinkx.common.utils.JsonUtils;
+import com.datalinkx.dataclient.client.xxljob.request.XxlJobParam;
 import com.datalinkx.dataserver.bean.domain.DsBean;
 import com.datalinkx.dataserver.bean.domain.JobBean;
 import com.datalinkx.dataserver.bean.domain.JobLogBean;
@@ -13,7 +14,6 @@ import com.datalinkx.dataserver.bean.dto.JobDto;
 import com.datalinkx.dataserver.bean.vo.JobVo;
 import com.datalinkx.dataserver.bean.vo.PageVo;
 import com.datalinkx.dataserver.client.JobClientApi;
-import com.datalinkx.dataclient.client.xxljob.request.XxlJobParam;
 import com.datalinkx.dataserver.controller.form.JobForm;
 import com.datalinkx.dataserver.repository.DsRepository;
 import com.datalinkx.dataserver.repository.JobLogRepository;
@@ -246,7 +246,7 @@ public class JobServiceImpl implements JobService {
 					.builder()
 					.jobId(jobBean.getJobId())
 					.jobName(jobBean.getName())
-					.progress(String.format("%s/%s", dataCountDto.getAppendCount(), dataCountDto.getFilterCount()))
+					.progress(String.format("%s/%s", dataCountDto.getAppendCount(), dataCountDto.getAllCount()))
 					.fromTbName(dsNameMap.get(jobBean.getReaderDsId()) + "." + jobBean.getFromTb())
 					.toTbName(dsNameMap.get(jobBean.getWriterDsId()) + "."  + jobBean.getToTb())
 					.startTime(jobBean.getStartTime())
