@@ -71,10 +71,12 @@ export default {
     fetchTaskList () {
       listQuery().then(res => {
           for (const i of res.result) {
-            this.taskList.push({
-              'label': i.job_name,
-              'value': i.job_id
-            })
+            if (i.type !== 1) {
+              this.taskList.push({
+                'label': i.job_name,
+                'value': i.job_id
+              })
+            }
             this.loading = false
           }
         }

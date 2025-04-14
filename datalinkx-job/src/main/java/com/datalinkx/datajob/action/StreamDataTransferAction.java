@@ -1,7 +1,6 @@
 package com.datalinkx.datajob.action;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -11,13 +10,13 @@ import com.datalinkx.common.utils.JsonUtils;
 import com.datalinkx.common.utils.ObjectUtils;
 import com.datalinkx.dataclient.client.flink.FlinkClient;
 import com.datalinkx.dataclient.client.flink.response.FlinkJobStatus;
-import com.datalinkx.datajob.bean.JobStateForm;
-import com.datalinkx.datajob.client.datalinkxserver.DatalinkXServerClient;
+import com.datalinkx.dataclient.client.datalinkxserver.request.JobStateForm;
+import com.datalinkx.dataclient.client.datalinkxserver.DatalinkXServerClient;
 import com.datalinkx.datajob.job.ExecutorStreamJobHandler;
 import com.datalinkx.driver.dsdriver.DsDriverFactory;
 import com.datalinkx.driver.dsdriver.base.model.FlinkActionMeta;
 import com.datalinkx.driver.dsdriver.base.model.StreamFlinkActionMeta;
-import com.datalinkx.driver.model.DataTransJobDetail;
+import com.datalinkx.common.result.DatalinkXJobDetail;
 import com.datalinkx.stream.lock.DistributedLock;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.SneakyThrows;
@@ -31,7 +30,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class StreamDataTransferAction extends AbstractDataTransferAction<DataTransJobDetail, StreamFlinkActionMeta> {
+public class StreamDataTransferAction extends AbstractDataTransferAction<DatalinkXJobDetail, StreamFlinkActionMeta> {
     public static ThreadLocal<Long> START_TIME = new ThreadLocal<>();
     @Autowired
     FlinkClient flinkClient;
@@ -46,7 +45,7 @@ public class StreamDataTransferAction extends AbstractDataTransferAction<DataTra
     DistributedLock distributedLock;
 
     @Override
-    protected void begin(DataTransJobDetail info) {
+    protected void begin(DatalinkXJobDetail info) {
         // 修改任务状态
         START_TIME.set(new Date().getTime());
         datalinkXServerClient.updateJobStatus(JobStateForm.builder().jobId(info.getJobId())
@@ -71,10 +70,9 @@ public class StreamDataTransferAction extends AbstractDataTransferAction<DataTra
 
     @Override
     protected void execute(StreamFlinkActionMeta unit) throws Exception {
-        Map<String, String> otherSetting = new HashMap<String, String>() {{
-           put("savePointPath", unit.getCheckpoint());
-        }};
-        String taskId = streamExecutorJobHandler.execute(unit.getJobId(), unit.getReaderDsInfo(), unit.getWriterDsInfo(), otherSetting);
+        Map<String, Object> commonSettings = unit.getCommonSettings();
+        commonSettings.put("savePointPath", unit.getCheckpoint());
+        String taskId = streamExecutorJobHandler.execute(unit.getJobId(), unit.getReaderDsInfo(), unit.getWriterDsInfo(), commonSettings);
         unit.setTaskId(taskId);
         // 更新task
         datalinkXServerClient.updateJobTaskRel(unit.getJobId(), taskId);
@@ -109,7 +107,7 @@ public class StreamDataTransferAction extends AbstractDataTransferAction<DataTra
             return true;
         }
         // 看门狗，续约分布式锁，防止其他节点重复提交任务
-        distributedLock.lock(unit.getJobId(), unit.getLockId(), DistributedLock.LOCK_TIME);
+        distributedLock.renewLock(unit.getJobId(), unit.getLockId(), DistributedLock.LOCK_TIME);
 
         // 流式任务不用检测太频繁，歇会
         try {
@@ -143,7 +141,7 @@ public class StreamDataTransferAction extends AbstractDataTransferAction<DataTra
 
     @SneakyThrows
     @Override
-    protected StreamFlinkActionMeta convertExecUnit(DataTransJobDetail info) {
+    protected StreamFlinkActionMeta convertExecUnit(DatalinkXJobDetail info) {
         Object readerDsInfo = DsDriverFactory.getStreamDriver(info.getSyncUnit().getReader().getConnectId()).getReaderInfo(info.getSyncUnit().getReader());
 
         // 实时任务的writer不一定是流式数据源
@@ -153,7 +151,7 @@ public class StreamDataTransferAction extends AbstractDataTransferAction<DataTra
         } else {
             FlinkActionMeta writerMeta = FlinkActionMeta.builder()
                     .writer(
-                            DataTransJobDetail
+                            DatalinkXJobDetail
                                     .Writer
                                     .builder()
                                     .type(info.getSyncUnit().getWriter().getType())
@@ -172,6 +170,7 @@ public class StreamDataTransferAction extends AbstractDataTransferAction<DataTra
                 .writerDsInfo(JsonUtils.toJson(writerDsInfo))
                 .readerDsInfo(JsonUtils.toJson(readerDsInfo))
                 .checkpoint(info.getSyncUnit().getCheckpoint())
+                .commonSettings(info.getSyncUnit().getCommonSettings())
                 .jobId(info.getJobId())
                 .lockId(info.getLockId())
                 .build();

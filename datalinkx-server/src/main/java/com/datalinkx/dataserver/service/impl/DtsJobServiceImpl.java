@@ -3,16 +3,18 @@ package com.datalinkx.dataserver.service.impl;
 import com.datalinkx.common.constants.MessageHubConstants;
 import com.datalinkx.common.constants.MetaConstants;
 import com.datalinkx.common.exception.DatalinkXServerException;
+import com.datalinkx.common.result.DatalinkXJobDetail;
 import com.datalinkx.common.result.StatusCode;
 import com.datalinkx.common.utils.JsonUtils;
 import com.datalinkx.compute.transform.ITransformDriver;
+import com.datalinkx.dataclient.client.xxljob.request.XxlJobParam;
 import com.datalinkx.dataserver.bean.domain.DsBean;
 import com.datalinkx.dataserver.bean.domain.JobBean;
 import com.datalinkx.dataserver.bean.domain.JobLogBean;
 import com.datalinkx.dataserver.bean.domain.JobRelationBean;
 import com.datalinkx.dataserver.bean.dto.JobDto;
-import com.datalinkx.dataserver.client.xxljob.JobClientApi;
-import com.datalinkx.dataserver.client.xxljob.request.XxlJobParam;
+import com.datalinkx.dataserver.client.JobClientApi;
+import com.datalinkx.dataserver.config.properties.CommonProperties;
 import com.datalinkx.dataserver.controller.form.JobForm;
 import com.datalinkx.dataserver.controller.form.JobStateForm;
 import com.datalinkx.dataserver.repository.DsRepository;
@@ -25,14 +27,12 @@ import com.datalinkx.deepseek.service.DeepSeekService;
 import com.datalinkx.driver.dsdriver.DsDriverFactory;
 import com.datalinkx.driver.dsdriver.IDsReader;
 import com.datalinkx.driver.dsdriver.base.model.DbTableField;
-import com.datalinkx.driver.model.DataTransJobDetail;
 import com.datalinkx.messagehub.bean.form.ProducerAdapterForm;
 import com.datalinkx.messagehub.service.MessageHubService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -76,38 +76,17 @@ public class DtsJobServiceImpl implements DtsJobService {
     JobClientApi jobClientApi;
 
     @Autowired
+    CommonProperties commonProperties;
+
+    @Autowired
     DeepSeekService deepSeekService;
 
-    @Value("${data-transfer.fetch-size:1000}")
-    Integer fetchSize;
-
-    @Value("${data-transfer.stream-batch-size:10}")
-    Integer streamBatchSize;
-
-    @Value("${data-transfer.query-time-out:10000}")
-    Integer queryTimeOut;
-
-    @Value("${client.ollama.url}")
-    String ollamaUrl;
-
-    @Value("${llm.model:}")
-    String llmModel;
-
-    @Value("${llm.response_parse:}")
-    String responseParse;
-
-    @Value("${llm.temperature:0.1}")
-    String temperature;
-
-    @Value("${llm.inner_prompt:}")
-    String innerPrompt;
-
     @Override
-    public DataTransJobDetail getJobExecInfo(String jobId) {
+    public DatalinkXJobDetail getJobExecInfo(String jobId) {
         JobBean jobBean = jobRepository.findByJobId(jobId).orElseThrow(() -> new DatalinkXServerException(StatusCode.JOB_NOT_EXISTS, "job not exist"));
         List<JobForm.FieldMappingForm> fieldMappingForms = JsonUtils.toList(jobBean.getConfig(), JobForm.FieldMappingForm.class);
 
-        DataTransJobDetail.SyncUnit syncUnit = DataTransJobDetail.SyncUnit
+        DatalinkXJobDetail.SyncUnit syncUnit = DatalinkXJobDetail.SyncUnit
                 .builder()
                 .reader(this.getReader(jobBean, fieldMappingForms))
                 .writer(this.getWriter(jobBean, fieldMappingForms))
@@ -115,51 +94,65 @@ public class DtsJobServiceImpl implements DtsJobService {
 
         // 解析计算任务图
         this.analysisComputeGraph(syncUnit, jobBean.getGraph());
-        return DataTransJobDetail.builder().jobId(jobId).type(jobBean.getType()).cover(jobBean.getCover()).syncUnit(syncUnit).build();
+        return DatalinkXJobDetail.builder().jobId(jobId).type(jobBean.getType()).cover(jobBean.getCover()).syncUnit(syncUnit).build();
     }
 
     @Override
-    public DataTransJobDetail getStreamJobExecInfo(String jobId) {
+    public DatalinkXJobDetail getStreamJobExecInfo(String jobId) {
         JobBean jobBean = jobRepository.findByJobId(jobId).orElseThrow(() -> new DatalinkXServerException(StatusCode.JOB_NOT_EXISTS, "job not exist"));
-        List<DataTransJobDetail.Column> columns = JsonUtils.toList(jobBean.getConfig(), JobForm.FieldMappingForm.class).stream()
-                .filter(x -> StringUtils.isNotEmpty(x.getSourceField()) && StringUtils.isNotEmpty(x.getTargetField()))
-                .map(x -> DataTransJobDetail.Column.builder()
-                        .name(x.getSourceField())
-                        .build())
-                .collect(Collectors.toList());
+        List<DatalinkXJobDetail.Column> fromColumns = new ArrayList<>();
+        List<DatalinkXJobDetail.Column> toColumns = new ArrayList<>();
+
+        JsonUtils.toList(jobBean.getConfig(), JobForm.FieldMappingForm.class).stream()
+        .filter(x -> StringUtils.isNotEmpty(x.getSourceField()) && StringUtils.isNotEmpty(x.getTargetField()))
+        .forEach(x -> {
+            fromColumns.add(DatalinkXJobDetail.Column.builder()
+                    .name(x.getSourceField())
+                    .build());
+            toColumns.add(DatalinkXJobDetail.Column.builder()
+                    .name(x.getTargetField())
+                    .build());
+        });
+
+        JobForm.SyncModeForm syncModeForm = JsonUtils.toObject(jobBean.getSyncMode(), JobForm.SyncModeForm.class);
+        Map<String, Object> commonSettings = new HashMap<>();
+        commonSettings.put(MetaConstants.CommonConstant.KEY_KAFKA_READ_INDEX, commonProperties.getKafkaReadMode());
+        commonSettings.put(MetaConstants.CommonConstant.KEY_CHECKPOINT_INTERVAL, commonProperties.getCheckpointInterval());
+        commonSettings.put(MetaConstants.CommonConstant.KEY_RESTORE_COLUMN_INDEX, syncModeForm.getRestoreColumnIndex());
 
         List<String> dsIds = new ArrayList<>(Arrays.asList(jobBean.getReaderDsId(), jobBean.getWriterDsId()));
         Map<String, DsBean> dsId2Object = dsRepository.findAllByDsIdIn(dsIds)
                 .stream()
                 .collect(Collectors.toMap(DsBean::getDsId, v -> v));
 
-        DataTransJobDetail.Reader reader = DataTransJobDetail.Reader.builder()
-                .tableName(jobBean.getFromTbId())
-                .columns(columns)
+        DatalinkXJobDetail.Reader reader = DatalinkXJobDetail.Reader.builder()
+                .tableName(jobBean.getFromTb())
+                .columns(fromColumns)
                 .connectId(dsServiceImpl.getConnectId(dsId2Object.get(jobBean.getReaderDsId())))
                 .type(MetaConstants.DsType.TYPE_TO_DB_NAME_MAP.get(dsId2Object.get(jobBean.getReaderDsId()).getType()))
                 .build();
 
-        DataTransJobDetail.Writer writer = DataTransJobDetail.Writer.builder()
-                .tableName(jobBean.getToTbId())
-                .columns(columns)
+        DatalinkXJobDetail.Writer writer = DatalinkXJobDetail.Writer.builder()
+                .tableName(jobBean.getToTb())
+                .columns(toColumns)
                 .connectId(dsServiceImpl.getConnectId(dsId2Object.get(jobBean.getWriterDsId())))
-                .batchSize(streamBatchSize)
+                .batchSize(commonProperties.getStreamBatchSize())
                 .type(MetaConstants.DsType.TYPE_TO_DB_NAME_MAP.get(dsId2Object.get(jobBean.getWriterDsId()).getType()))
                 .build();
 
-        DataTransJobDetail.SyncUnit syncUnit = DataTransJobDetail.SyncUnit
+        DatalinkXJobDetail.SyncUnit syncUnit = DatalinkXJobDetail.SyncUnit
                 .builder()
                 .reader(reader)
                 .writer(writer)
+                .commonSettings(commonSettings)
                 .checkpoint(jobBean.getCheckpoint())
                 .build();
-        return DataTransJobDetail.builder().jobId(jobId).syncUnit(syncUnit).build();
+        return DatalinkXJobDetail.builder().jobId(jobId).syncUnit(syncUnit).build();
     }
 
 
     @SneakyThrows
-    private DataTransJobDetail.Reader getReader(JobBean jobBean,
+    private DatalinkXJobDetail.Reader getReader(JobBean jobBean,
                                                 List<JobForm.FieldMappingForm> jobConf) {
 
         DsBean fromDs = dsRepository
@@ -168,9 +161,9 @@ public class DtsJobServiceImpl implements DtsJobService {
                         () -> new DatalinkXServerException(StatusCode.DS_NOT_EXISTS, "from ds not exist")
                 );
         // 1、流转任务来源表字段列表
-        List<DataTransJobDetail.Column> fromCols = jobConf.stream()
+        List<DatalinkXJobDetail.Column> fromCols = jobConf.stream()
                 .filter(x -> StringUtils.isNotEmpty(x.getSourceField()) && StringUtils.isNotEmpty(x.getTargetField()))
-                .map(x -> DataTransJobDetail.Column.builder()
+                .map(x -> DatalinkXJobDetail.Column.builder()
                         .name(x.getSourceField())
                         .build())
                 .collect(Collectors.toList());
@@ -179,18 +172,18 @@ public class DtsJobServiceImpl implements DtsJobService {
         IDsReader dsReader = DsDriverFactory.getDsReader(dsServiceImpl.getConnectId(fromDs));
 
         // 4、获取对应增量条件
-        Map<String, String> typeMappings = dsReader.getFields(fromDs.getDatabase(), fromDs.getSchema(), jobBean.getFromTbId())
+        Map<String, String> typeMappings = dsReader.getFields(fromDs.getDatabase(), fromDs.getSchema(), jobBean.getFromTb())
                 .stream().collect(Collectors.toMap(DbTableField::getName, DbTableField::getType));
         JobForm.SyncModeForm syncModeForm = JsonUtils.toObject(jobBean.getSyncMode(), JobForm.SyncModeForm.class);
 
-        DataTransJobDetail.Sync.SyncCondition syncCond = this.getSyncCond(syncModeForm, typeMappings);
+        DatalinkXJobDetail.Sync.SyncCondition syncCond = this.getSyncCond(syncModeForm, typeMappings);
 
-        DataTransJobDetail.Sync sync = DataTransJobDetail.Sync
+        DatalinkXJobDetail.Sync sync = DatalinkXJobDetail.Sync
                 .builder()
                 .type(syncModeForm.getMode())
                 .syncCondition(syncCond)
-                .queryTimeOut(queryTimeOut)
-                .fetchSize(fetchSize)
+                .queryTimeOut(commonProperties.getQueryTimeOut())
+                .fetchSize(commonProperties.getFetchSize())
                 .build();
 
         String selectField = jobConf.stream()
@@ -198,22 +191,22 @@ public class DtsJobServiceImpl implements DtsJobService {
                 .filter(typeMappings::containsKey)
                 .collect(Collectors.joining(", "));
 
-        return DataTransJobDetail.Reader
+        return DatalinkXJobDetail.Reader
                 .builder()
                 .connectId(dsServiceImpl.getConnectId(fromDs))
                 .type(MetaConstants.DsType.TYPE_TO_DB_NAME_MAP.get(fromDs.getType()))
                 .schema(fromDs.getDatabase())
                 .sync(sync)
                 .maxValue(syncModeForm.getIncreateValue())
-                .tableName(jobBean.getFromTbId())
+                .tableName(jobBean.getFromTb())
                 .columns(fromCols)
                 .queryFields(selectField)
                 .build();
     }
 
-    private DataTransJobDetail.Sync.SyncCondition getSyncCond(JobForm.SyncModeForm exportMode,
+    private DatalinkXJobDetail.Sync.SyncCondition getSyncCond(JobForm.SyncModeForm exportMode,
                                                               Map<String, String> typeMappings) {
-        DataTransJobDetail.Sync.SyncCondition syncCon = null;
+        DatalinkXJobDetail.Sync.SyncCondition syncCon = null;
         if (ObjectUtils.isEmpty(exportMode) || ObjectUtils.isEmpty(exportMode.getMode())) {
             return syncCon;
         }
@@ -224,16 +217,16 @@ public class DtsJobServiceImpl implements DtsJobService {
                 }
 
                 String synFieldType = typeMappings.getOrDefault(field, "string");
-                syncCon = DataTransJobDetail.Sync.SyncCondition.builder()
+                syncCon = DatalinkXJobDetail.Sync.SyncCondition.builder()
                         .field(field)
                         .fieldType(synFieldType)
-                        .start(DataTransJobDetail.Sync.SyncCondition.Conditon
+                        .start(DatalinkXJobDetail.Sync.SyncCondition.Conditon
                                 .builder()
                                 .enable(1)
                                 .operator(">")
                                 .value(exportMode.getIncreateValue())
                                 .build())
-                        .end(DataTransJobDetail.Sync.SyncCondition.Conditon
+                        .end(DatalinkXJobDetail.Sync.SyncCondition.Conditon
                                 .builder()
                                 .enable(0)
                                 .build())
@@ -246,15 +239,15 @@ public class DtsJobServiceImpl implements DtsJobService {
     }
 
     // 解析计算任务图
-    private void analysisComputeGraph(DataTransJobDetail.SyncUnit syncUnit,
+    private void analysisComputeGraph(DatalinkXJobDetail.SyncUnit syncUnit,
                                       String graph) {
-        DataTransJobDetail.Compute compute = new DataTransJobDetail.Compute();
+        DatalinkXJobDetail.Compute compute = new DatalinkXJobDetail.Compute();
         if (ObjectUtils.isEmpty(graph)) {
             return;
         }
 
         boolean containSQLNode = false;
-        List<DataTransJobDetail.Compute.Transform> transforms = new ArrayList<>();
+        List<DatalinkXJobDetail.Compute.Transform> transforms = new ArrayList<>();
         JsonNode jsonNode = JsonUtils.toJsonNode(graph);
         for (JsonNode node : jsonNode.get("cells")) {
 
@@ -267,7 +260,7 @@ public class DtsJobServiceImpl implements DtsJobService {
 
             if (!ObjectUtils.isEmpty(transformDriver)) {
                 transforms.add(
-                        DataTransJobDetail
+                        DatalinkXJobDetail
                                 .Compute
                                 .Transform
                                 .builder()
@@ -279,24 +272,24 @@ public class DtsJobServiceImpl implements DtsJobService {
         }
 
         compute.setTransforms(transforms);
-        compute.setCommonSettings(new HashMap<String, Object>() {{
-            put("openai.api_path", ollamaUrl + "/api/chat");
-            put("model", llmModel);
-            put("response_parse", responseParse);
-            put("temperature", temperature);
-            put("inner_prompt", innerPrompt);
-        }});
 
         // 如果计算过程中存在SQL节点，把reader中的queryFields改成*防止SQL中引用了未映射字段导致报错
         if (containSQLNode) {
             syncUnit.getReader().setQueryFields("*");
         }
 
+        syncUnit.setCommonSettings(new HashMap<String, Object>() {{
+            put("openai.api_path", commonProperties.getOllamaUrl() + "/api/chat");
+            put("model", commonProperties.getLlmModel());
+            put("response_parse", commonProperties.getResponseParse());
+            put("temperature", commonProperties.getTemperature());
+            put("inner_prompt", commonProperties.getInnerPrompt());
+        }});
         syncUnit.setCompute(compute);
     }
 
     @SneakyThrows
-    private DataTransJobDetail.Writer getWriter(JobBean jobBean,
+    private DatalinkXJobDetail.Writer getWriter(JobBean jobBean,
                                                 List<JobForm.FieldMappingForm> jobConf) {
 
         DsBean toDs = dsRepository
@@ -305,9 +298,9 @@ public class DtsJobServiceImpl implements DtsJobService {
                         () -> new DatalinkXServerException(StatusCode.DS_NOT_EXISTS, "to ds not exist")
                 );
 
-        List<DataTransJobDetail.Column> toCols = jobConf
+        List<DatalinkXJobDetail.Column> toCols = jobConf
                 .stream()
-                .map(x -> DataTransJobDetail
+                .map(x -> DatalinkXJobDetail
                         .Column
                         .builder()
                         .name(x.getTargetField())
@@ -320,11 +313,11 @@ public class DtsJobServiceImpl implements DtsJobService {
                 .filter(targetField -> !ObjectUtils.isEmpty(targetField))
                 .collect(Collectors.joining(", "));
 
-        return DataTransJobDetail.Writer.builder()
+        return DatalinkXJobDetail.Writer.builder()
                 .schema(toDs.getDatabase()).connectId(dsServiceImpl.getConnectId(toDs))
                 .type(MetaConstants.DsType.TYPE_TO_DB_NAME_MAP.get(toDs.getType()))
                 .insertFields(insertFields)
-                .tableName(jobBean.getToTbId()).columns(toCols).build();
+                .tableName(jobBean.getToTb()).columns(toCols).build();
     }
 
 
@@ -358,7 +351,11 @@ public class DtsJobServiceImpl implements DtsJobService {
                 .appendCount(jobStateForm.getAppendCount())
                 .filterCount(jobStateForm.getFilterCount())
                 .build();
-        jobBean.setStartTime(ObjectUtils.isEmpty(jobStateForm.getStartTime()) ? null : new Timestamp(jobStateForm.getStartTime()));
+        if (!ObjectUtils.isEmpty(jobStateForm.getStartTime())) {
+            jobBean.setStartTime(new Timestamp(jobStateForm.getStartTime()));
+        } else {
+            jobStateForm.setStartTime(jobBean.getStartTime().getTime());
+        }
         jobBean.setStatus(status);
         jobBean.setCount(JsonUtils.toJson(countVo));
         jobBean.setErrorMsg(StringUtils.equalsIgnoreCase(jobStateForm.getErrmsg(), "success") ? "任务成功"

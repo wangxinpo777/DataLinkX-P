@@ -67,112 +67,114 @@
 </template>
 
 <script>
-import { addObj } from '@/api/job/jobrelation.js'
-import { listQuery } from '@/api/job/job'
-import JobSaveOrUpdate from '../job/JobSaveOrUpdate.vue'
+  import { addObj } from '@/api/job/jobrelation.js'
+  import { listQuery } from '@/api/job/job'
+  import JobSaveOrUpdate from '../job/JobSaveOrUpdate.vue'
+  const selectTables = []
 
-const selectTables = []
-
-export default {
-  name: 'JobRelationSave',
-  components: {
-    JobSaveOrUpdate
-  },
-  data () {
-    return {
-      labelCol: {
-        xs: { span: 24 },
-        sm: { span: 7 }
-      },
-      wrapperCol: {
-        xs: { span: 24 },
-        sm: { span: 13 }
-      },
-      longWrapperCol: {
-        xs: { span: 44 },
-        sm: { span: 13 }
-      },
-      selectJobs: [],
-      job_id: '',
-      sub_job_id: '',
-      visible: false,
-      confirmLoading: false,
-      form: this.$form.createForm(this),
-      addable: false,
-      type: 'add'
-    }
-  },
-  created () {
-    this.init()
-  },
-  methods: {
-    // 获取用户信息
-    add () {
-      this.visible = true
-      this.addable = true
+  export default {
+    name: 'JobRelationSave',
+    components: {
+      JobSaveOrUpdate
     },
-    edit (jobId) {
-      if (jobId === '') {
-        return
+    data () {
+      return {
+        labelCol: {
+          xs: { span: 24 },
+          sm: { span: 7 }
+        },
+        wrapperCol: {
+          xs: { span: 24 },
+          sm: { span: 13 }
+        },
+        longWrapperCol: {
+          xs: { span: 44 },
+          sm: { span: 13 }
+        },
+        selectJobs: [],
+        job_id: '',
+        sub_job_id: '',
+        visible: false,
+        confirmLoading: false,
+        form: this.$form.createForm(this),
+        addable: false,
+        type: 'add'
       }
-      this.$refs.JobSaveOrUpdate.readOnly(jobId)
     },
-    handleChange (value) {
-      selectTables.push(value)
-      console.log(`Selected: ${value}`)
-      console.log(selectTables)
+    created () {
+      this.init()
     },
-    // 结束保存用户信息
-    handleOk () {
-      this.form.validateFields(async (err, values) => {
-        if (!err) {
-          this.confirmLoading = true
-          await addObj(values).then(res => {
-            if (res.status === '0') {
-              this.$emit('ok')
-              this.confirmLoading = false
-              // 清楚表单数据
-              this.handleCancel()
-              this.$message.success('新增成功')
-            } else {
-              this.confirmLoading = false
-              this.$message.error(res.errstr)
-            }
-          }).catch(err => {
-            this.confirmLoading = false
-            this.$message.error(err.errstr)
-          })
+    methods: {
+      // 获取用户信息
+      add () {
+        this.visible = true
+        this.addable = true
+      },
+      edit (jobId) {
+        if (jobId === '') {
+          return
         }
-      })
-    },
-    handleCancel () {
-      this.visible = false
-      this.job_id = ''
-      this.sub_job_id = ''
-      setTimeout(() => {
-        this.addable = false
-      }, 200)
-    },
-    init () {
-      listQuery().then(res => {
-        for (const i of res.result) {
-          if (i.type !== 1) {
-            this.selectJobs.push({
-              'label': i.job_name,
-              'value': i.job_id
+        this.$refs.JobSaveOrUpdate.readOnly(jobId)
+      },
+      handleChange (value) {
+        selectTables.push(value)
+        console.log(`Selected: ${value}`)
+        console.log(selectTables)
+      },
+      // 结束保存用户信息
+      handleOk () {
+        this.form.validateFields(async (err, values) => {
+          if (!err) {
+            this.confirmLoading = true
+            addObj(values).then(res => {
+              if (res.status === '0') {
+                this.$emit('ok')
+                this.confirmLoading = false
+                // 清楚表单数据
+                this.handleCancel()
+                this.$message.success('新增成功')
+              } else {
+                this.confirmLoading = false
+                this.$message.error(res.errstr)
+              }
+            }).catch(err => {
+              this.confirmLoading = false
+              this.$message.error(err.errstr)
+            }).finally(res => {
+              this.job_id = ''
+              this.sub_job_id = ''
             })
           }
-        }
-        console.log(this.selectJobs)
-      }).finally(() => {
-        this.loading = false
-      })
-    },
-    handleSearch (value) {
+        })
+      },
+      handleCancel () {
+        this.visible = false
+        this.job_id = ''
+        this.sub_job_id = ''
+        setTimeout(() => {
+          this.addable = false
+        }, 200)
+      },
+      init () {
+        listQuery().then(res => {
+          for (const i of res.result) {
+            if (i.type !== 1) {
+              this.selectJobs.push({
+                'label': i.job_name,
+                'value': i.job_id
+              })
+            }
+          }
+          console.log(this.selectJobs)
+        }).finally(() => {
+          this.loading = false
+        })
+      },
+      handleSearch (value) {
 
+      }
     }
   }
-}
 </script>
 
 <style scoped>

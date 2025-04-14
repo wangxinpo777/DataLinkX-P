@@ -109,6 +109,12 @@ import JobCompute from '../job/JobCompute.vue'
             }
           },
           {
+            title: '任务上次执行时间',
+            dataIndex: 'start_time',
+            width: '10%',
+            sorter: true
+          },
+          {
             title: '操作',
             width: '15%',
             customRender: (record) => {
@@ -143,7 +149,8 @@ import JobCompute from '../job/JobCompute.vue'
         queryParam: {
           'type': 2
         },
-        source: null
+        source: null,
+        refreshIntervalId: null // 用于存储定时器的 ID
       }
     },
     provide () {
@@ -186,6 +193,7 @@ import JobCompute from '../job/JobCompute.vue'
         this.init()
       },
       delete (record) {
+        this.loading = true
         delObj(record.job_id).then(res => {
           if (res.status === '0') {
             this.$message.info('删除成功')
@@ -236,13 +244,26 @@ import JobCompute from '../job/JobCompute.vue'
           // 或者使用 params（如果路由配置了动态参数）
           // params: { jobId }
         })
+      },
+      startRefresh () {
+        this.refreshIntervalId = setInterval(() => {
+          this.init()
+        }, 60000) // 每 10 秒执行一次 init 方法
+      },
+      stopRefresh () {
+        if (this.refreshIntervalId) {
+          clearInterval(this.refreshIntervalId)
+          this.refreshIntervalId = null
+        }
       }
     },
     beforeDestroy () {
       this.eventSource && this.eventSource.close()
+      this.stopRefresh() // 组件销毁时停止定时器
     },
     created () {
       this.init()
+      this.startRefresh() // 组件创建时启动定时器
     }
   }
 </script>

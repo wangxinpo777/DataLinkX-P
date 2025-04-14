@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import com.datalinkx.common.constants.MetaConstants;
 import com.datalinkx.common.exception.DatalinkXJobException;
+import com.datalinkx.common.result.DatalinkXJobDetail;
 import com.datalinkx.common.utils.ConnectIdUtils;
 import com.datalinkx.common.utils.JsonUtils;
 import com.datalinkx.common.utils.ObjectUtils;
@@ -35,14 +36,10 @@ import com.datalinkx.driver.dsdriver.base.column.ReaderConnection;
 import com.datalinkx.driver.dsdriver.base.column.WriterConnection;
 import com.datalinkx.driver.dsdriver.base.connect.ConnectPool;
 import com.datalinkx.driver.dsdriver.base.model.DbTableField;
-import com.datalinkx.driver.dsdriver.base.model.DbTree;
 import com.datalinkx.driver.dsdriver.base.model.FlinkActionMeta;
 import com.datalinkx.driver.dsdriver.base.model.SeatunnelActionMeta;
 import com.datalinkx.driver.dsdriver.base.reader.ReaderInfo;
 import com.datalinkx.driver.dsdriver.base.writer.WriterInfo;
-import com.datalinkx.driver.model.DataTransJobDetail;
-import com.google.common.collect.Lists;
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -54,18 +51,6 @@ public class JdbcDriver<T extends JdbcSetupInfo, P extends JdbcReader, Q extends
     protected String connectId;
     protected String PLUGIN_NAME = "Jdbc";
 
-    private static final Set<String> INCREMENTAL_TYPE_SET = new HashSet<>();
-    static {
-        INCREMENTAL_TYPE_SET.add("datetime");
-        INCREMENTAL_TYPE_SET.add("date");
-        INCREMENTAL_TYPE_SET.add("timestamp");
-        INCREMENTAL_TYPE_SET.add("time");
-        INCREMENTAL_TYPE_SET.add("int");
-        INCREMENTAL_TYPE_SET.add("double");
-        INCREMENTAL_TYPE_SET.add("long");
-        INCREMENTAL_TYPE_SET.add("bigint");
-        INCREMENTAL_TYPE_SET.add("bigint unsigned");
-    }
 
     public JdbcDriver(String connectId) {
         Class clazz = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
@@ -132,7 +117,7 @@ public class JdbcDriver<T extends JdbcSetupInfo, P extends JdbcReader, Q extends
     }
 
 
-    public List<DbTree.DbTreeTable> treeTable(String catalog, String schema) throws Exception {
+    public List<String> treeTable(String catalog, String schema) throws Exception {
         Connection connection = ConnectPool.getConnection(this, Connection.class);
         try {
             return generateTree(catalog, schema, connection);
@@ -148,38 +133,15 @@ public class JdbcDriver<T extends JdbcSetupInfo, P extends JdbcReader, Q extends
         return JsonUtils.toList(JsonUtils.toJson(maps), DbTableField.class);
     }
 
-    @Override
-    public Boolean judgeIncrementalField(String catalog, String schema, String tableName, String field) throws Exception {
-        List<DbTableField> incrementalFields = this.getFields(catalog, schema, tableName)
-                .stream().filter(tableField -> tableField.getName().equals(field))
-                .collect(Collectors.toList());
 
-        if (ObjectUtils.isEmpty(incrementalFields)) {
-            throw new Exception("增量字段不存在");
-        }
-
-        return INCREMENTAL_TYPE_SET.contains(incrementalFields.get(0).getType().toLowerCase());
-    }
-
-
-
-    public List<DbTree.DbTreeTable> generateTree(String catalog, String schema, Connection connection) {
+    public List<String> generateTree(String catalog, String schema, Connection connection) {
         List<String> tableList = fetchTable(catalog, schema, connection);
         return tableList.stream().map(tableName -> {
             Map<String, Object> tableInfo = fetchTableInfo(catalog, schema, tableName, connection);
-            DbTree.DbTreeTable dbTreeTable = new DbTree.DbTreeTable();
-            dbTreeTable.setName(tableInfo.get("name") == null ? null : tableInfo.get("name").toString());
-            dbTreeTable.setRemark(tableInfo.get("remark") == null ? null : tableInfo.get("remark").toString());
-            dbTreeTable.setType(tableInfo.get("type") == null ? null : tableInfo.get("type").toString());
-            dbTreeTable.setRef(refEncode(Lists.newArrayList(catalog, schema, tableName)));
-            dbTreeTable.setLevel("table");
-            return dbTreeTable;
+            return tableInfo.get("name") == null ? null : tableInfo.get("name").toString();
         }).collect(Collectors.toList());
     }
 
-    public String refEncode(List<String> refs) {
-        return Base64.encode(JsonUtils.toJson(refs).getBytes());
-    }
 
     @Override
     public String retrieveMax(FlinkActionMeta unit, String field) throws Exception {
@@ -357,7 +319,7 @@ public class JdbcDriver<T extends JdbcSetupInfo, P extends JdbcReader, Q extends
                         .jdbcUrl(jdbcUrl())
                         .table(Collections.singletonList(unit.getWriter().getTableName()))
                         .build()))
-                .column(unit.getWriter().getColumns().stream().map(DataTransJobDetail.Column::getName).collect(Collectors.toList()))
+                .column(unit.getWriter().getColumns().stream().map(DatalinkXJobDetail.Column::getName).collect(Collectors.toList()))
                 .insertSqlMode("copy")
                 .writeMode("insert")
                 .batchSize(unit.getWriter().getBatchSize())
@@ -407,7 +369,7 @@ public class JdbcDriver<T extends JdbcSetupInfo, P extends JdbcReader, Q extends
 
     @Override
     public String transferSourceSQL(FlinkActionMeta unit) {
-        DataTransJobDetail.Reader reader = unit.getReader();
+        DatalinkXJobDetail.Reader reader = unit.getReader();
 
         String sourceSQL = String.format("select %s from %s.%s", reader.getQueryFields(), reader.getSchema(), reader.getTableName());
         try {
@@ -441,7 +403,7 @@ public class JdbcDriver<T extends JdbcSetupInfo, P extends JdbcReader, Q extends
 
     @Override
     public String transferSinkSQL(SeatunnelActionMeta param) {
-        DataTransJobDetail.Writer writer = param.getWriter();
+        DatalinkXJobDetail.Writer writer = param.getWriter();
         StringBuilder abstractQuery = new StringBuilder();
         for (int i = 0; i < writer.getInsertFields().split(",").length; i++) {
             if (i == 0) {
