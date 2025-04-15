@@ -35,12 +35,24 @@ public class UserChartImageBean {
     @Column(name = "image", nullable = false)
     private byte[] image;
 
+    @Column(name = "chart_config", columnDefinition = "json default null comment '图表配置'")
+    private String chartConfig;
+
+    @Column(name = "chart_json_data", columnDefinition = "json default null comment '图表数据'")
+    private String chartJsonData;
+
     @Size(max = 255)
     @Column(name = "description")
     private String description;
 
     @Column(name = "created_time")
     private Timestamp createdTime;
+
+    @Column(name = "updated_time")
+    private Timestamp updatedTime;
+
+    @Column(name = "type", columnDefinition = "int default 0 comment '0 系统生成 1 用户上传'")
+    private Integer type;
 
     @Column(name = "is_del", columnDefinition = "int default 0 comment '是否删除'")
     private Integer isDel;

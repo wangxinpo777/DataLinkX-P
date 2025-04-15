@@ -15,4 +15,7 @@ public class SaveChartImageRequest {
     private Integer imageId;
     private String image; // Base64 图片数据
     private String description;
+    private String chartConfig;
+    private String chartJsonData;
+    private Integer type; // 0 系统生成 1 用户上传
 }

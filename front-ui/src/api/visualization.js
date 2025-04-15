@@ -24,10 +24,10 @@ export function deleteVisualization (parameter) {
   })
 }
 
-export function updateVisualization (parameter) {
+export function getImageConfig (parameter) {
   return request({
-    url: '/api/images/update-chart-image',
-    method: 'put',
-    data: parameter
+    url: '/api/images/get-chart-image-config',
+    method: 'get',
+    params: parameter
   })
 }

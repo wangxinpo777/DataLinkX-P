@@ -1,3 +1,5 @@
+import clearIcon from '@/assets/clear.png'
+
 function getFormatter (value) {
   return function (params) {
     let result = value // 初始值
@@ -123,9 +125,16 @@ export function renderChart (VueIns) {
       right: '10px',
       feature: {
         saveAsImage: {},
-        dataView: {},
         dataZoom: { show: true },
-        restore: {}
+        restore: {},
+        myTool1: {
+          show: true,
+          title: '清空',
+          icon: 'image://' + clearIcon,
+          onclick: function () {
+            VueIns.clearChart()
+          }
+        }
       }
     } : null
   }
