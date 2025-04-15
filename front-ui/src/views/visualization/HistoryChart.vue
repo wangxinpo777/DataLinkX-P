@@ -2,12 +2,19 @@
   <div class="main">
     <a-card title="历史图片" class="custom-card">
       <template #extra>
+        <a-input-search
+          v-model="searchKeyword"
+          placeholder="请输入图片描述关键词"
+          enter-button
+          @search="getVisualization(1, 10)"
+          style="width: 200px;"
+        />
         <a-upload
           :showUploadList="false"
           :beforeUpload="handleUpload"
           accept="image/*"
         >
-          <a-button type="primary">上传图片</a-button>
+          <a-button style="margin-left: 30px" type="primary">上传图片</a-button>
         </a-upload>
       </template>
       <!-- 图片列表 -->
@@ -24,7 +31,7 @@
             <p class="desc">{{ image.description || '无描述' }}</p>
             <p class="time">🕒 {{ formatTime(image.createdTime) }}</p>
             <div style="text-align: end" class="actions" v-if="showActions(image.id)">
-              <a-button style="margin-right: 10px" size="small" @click="editImage(image)">编辑</a-button>
+              <a-button v-if="image.type === 0" style="margin-right: 10px" size="small" @click="editImage(image)">编辑</a-button>
               <a-button size="small" type="danger" @click="deleteImage(image.id)">删除</a-button>
             </div>
           </div>
@@ -41,37 +48,23 @@
           show-less-items />
       </div>
     </a-card>
-    <a-modal
-      :visible="saveModalVisible"
-      @cancel="cancelChart()"
-      title="请输入图片描述"
-      ok-text="保存"
-      cancel-text="取消"
-      @ok="saveChart()"
-    >
-      <a-input
-        v-model="chartDescription"
-        placeholder="请输入该图表的描述"
-      />
-    </a-modal>
   </div>
 </template>
 
 <script>
-import { deleteVisualization, getVisualization, saveVisualization, updateVisualization } from '@/api/visualization'
+import { deleteVisualization, getVisualization, saveVisualization } from '@/api/visualization'
 import Viewer from 'viewerjs'
 
 export default {
   name: 'HistoryChart',
   data () {
     return {
-      chartDescription: undefined, // 图片描述
+      searchKeyword: '', // 搜索关键词
       imageId: null, // 图片ID
       loading: true,
       images: [], // 历史图片数据
       viewer: null,
       visibleActions: null,
-      saveModalVisible: false, // 控制保存图片描述的弹窗
       current: 1, // 分页当前页码
       total: 0 // 分页总数
     }
@@ -80,11 +73,6 @@ export default {
     this.getVisualization()
   },
   methods: {
-    cancelChart () {
-      this.saveModalVisible = false
-      this.imageId = null
-      this.chartDescription = undefined
-    },
     deleteImage (imageId) {
       this.$confirm({
         title: '删除确认',
@@ -107,26 +95,11 @@ export default {
       })
     },
     editImage (image) {
-      this.chartDescription = image.description || undefined
-      this.imageId = image.id
-      this.saveModalVisible = true
-    },
-    saveChart () {
-      if (!this.chartDescription) {
-        this.$message.error('请输入图片描述')
-        return
-      }
-      updateVisualization({
-        imageId: this.imageId,
-        description: this.chartDescription
-      }).then(res => {
-        if (res.status === '0') {
-          this.$message.success('编辑成功')
-        } else {
-          this.$message.error('编辑失败')
+      this.$router.push({
+        name: 'Visualization',
+        query: {
+          chartId: image.id
         }
-        this.saveModalVisible = false
-        this.getVisualization()
       })
     },
     handleUpload (file) {
@@ -137,6 +110,7 @@ export default {
         saveVisualization({
           userId: this.$store.getters.userInfo.userId,
           image: base64,
+          type: 1,
           description: this.chartDescription
         }).then(res => {
           if (res.result) {
@@ -153,7 +127,7 @@ export default {
     getVisualization (page, size) {
       this.current = page || this.current
       this.loading = true
-      getVisualization({ userId: this.$store.getters.userInfo.userId, pageNum: this.current, pageSize: size })
+      getVisualization({ pageNum: page, pageSize: size, keyword: this.searchKeyword })
         .then((response) => {
           this.images = response.result.list
           this.total = response.result.total

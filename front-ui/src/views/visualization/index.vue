@@ -2,7 +2,7 @@
   <div class="main">
     <a-card title="可视化图表" style="overflow: hidden;border-radius: 8px">
       <template v-slot:extra>
-        <a-button type="primary" @click="showSaveModal()">{{ '保存图片' }}</a-button>
+        <a-button type="primary" @click="showSaveModal()">{{ chartId ? '更新图片' : '保存图片' }}</a-button>
         <a-button type="primary" @click="goToHistoryPage()">{{ '历史图片' }}</a-button>
         <!--excel或者csv-->
         <a-upload
@@ -216,10 +216,16 @@
       cancel-text="取消"
       @ok="saveChart()"
     >
-      <a-input
-        v-model="chartDescription"
-        placeholder="请输入该图表的描述"
-      />
+      <a-form :form="inputForm">
+        <a-form-item label="图片描述">
+          <a-input
+            v-decorator="[
+              'chartDescription',
+              { rules: [{ required: true, message: '请输入图片描述' }],initialValue: chartDescriptionDefault }
+            ]"
+          />
+        </a-form-item>
+      </a-form>
     </a-modal>
   </div>
 </template>
@@ -233,7 +239,7 @@ import Handsontable from 'handsontable'
 import { fetchTables, getTableData, listQuery } from '@/api/datasource/datasource'
 import { renderChart } from '@/views/visualization/renderChart'
 import { dsImgObj } from '@/views/datasource/const'
-import { saveVisualization } from '@/api/visualization'
+import { getImageConfig, saveVisualization } from '@/api/visualization'
 
 const { registerLanguageDictionary, zhCN } = require('handsontable/i18n')
 registerLanguageDictionary(zhCN)
@@ -250,11 +256,13 @@ export default {
   },
   data () {
     return {
+      chartDescriptionDefault: '',
+      chartId: null,
       saveModalVisible: false,
-      chartDescription: undefined,
       fromDsList: [],
       sourceTables: [],
       form: this.$form.createForm(this),
+      inputForm: this.$form.createForm(this),
       showTable: false,
       showDataSource: false,
       indeterminate: true,
@@ -314,29 +322,49 @@ export default {
     }
   },
   methods: {
+    clearChart () {
+      this.chart.clear()
+      this.chartId = null
+      this.$message.success('清空成功')
+      this.$router.push({ name: 'Visualization' })
+    },
     // 显示弹窗
     showSaveModal () {
-      this.chartDescription = ''
       this.saveModalVisible = true
     },
     saveChart () {
-      // 获取图表的 Base64 图片数据
-      const chartImage = this.chart.getDataURL({
-        type: 'png', // 图片格式：png, jpeg, svg
-        pixelRatio: 2, // 分辨率倍数，默认为 1
-        backgroundColor: '#fff' // 背景颜色
-      })
-      saveVisualization({
-        userId: this.$store.getters.userInfo.userId,
-        image: chartImage,
-        description: this.chartDescription
-      }).then(res => {
-        if (res.result) {
-          this.$message.success('保存成功')
-          this.saveModalVisible = false
-        } else {
-          this.$message.error('保存失败')
+      this.inputForm.validateFields((err, values) => {
+        if (err) {
+          return
         }
+        // ✅ 校验通过
+        if (this.chartJsonData.length === 0 || this.chartData.length === 0) {
+          this.$message.error('请先上传数据')
+          return
+        }
+        // 获取图表的 Base64 图片数据
+        const chartImage = this.chart.getDataURL({
+          type: 'png', // 图片格式：png, jpeg, svg
+          pixelRatio: 2, // 分辨率倍数，默认为 1
+          backgroundColor: '#fff' // 背景颜色
+        })
+        const option = this.chart.getOption()
+        delete option.toolbox[0].feature.myTool1.onclick
+        saveVisualization({
+          userId: this.$store.getters.userInfo.userId,
+          image: chartImage,
+          imageId: this.chartId || null,
+          chartJsonData: JSON.stringify(this.chartJsonData),
+          description: values.chartDescription,
+          chartConfig: JSON.stringify(option)
+        }).then(res => {
+          if (res.result) {
+            this.$message.success('保存成功')
+            this.saveModalVisible = false
+          } else {
+            this.$message.error('保存失败')
+          }
+        })
       })
     },
     goToHistoryPage () {
@@ -558,7 +586,33 @@ export default {
   },
   mounted () {
     this.chart = echarts.init(this.$refs.chart)
-    this.renderChart()
+    if (this.$route.query.chartId) {
+      this.chartId = this.$route.query.chartId
+      getImageConfig({ imageId: this.chartId }).then(res => {
+        if (res.result && res.result.chartConfig) {
+          const result = res.result
+          const option = JSON.parse(result.chartConfig)
+          const VueIns = this
+          option.toolbox[0].feature.myTool1.onclick = function () {
+            VueIns.$router.push({ name: 'Visualization' })
+            VueIns.chart?.clear()
+          }
+          this.chartDescriptionDefault = result.description
+          this.chart.setOption(option, true)
+          this.chartJsonData = JSON.parse(result.chartJsonData)
+          this.YIndex = this.chartJsonData[0].filter((item) => item !== '' && item !== null)
+          this.XIndex = this.chartJsonData[0].filter((item) => item !== '' && item !== null)
+          this.selectedYIndex = this.YIndex.slice(1)
+          this.selectedXIndex = this.XIndex[0]
+          this.chooseLine = this.selectedYIndex[0]
+          this.chartData = this.convertJsonToObject()
+          this.xAxisData = Object.keys(this.chartData)
+          setTimeout(() => { this.chart.resize() }, 300)
+        }
+      })
+    } else {
+      this.renderChart()
+    }
   }
 }
 </script>

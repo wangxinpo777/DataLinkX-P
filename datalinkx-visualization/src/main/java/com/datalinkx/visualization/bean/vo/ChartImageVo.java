@@ -16,4 +16,5 @@ public class ChartImageVo {
     private String image; // Base64 图片数据
     private String description;
     private Timestamp createdTime;
+    private Integer type; // 0 系统生成 1 用户上传
 }
