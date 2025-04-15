@@ -10,9 +10,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface UserChartImageRepository extends JpaRepository<UserChartImageBean, Integer> {
-    @Query(value = "SELECT id, user_id AS userId, image, description, created_time AS createdTime, type " +
-            "FROM user_chart_images " +
-            "WHERE is_del = 0 " +
+    @Query(value = "SELECT user_chart_images.id, user_chart_images.user_id AS userId, user_chart_images.image, user_chart_images.description, user_chart_images.created_time AS createdTime, user_chart_images.updated_time AS updatedTime, user_chart_images.type, sys_user.nick_name AS userName " +
+            "FROM user_chart_images LEFT JOIN sys_user ON user_chart_images.user_id=sys_user.user_id " +
+            "WHERE user_chart_images.is_del = 0 " +
             "AND (:keyword IS NULL OR description LIKE CONCAT('%', :keyword, '%')) " +
             "ORDER BY created_time DESC",
             countQuery = "SELECT COUNT(*) FROM user_chart_images " +

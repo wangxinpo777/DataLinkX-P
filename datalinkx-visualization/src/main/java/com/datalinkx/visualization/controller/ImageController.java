@@ -57,6 +57,7 @@ public class ImageController {
                         .type(request.getType() == null ? 0 : request.getType())
                         .description(request.getDescription())
                         .createdTime(new Timestamp(System.currentTimeMillis()))
+                        .updatedTime(new Timestamp(System.currentTimeMillis()))
                         .isDel(0) // 默认不删除
                         .build();
                 return WebResult.of(userChartImageRepository.save(userChartImage));
@@ -81,10 +82,12 @@ public class ImageController {
                 return ChartImageVo.builder()
                         .id(userChartImageBean.getId())
                         .userId(userChartImageBean.getUserId())
+                        .userName(userChartImageBean.getUserName())
                         .image(base64Image)
                         .type(userChartImageBean.getType())
                         .description(userChartImageBean.getDescription())
                         .createdTime(userChartImageBean.getCreatedTime())
+                        .updatedTime(userChartImageBean.getUpdatedTime())
                         .build();
             }).collect(Collectors.toList());
             return WebResult.of(new HashMap<String, Object>() {{

@@ -21,11 +21,13 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 ### 4.错误日志大模型自动分析
 ![输入图片说明](datalinkx-server/src/main/resources/readme/errorlog.png)
 
-### 5.添加可视化BI,支持`上传数据`、`从数据库读取`、`自定义可视化`、`动态编辑`
+### 5.添加可视化BI,支持`上传数据`、`从数据库读取`、`自定义可视化`、`动态编辑`、`保存图片`、`恢复编辑`
 
-![输入图片说明](datalinkx-server/src/main/resources/readme/BI.png)
+![输入图片说明](datalinkx-server/src/main/resources/readme/BI1.png)
 
 ![输入图片说明](datalinkx-server/src/main/resources/readme/BI2.png)
+
+![输入图片说明](datalinkx-server/src/main/resources/readme/BI3.png)
 
 ### 6.添加用户管理
 
@@ -49,6 +51,9 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 接入DeepSeekAPI，通过SSE（Server-Send Events）实现了大模型流式输出，多伦对话等功能
 
 - DeepSeek大模型模块
+
+### 3.添加可视化BI模块`datalinkx-visualization`
+接入ECharts，通过拖拽式编辑器实现了可视化BI功能，支持保存图片并读取再编辑
 
 ## 项目启动
 

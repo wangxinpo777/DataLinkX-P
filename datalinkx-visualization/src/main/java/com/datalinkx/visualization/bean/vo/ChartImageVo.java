@@ -13,8 +13,10 @@ import java.sql.Timestamp;
 public class ChartImageVo {
     private Integer id;
     private Integer userId;
+    private String userName;
     private String image; // Base64 图片数据
     private String description;
     private Timestamp createdTime;
+    private Timestamp updatedTime;
     private Integer type; // 0 系统生成 1 用户上传
 }
