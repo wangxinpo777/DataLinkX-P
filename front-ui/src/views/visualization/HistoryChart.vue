@@ -29,9 +29,10 @@
           <img :src="image.image" alt="历史图片" />
           <div class="info">
             <p class="desc">{{ image.description || '无描述' }}</p>
-            <p class="time">🕒 {{ formatTime(image.createdTime) }}</p>
+            <p class="time">🕒 {{ formatTime(image.updatedTime) }}</p>
+            <p class="time">👤 {{ image.userName || '未知用户' }}</p>
             <div style="text-align: end" class="actions" v-if="showActions(image.id)">
-              <a-button v-if="image.type === 0" style="margin-right: 10px" size="small" @click="editImage(image)">编辑</a-button>
+              <a-button v-if="image.type === 0 && image.userId === userId" style="margin-right: 10px" size="small" @click="editImage(image)">编辑</a-button>
               <a-button size="small" type="danger" @click="deleteImage(image.id)">删除</a-button>
             </div>
           </div>
@@ -59,6 +60,7 @@ export default {
   name: 'HistoryChart',
   data () {
     return {
+      userId: parseInt(this.$store.getters.userInfo.userId), // 用户ID
       searchKeyword: '', // 搜索关键词
       imageId: null, // 图片ID
       loading: true,
@@ -212,7 +214,7 @@ export default {
 .info {
   padding: 10px;
   text-align: left;
-  min-height: 110px;
+  min-height: 130px;
 }
 
 .desc {
