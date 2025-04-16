@@ -6,4 +6,5 @@ public interface ImageConfig {
     Integer getUserId();
     Integer getId();
     String getChartJsonData();
+    String getChartStyles();
 }
