@@ -21,7 +21,7 @@ public interface UserChartImageRepository extends JpaRepository<UserChartImageBe
             nativeQuery = true)
     Page<UserChartImageProjection> pageQuery(Pageable pageable, @Param("keyword") String keyword);
 
-    @Query(value = "select chart_config as chartConfig, description, user_id as userId, id, chart_json_data as chartJsonData " +
+    @Query(value = "select chart_config as chartConfig, description, user_id as userId, id, chart_json_data as chartJsonData, chart_styles AS chartStyles  " +
             "from user_chart_images where id = ?1 and is_del = 0",
             nativeQuery = true)
     ImageConfig findImageConfigById(Integer imageId);

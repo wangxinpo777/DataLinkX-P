@@ -17,5 +17,6 @@ public class SaveChartImageRequest {
     private String description;
     private String chartConfig;
     private String chartJsonData;
+    private String chartStyles;
     private Integer type; // 0 系统生成 1 用户上传
 }

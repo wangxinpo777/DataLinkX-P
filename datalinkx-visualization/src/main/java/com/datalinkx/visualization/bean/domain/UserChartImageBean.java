@@ -41,6 +41,9 @@ public class UserChartImageBean {
     @Column(name = "chart_json_data", columnDefinition = "json default null comment '图表数据'")
     private String chartJsonData;
 
+    @Column(name = "chart_styles", columnDefinition = "json default null comment '图表样式'")
+    private String chartStyles;
+
     @Size(max = 255)
     @Column(name = "description")
     private String description;

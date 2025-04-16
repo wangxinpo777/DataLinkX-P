@@ -352,6 +352,7 @@ export default {
         delete option.toolbox[0].feature.myTool1.onclick
         saveVisualization({
           userId: this.$store.getters.userInfo.userId,
+          chartStyles: JSON.stringify(this.chartStyles),
           image: chartImage,
           imageId: this.chartId || null,
           chartJsonData: JSON.stringify(this.chartJsonData),
@@ -598,6 +599,7 @@ export default {
             VueIns.chart?.clear()
           }
           this.chartDescriptionDefault = result.description
+          this.chartStyles = JSON.parse(result.chartStyles)
           this.chart.setOption(option, true)
           this.chartJsonData = JSON.parse(result.chartJsonData)
           this.YIndex = this.chartJsonData[0].filter((item) => item !== '' && item !== null)

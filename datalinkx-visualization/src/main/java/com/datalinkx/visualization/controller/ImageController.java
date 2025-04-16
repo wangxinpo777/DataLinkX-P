@@ -52,6 +52,7 @@ public class ImageController {
                 UserChartImageBean userChartImage = UserChartImageBean.builder()
                         .userId(request.getUserId())
                         .image(imageBytes)
+                        .chartStyles(request.getChartStyles())
                         .chartJsonData(request.getChartJsonData())
                         .chartConfig(request.getChartConfig())
                         .type(request.getType() == null ? 0 : request.getType())
@@ -116,6 +117,7 @@ public class ImageController {
             result.put("chartConfig", imageConfig.getChartConfig());
             result.put("description", imageConfig.getDescription());
             result.put("chartJsonData", imageConfig.getChartJsonData());
+            result.put("chartStyles", imageConfig.getChartStyles());
             result.put("userId", imageConfig.getUserId());
             result.put("imageId", imageConfig.getId());
             return WebResult.of(result);
