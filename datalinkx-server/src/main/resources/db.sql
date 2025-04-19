@@ -59,19 +59,20 @@ CREATE TABLE `JOB_RELATION` (
                                 KEY `job_id` (`job_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='流转任务级联配置表';
 
-
-CREATE TABLE `JOB_LOG` (
+DROP TABLE IF EXISTS `job_log`;
+CREATE TABLE `job_log` (
                            `id` int unsigned NOT NULL AUTO_INCREMENT,
                            `is_del` int DEFAULT NULL,
                            `cost_time` int unsigned NOT NULL,
-                           `count` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                           `count` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
                            `end_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                           `error_msg` longtext CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-                           `job_id` varchar(36) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+                           `error_msg` longtext CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+                           `job_id` varchar(36) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
                            `start_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '任务启动时间',
-                           `status` tinyint unsigned DEFAULT NULL,
+                           `status` tinyint unsigned DEFAULT NULL COMMENT '1-失败；0-成功',
+                           `error_analysis` longtext,
                            PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 ROW_FORMAT=COMPACT COMMENT='流转任务日志';
+) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb3 ROW_FORMAT=COMPACT COMMENT='流转任务日志';
 
 
 -- ----------------------------
@@ -146,7 +147,7 @@ INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES (11, 'menu.account.settings', 1, 10, '/account/settings', 'account/settings', NULL, 'AccountSettings', 1, 1, 'M', '1', '0', 'AccountSettings', '#', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES (12, 'menu.system.management', 1, 11, '/systemManager', 'RouteView', NULL, 'systemManager', 1, 1, 'M', '0', '0', 'systemManager', 'systemManagement', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES (13, 'VisualAnalysis', 1, 12, '/visualization', 'visualization', NULL, 'visualization', 0, 0, 'M', '0', '0', 'visualization', 'visualAnalysis', NULL, NULL, 'admin', '2025-03-14 10:35:00', NULL);
-INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES (14, 'DeepSeek', 1, 13, '/DeepSeek', 'deepseek', NULL, 'deepseek', 0, 0, 'M', '0', '0', 'deepseek', 'deepSeek', NULL, NULL, 'admin', '2025-03-14 10:35:00', NULL);
+INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES (14, '智能助手', 1, 13, '/intelligentAssistant', 'deepseek', NULL, 'intelligentAssistant', 0, 0, 'M', '0', '0', 'intelligentAssistant', 'deepSeek', NULL, NULL, 'admin', '2025-04-19 14:12:29', NULL);
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES (15, 'menu.datasourceList', 3, 1, '/datalist', 'datasource/DsList', NULL, 'datalist', 1, 1, 'C', '0', '0', 'datalist', 'dataList', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES (16, 'menu.taskList', 4, 1, '/job', 'job/JobList', NULL, 'job', 1, 1, 'C', '0', '0', 'job', 'taskList', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES (17, 'menu.streamingTaskList', 5, 1, '/streaming/job', 'job/JobListOfStreaming', NULL, 'StreamingJob', 1, 1, 'C', '0', '0', 'StreamingJob', 'taskList', NULL, NULL, NULL, NULL, NULL);
@@ -159,6 +160,7 @@ INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES (24, 'account.settings.menuMap.custom', 11, 3, '/account/settings/custom', 'account/settings/Custom', NULL, 'CustomSettings', 1, 1, 'C', '1', '0', 'CustomSettings', '#', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES (25, 'account.settings.menuMap.binding', 11, 4, '/account/settings/binding', 'account/settings/Binding', NULL, 'BindingSettings', 1, 1, 'C', '1', '0', 'BindingSettings', '#', NULL, NULL, NULL, NULL, NULL);
 INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES (26, 'account.settings.menuMap.notification', 11, 5, '/account/settings/notification', 'account/settings/Notification', NULL, 'NotificationSettings', 1, 1, 'C', '1', '0', 'NotificationSettings', '#', NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `sys_menu` (`menu_id`, `menu_name`, `parent_id`, `order_num`, `path`, `component`, `query`, `route_name`, `is_frame`, `is_cache`, `menu_type`, `visible`, `status`, `perms`, `icon`, `create_by`, `create_time`, `update_by`, `update_time`, `remark`) VALUES (27, 'HistoryChart', 1, 14, '/visualization/HistoryChart', 'visualization/HistoryChart', NULL, 'HistoryChart', 0, 0, 'C', '0', '0', 'HistoryChart', 'historicalPictures', '', NULL, 'admin', '2025-04-15 03:22:47', '');
 
 -- ----------------------------
 -- Table structure for sys_role
@@ -227,6 +229,7 @@ INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 23);
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 24);
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 25);
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 26);
+INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (1, 27);
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (2, 1);
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (2, 2);
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (2, 3);
@@ -253,6 +256,7 @@ INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (2, 23);
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (2, 24);
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (2, 25);
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (2, 26);
+INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES (2, 27);
 
 
 -- ----------------------------
@@ -345,6 +349,22 @@ CREATE TABLE `deepseek_message` (
                                     `created_time` datetime(6) DEFAULT NULL,
                                     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='deepseek消息记录表';
+
+DROP TABLE IF EXISTS `user_chart_images`;
+CREATE TABLE `user_chart_images` (
+                                     `id` int NOT NULL AUTO_INCREMENT,
+                                     `user_id` int NOT NULL,
+                                     `image` mediumblob NOT NULL,
+                                     `description` varchar(255) DEFAULT NULL,
+                                     `created_time` datetime DEFAULT CURRENT_TIMESTAMP,
+                                     `is_del` int DEFAULT '0' COMMENT '是否删除',
+                                     `chart_config` json DEFAULT NULL COMMENT '图表配置',
+                                     `type` int DEFAULT '0' COMMENT '0 系统生成 1 用户上传',
+                                     `updated_time` datetime DEFAULT CURRENT_TIMESTAMP,
+                                     `chart_json_data` json DEFAULT NULL COMMENT '图表数据',
+                                     `chart_styles` json DEFAULT NULL COMMENT '图表样式',
+                                     PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户图表图片表';
 
 alter table JOB ADD COLUMN  `name` varchar(64) DEFAULT NULL COMMENT '任务名称';;
 
