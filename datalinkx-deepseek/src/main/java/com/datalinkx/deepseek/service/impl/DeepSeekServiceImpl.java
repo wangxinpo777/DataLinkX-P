@@ -41,6 +41,10 @@ public class DeepSeekServiceImpl implements DeepSeekService {
     private String apiKey;
     @Value("${deepseek.system_content}")
     private String systemContent;
+    @Value("${deepseek.error_analysis_content}")
+    private String errorAnalysisContent;
+    @Value("${deepseek.system_analysis_content}")
+    private String systemAnalysisContent;
 
     @Value("${client.deepseek.url}")
     private String deepseekUrl;
@@ -140,7 +144,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
 
     @Override
     public DeepSeekResponse getErrorAnalysis(String model, String content) {
-        content += "请你帮我分析一下这段报错信息，给出详细的错误分析和解决方案,使用中文回答";
+        content += errorAnalysisContent;
         ChatReq chatReq = ChatReq.builder()
                 .messages(Collections.singletonList(ChatReq.Content.builder()
                         .role("user")
@@ -154,7 +158,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
 
     @Override
     public DeepSeekResponse getSystemAnalysis(String model, String content) {
-        content += "请你帮我分析一下系统运行状态，只需要输出展示给用户的部分，使用中文回答";
+        content += systemAnalysisContent;
         ChatReq chatReq = ChatReq.builder()
                 .messages(Collections.singletonList(ChatReq.Content.builder()
                         .role("user")

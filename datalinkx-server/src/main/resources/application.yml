@@ -131,7 +131,8 @@ deepseek:
         self.postMessage({ result: result.toString() ? result.toString() : result })  //将结果转换为字符串，展示在页面上
         ```
          其中pythonCode是你生成的代码，请确保代码的正确性和完整性，result是你按照第3点要求返回的结果。
-
+  error_analysis_content: 请你帮我分析一下这段报错信息，给出详细的错误分析和解决方案,使用中文回答
+  system_analysis_content: 请你帮我分析一下系统运行状态，只需要输出展示给用户的部分，使用中文回答
 # token配置
 token:
   # 令牌自定义标识
