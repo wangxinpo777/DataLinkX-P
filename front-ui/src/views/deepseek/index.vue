@@ -1,6 +1,6 @@
 <template>
   <div class="main">
-    <a-card class="chat-container" title="DeepSeek" :headStyle="{minHeight: '50px',maxHeight: '50px'}">
+    <a-card class="chat-container" title="智能助手" :headStyle="{minHeight: '50px',maxHeight: '50px'}">
       <div class="menu-box" v-if="conversations.length > 0">
         <a-menu mode="vertical" class="menu" :selected-keys="[conversationId]">
           <template v-for="item in conversations">
