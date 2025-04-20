@@ -1,5 +1,14 @@
 <template>
   <div class="dash-main" style="overflow-y: hidden; padding: 20px">
+    <a-row :gutter="16">
+      <a-col :span="12">
+        <SystemVisitStats />
+      </a-col>
+      <a-col :span="12">
+        <ChartImagesCount />
+      </a-col>
+    </a-row>
+    <DsStatus />
     <APITokenCount/>
     <JobCount/>
     <!--    <a-row :gutter="24">-->
@@ -172,6 +181,9 @@ import {
 import { baseMixin } from '@/store/app-mixin'
 import APITokenCount from '@/views/dashboard/APITokenCount.vue'
 import JobCount from '@/views/dashboard/JobCount.vue'
+import ChartImagesCount from '@/views/dashboard/ChartImagesCount.vue'
+import SystemVisitStats from '@/views/dashboard/SystemVisitStats.vue'
+import DsStatus from '@/views/dashboard/DsStatus.vue'
 
 const barData = []
 const barData2 = []
@@ -241,6 +253,9 @@ export default {
   name: 'Analysis',
   mixins: [baseMixin],
   components: {
+    DsStatus,
+    SystemVisitStats,
+    ChartImagesCount,
     JobCount,
     APITokenCount,
     ChartCard,

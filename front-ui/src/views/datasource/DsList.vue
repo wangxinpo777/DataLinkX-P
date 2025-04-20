@@ -27,7 +27,7 @@
           <a-row :gutter="48">
             <a-col :md="8" :sm="24">
               <a-form-item label="数据源名称">
-                <a-input v-model="queryParam.name" placeholder="数据源名称"/>
+                <a-input v-model="queryParam.name" placeholder="数据源名称" />
               </a-form-item>
             </a-col>
             <a-col :md="8" :sm="24">
@@ -43,6 +43,7 @@
         <a-button @click="createDS" icon="plus" type="primary">新建</a-button>
       </div>
       <a-table
+        :transform-cell-text="({ text, column, record, index }) => text||'--'"
         :columns="columns"
         :dataSource="tableData"
         :loading="loading"
@@ -65,7 +66,7 @@
 </template>
 
 <script>
-import { delObj, getDsGroup, pageQuery } from '@/api/datasource/datasource'
+import { delObj, getDsGroup, pageQuery, testConn } from '@/api/datasource/datasource'
 import HttpDsSaveOrUpdate from './HttpDsSaveOrUpdate.vue'
 import DsConfig from './DsConfig.vue'
 import { dsTypeList } from './const'
@@ -124,9 +125,27 @@ export default {
                   <a href="javascript:;" style="color: red">删除</a>
                 </a-popconfirm>
                 <a-divider type="vertical" />
-                <a href="javascript:;"onClick={(e) => this.show(record)}>查看</a>
+                <a href="javascript:;" onClick={(e) => this.show(record)}>查看</a>
+                <a-divider type="vertical" />
+                <a href="javascript:;" onClick={(e) => {
+                  this.test(record)
+                }}>测试连接</a>
               </div>
             )
+          }
+        },
+        {
+          title: '连接状态',
+          width: '10%',
+          dataIndex: 'status',
+          customRender: (text) => {
+            const statusMap = {
+              0: { label: '未连接', color: 'cyan' },
+              1: { label: '成功', color: 'green' },
+              2: { label: '失败', color: 'red' }
+            }
+            const { label, color } = statusMap[text] || { label: '未知', color: 'cyan' }
+            return <a-tag color={color}>{label}</a-tag>
           }
         }
       ],
@@ -141,8 +160,7 @@ export default {
         size: 10,
         current: 1
       },
-      queryParam: {
-      },
+      queryParam: {},
       dsTypeList,
       // 各数据源的数量
       dsGroupNumber: {
@@ -227,6 +245,7 @@ export default {
         if (res.status === '0') {
           this.$message.info('删除成功')
           this.init()
+          this.dsGroupNumber[record.type] = this.dsGroupNumber[record.type] - 1
           this.getAllDsNumber()
         } else {
           this.$message.error(res.errstr)
@@ -241,6 +260,18 @@ export default {
       } else {
         this.$refs.refDsConfig.show(record.dsId, 'show', record)
       }
+    },
+    test (record) {
+      testConn({ dsId: record.dsId }).then((res) => {
+        if (res.status !== '0') {
+          this.$message.error(res.errstr)
+        } else {
+          this.$message.success('连接成功')
+        }
+        this.init()
+      }).catch((reason) => {
+        this.$message.error(reason)
+      })
     },
     handleOk (data) {
       this.init()
@@ -266,38 +297,46 @@ export default {
   display: flex;
   height: 100%;
   width: 100%;
+
   .list-left {
     width: 180px;
     height: 100%;
   }
+
   .list-acard {
     flex: 1;
     margin: 24px 24px 16px 24px;
     border-radius: 8px;
   }
+
   .list-left {
     border-radius: 0px;
     overflow: auto;
     background-color: #fff;
     box-shadow: 0px 0px 1px rgba(15, 34, 67, 0.3), 0px 1px 3px rgba(15, 34, 67, 0.08), 0px 4px 8px rgba(15, 34, 67, 0.03);
+
     ul, li {
       list-style: none;
       padding: 0;
       margin: 0;
     }
+
     ul {
       margin-top: 4px;
     }
+
     .ds-list {
       line-height: 40px;
       padding-left: 16px;
       height: 40px;
       position: relative;
       cursor: pointer;
+
       .ds-icon {
         float: left;
         width: 24px;
         height: 24px;
+
         img {
           width: 24px;
           height: 24px;
@@ -306,6 +345,7 @@ export default {
           border: 0;
         }
       }
+
       .ds-name {
         margin-left: 8px;
         line-height: 20px;
@@ -313,11 +353,13 @@ export default {
         padding-bottom: 10px;
         display: inline-block;
         max-width: 130px;
+
         .nowrap {
           overflow: hidden;
           white-space: nowrap;
           text-overflow: ellipsis;
         }
+
         .name {
           line-height: 20px;
           height: 20px;
@@ -328,6 +370,7 @@ export default {
           overflow: hidden;
           white-space: nowrap;
         }
+
         .num-in {
           top: 0;
           line-height: 14px;

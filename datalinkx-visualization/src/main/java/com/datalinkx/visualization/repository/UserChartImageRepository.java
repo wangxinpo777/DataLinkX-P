@@ -1,6 +1,7 @@
 package com.datalinkx.visualization.repository;
 
 import com.datalinkx.visualization.bean.domain.UserChartImageBean;
+import com.datalinkx.visualization.bean.dto.DailyCountProjection;
 import com.datalinkx.visualization.bean.dto.ImageConfig;
 import com.datalinkx.visualization.bean.dto.UserChartImageProjection;
 import org.springframework.data.domain.Page;
@@ -8,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 public interface UserChartImageRepository extends JpaRepository<UserChartImageBean, Integer> {
     @Query(value = "SELECT user_chart_images.id, user_chart_images.user_id AS userId, user_chart_images.image, user_chart_images.description, user_chart_images.created_time AS createdTime, user_chart_images.updated_time AS updatedTime, user_chart_images.type, sys_user.nick_name AS userName " +
@@ -25,4 +28,12 @@ public interface UserChartImageRepository extends JpaRepository<UserChartImageBe
             "from user_chart_images where id = ?1 and is_del = 0",
             nativeQuery = true)
     ImageConfig findImageConfigById(Integer imageId);
+
+    @Query(value = "SELECT DATE_FORMAT(created_time, '%Y-%m-%d') AS date, COUNT(*) AS count " +
+            "FROM user_chart_images " +
+            "WHERE is_del = 0 " +
+            "GROUP BY DATE_FORMAT(created_time, '%Y-%m-%d') " +
+            "ORDER BY date ASC", nativeQuery = true)
+    List<DailyCountProjection> countGroupedByCreatedDate();
+
 }

@@ -189,16 +189,22 @@
     </div>
     <template slot="footer">
       <a-button key="cancel" @click="handleCancel">取消</a-button>
-      <a-button key="forward" v-show="onlyRead" :disabled=editable :loading="confirmLoading" type="primary" @click="handleSubmit">保存</a-button>
+      <a-button
+        key="forward"
+        v-show="onlyRead"
+        :disabled="editable"
+        :loading="confirmLoading"
+        type="primary"
+        @click="handleSubmit">保存</a-button>
     </template>
   </a-modal>
 </template>
 
 <script>
-  import { httpGo } from '@/api/postman'
-  import { addObj, getObj, putObj } from '@/api/datasource/datasource'
+import { httpGo } from '@/api/postman'
+import { addObj, getObj, putObj } from '@/api/datasource/datasource'
 
-  // 表头数据,title 为表头的标题 dataIndex为列数据在数据项中对应的 key
+// 表头数据,title 为表头的标题 dataIndex为列数据在数据项中对应的 key
   const columns = [
     // {
     //   title: 'index',
@@ -331,7 +337,7 @@
         if (this.dsId === '') {
           addObj(formData).then(res => {
               if (res.status === '0') {
-                this.$emit('ok')
+                this.$emit('ok', { type: 'add' })
                 this.confirmLoading = false
                 // 清楚表单数据
                 this.$message.success('保存成功')
@@ -347,7 +353,7 @@
         } else {
           putObj(formData).then(res => {
             if (res.status === '0') {
-              this.$emit('ok')
+              this.$emit('ok', { type: 'edit' })
               this.confirmLoading = false
               // 清楚表单数据
               this.$message.success('修改成功')

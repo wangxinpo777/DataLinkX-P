@@ -3,6 +3,7 @@ package com.datalinkx.dataserver.controller;
 import com.datalinkx.common.exception.DatalinkXServerException;
 import com.datalinkx.common.result.WebResult;
 import com.datalinkx.dataserver.bean.domain.DsBean;
+import com.datalinkx.dataserver.bean.vo.DsVo;
 import com.datalinkx.dataserver.bean.vo.PageVo;
 import com.datalinkx.dataserver.client.HttpConstructor;
 import com.datalinkx.dataserver.controller.form.DsForm;
@@ -31,7 +32,7 @@ public class DsController {
 
 
 	@GetMapping("/page")
-	public PageVo<List<DsBean>> dsPage(DsForm.DataSourcePageForm dataSourcePageForm) {
+	public PageVo<List<DsVo>> dsPage(DsForm.DataSourcePageForm dataSourcePageForm) {
 		return dsServiceImpl.dsPage(dataSourcePageForm);
 	}
 
@@ -72,6 +73,11 @@ public class DsController {
 	@PostMapping("/create")
 	public WebResult<String> create(@RequestBody DsForm.DsCreateForm form) throws UnsupportedEncodingException {
 		return WebResult.of(dsServiceImpl.create(form));
+	}
+
+	@RequestMapping("/test")
+	public WebResult<String> test(@RequestParam String dsId) {
+		return WebResult.of(dsServiceImpl.test(dsId));
 	}
 
 	@PostMapping("/delete/{dsId}")

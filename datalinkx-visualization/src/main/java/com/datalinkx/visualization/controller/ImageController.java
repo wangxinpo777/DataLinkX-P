@@ -3,6 +3,7 @@ package com.datalinkx.visualization.controller;
 import com.datalinkx.common.result.WebResult;
 import com.datalinkx.common.utils.ObjectUtils;
 import com.datalinkx.visualization.bean.domain.UserChartImageBean;
+import com.datalinkx.visualization.bean.dto.DailyCountProjection;
 import com.datalinkx.visualization.bean.dto.ImageConfig;
 import com.datalinkx.visualization.bean.dto.UserChartImageProjection;
 import com.datalinkx.visualization.bean.model.SaveChartImageRequest;
@@ -123,6 +124,16 @@ public class ImageController {
             return WebResult.of(result);
         } catch (Exception e) {
             throw new RuntimeException("获取图片配置失败", e);
+        }
+    }
+
+    @GetMapping("/get-chart-image-count-by-date")
+    public WebResult<List<DailyCountProjection>> getChartImageCount() {
+        try {
+            List<DailyCountProjection> dailyCountProjections = userChartImageRepository.countGroupedByCreatedDate();
+            return WebResult.of(dailyCountProjections);
+        } catch (Exception e) {
+            throw new RuntimeException("获取图片数量失败", e);
         }
     }
 }

@@ -8,6 +8,7 @@ import com.datalinkx.common.utils.ConnectIdUtils;
 import com.datalinkx.common.utils.JsonUtils;
 import com.datalinkx.dataserver.bean.domain.DsBean;
 import com.datalinkx.dataserver.bean.domain.JobBean;
+import com.datalinkx.dataserver.bean.vo.DsVo;
 import com.datalinkx.dataserver.bean.vo.PageVo;
 import com.datalinkx.dataserver.controller.form.DsForm;
 import com.datalinkx.dataserver.repository.DsRepository;
@@ -18,8 +19,10 @@ import com.datalinkx.driver.dsdriver.DsDriverFactory;
 import com.datalinkx.driver.dsdriver.IDsDriver;
 import com.datalinkx.driver.dsdriver.IDsReader;
 import com.datalinkx.driver.dsdriver.base.model.DbTableField;
+import com.datalinkx.security.utils.RedisCache;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,6 +39,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.datalinkx.common.utils.IdUtils.genKey;
+import static com.datalinkx.dataserver.monitor.DbConnectionMonitor.DB_CONNECTION_STATUS;
 
 
 @Service
@@ -46,6 +50,8 @@ public class DsServiceImpl implements DsService {
 	private DsRepository dsRepository;
 	@Autowired
 	private JobRepository jobRepository;
+	@Autowired
+	private RedisCache redisCache;
 
 	private static final Map<Integer, SetupInfoGenerator> SETUP_INFO_GENERATORS = new HashMap<>();
 
@@ -106,6 +112,22 @@ public class DsServiceImpl implements DsService {
 		return dsId;
 	}
 
+	@Override
+	public String test(String dsId) {
+		redisCache.deleteObject(DB_CONNECTION_STATUS + dsId);
+		DsBean dsBean = dsRepository.findByDsId(dsId).orElseThrow(() -> new DatalinkXServerException(StatusCode.DS_NOT_EXISTS, "数据源不存在"));
+		// 2.2、检查config字符串是否合法
+		this.checkConfigFormat(dsBean);
+		// 2.3、检查连接情况
+		try {
+			this.checkConnect(dsBean);
+			redisCache.setCacheObject(DB_CONNECTION_STATUS + dsId, "SUCCESS");
+		} catch (Exception e) {
+			redisCache.setCacheObject(DB_CONNECTION_STATUS + dsId, "ERROR");
+		}
+		return dsBean.getDsId();
+	}
+
 	private void checkConfigFormat(DsBean dsBean) {
 		if (!ObjectUtils.isEmpty(dsBean.getConfig())) {
 			try {
@@ -130,7 +152,7 @@ public class DsServiceImpl implements DsService {
 	}
 
 
-	private void checkConnect(DsBean dsBean) {
+	public void checkConnect(DsBean dsBean) {
 		try {
 			IDsDriver ignored = DsDriverFactory.getDriver(getConnectId(dsBean));
 			ignored.connect(true);
@@ -153,13 +175,30 @@ public class DsServiceImpl implements DsService {
 		}
 	}
 
-    public PageVo<List<DsBean>> dsPage(DsForm.DataSourcePageForm dataSourcePageForm) {
+    public PageVo<List<DsVo>> dsPage(DsForm.DataSourcePageForm dataSourcePageForm) {
 		PageRequest pageRequest = PageRequest.of(dataSourcePageForm.getPageNo() - 1, dataSourcePageForm.getPageSize());
 		Page<DsBean> dsBeans = dsRepository.pageQuery(pageRequest, dataSourcePageForm.getName(), dataSourcePageForm.getType());
-		PageVo<List<DsBean>> result = new PageVo<>();
+		PageVo<List<DsVo>> result = new PageVo<>();
 		result.setPageNo(dataSourcePageForm.getPageNo());
 		result.setPageSize(dataSourcePageForm.getPageSize());
-		result.setData(dsBeans.getContent());
+		List<DsVo> dataList = new ArrayList<>();
+		dsBeans.getContent().forEach(dsBean -> {
+			if (!ObjectUtils.isEmpty(dsBean.getPassword())) {
+				String pwd = null;
+				try {
+					pwd = new String(Base64Utils.decodeBase64(dsBean.getPassword()));
+				} catch (UnsupportedEncodingException e) {
+					log.error("ds密码解析失败");
+				}
+				dsBean.setPassword(pwd);
+				DsVo dsVo = new DsVo();
+				BeanUtils.copyProperties(dsBean, dsVo);
+				String status = redisCache.getCacheObject(DB_CONNECTION_STATUS + dsBean.getDsId());
+				dsVo.setStatus(status ==  null ? 0 : status.equals("SUCCESS") ? 1 : 2);
+				dataList.add(dsVo);
+			}
+		});
+		result.setData(dataList);
 		result.setTotalPage(dsBeans.getTotalPages());
 		result.setTotal(dsBeans.getTotalElements());
 		return result;
