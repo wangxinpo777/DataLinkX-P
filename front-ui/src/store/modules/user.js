@@ -1,6 +1,6 @@
 import storage from 'store'
 import expirePlugin from 'store/plugins/expire'
-import { login, getInfo, logout } from '@/api/login'
+import { getInfo, login, logout } from '@/api/login'
 import { ACCESS_TOKEN, AVATAR, ROLES, USER } from '@/store/mutation-types'
 import { welcome } from '@/utils/util'
 import { getUserInfo } from '@/api/user'
@@ -43,16 +43,16 @@ const user = {
           const result = (response.result || {})
           if (response.status === '0') {
             storage.set(ACCESS_TOKEN, 'Bearer ' + result.token, new Date().getTime() + 7 * 24 * 60 * 60 * 1000)
+            getUserInfo().then(response => {
+              if (response.status === '0') {
+                const { result } = response
+                result.avatar ? storage.set(AVATAR, `data:image/jpeg;base64,${result.avatar}`) : storage.set(AVATAR, '/avatar2.jpg')
+                storage.set(USER, result.user)
+                storage.set(ROLES, result.roles)
+                commit('SET_TOKEN', result.token)
+              }
+            })
           }
-          getUserInfo().then(response => {
-            if (response.status === '0') {
-              const { result } = response
-              result.avatar ? storage.set(AVATAR, `data:image/jpeg;base64,${result.avatar}`) : storage.set(AVATAR, '/avatar2.jpg')
-              storage.set(USER, result.user)
-              storage.set(ROLES, result.roles)
-              commit('SET_TOKEN', result.token)
-            }
-          })
           resolve(response)
         }).catch(error => {
           reject(error)
