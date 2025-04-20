@@ -263,10 +263,10 @@ export default {
     },
     test (record) {
       testConn({ dsId: record.dsId }).then((res) => {
-        if (res.status !== '0') {
-          this.$message.error(res.errstr)
-        } else {
+        if (res.result === 'SUCCESS') {
           this.$message.success('连接成功')
+        } else {
+          this.$message.error(res.errstr)
         }
         this.init()
       }).catch((reason) => {
