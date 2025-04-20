@@ -23,7 +23,7 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 ### 5.添加数据源心跳检测
 ![img.png](datalinkx-server/src/main/resources/readme/ds_status.png)
 
-### 5.添加可视化BI,支持`上传数据`、`从数据库读取`、`自定义可视化`、`动态编辑`、`保存图片`、`恢复编辑`
+### 6.添加可视化BI,支持`上传数据`、`从数据库读取`、`自定义可视化`、`动态编辑`、`保存图片`、`恢复编辑`
 
 ![输入图片说明](datalinkx-server/src/main/resources/readme/BI1.png)
 
@@ -31,7 +31,7 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 
 ![输入图片说明](datalinkx-server/src/main/resources/readme/BI3.png)
 
-### 6.添加用户管理
+### 7.添加用户管理
 
 ![输入图片说明](datalinkx-server/src/main/resources/readme/security.png)
 
