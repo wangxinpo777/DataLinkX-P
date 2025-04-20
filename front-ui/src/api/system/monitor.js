@@ -14,3 +14,10 @@ export function getSystemMonitorAnalysis (params) {
     params: params
   })
 }
+
+export function getSystemVisitStats () {
+  return axios({
+    url: '/monitor/visit/all',
+    method: 'GET'
+  })
+}

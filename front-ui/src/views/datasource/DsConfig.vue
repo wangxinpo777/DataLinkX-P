@@ -76,7 +76,7 @@
 
 <script>
 import pick from 'lodash.pick'
-import { getObj, addObj, putObj } from '@/api/datasource/datasource'
+import { addObj, getObj, putObj } from '@/api/datasource/datasource'
 import { DATA_SOURCE_TYPE } from '@/api/globalConstant'
 import { dsConfigOriginList, OracleServerTypes } from './const'
 import cloneDeep from 'lodash.clonedeep'
@@ -251,7 +251,9 @@ export default {
             console.log(values)
             addObj(values).then(res => {
               if (res.status === '0') {
-                this.$emit('ok')
+                this.$emit('ok', {
+                  type: 'add'
+                })
                 this.confirmLoading = false
                 // 清楚表单数据
                 this.handleCancel()
@@ -268,7 +270,9 @@ export default {
             console.log('----', values)
             await putObj(values).then(res => {
               if (res.status === '0') {
-                this.$emit('ok')
+                this.$emit('ok', {
+                  type: 'edit'
+                })
                 this.confirmLoading = false
                 // 清楚表单数据
                 this.handleCancel()

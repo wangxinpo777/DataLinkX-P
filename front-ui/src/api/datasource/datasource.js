@@ -67,3 +67,11 @@ export function getDsGroup () {
     method: 'GET'
   })
 }
+
+export function testConn (params) {
+  return axios({
+    url: '/api/ds/test',
+    method: 'GET',
+    params: params
+  })
+}

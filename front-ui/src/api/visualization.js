@@ -31,3 +31,10 @@ export function getImageConfig (parameter) {
     params: parameter
   })
 }
+
+export function getImageCountByDate () {
+  return request({
+    url: '/api/images/get-chart-image-count-by-date',
+    method: 'get'
+  })
+}

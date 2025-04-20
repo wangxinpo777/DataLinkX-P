@@ -1,6 +1,7 @@
 package com.datalinkx.dataserver.service;
 
 import com.datalinkx.dataserver.bean.domain.DsBean;
+import com.datalinkx.dataserver.bean.vo.DsVo;
 import com.datalinkx.dataserver.bean.vo.PageVo;
 import com.datalinkx.dataserver.controller.form.DsForm;
 import com.datalinkx.driver.dsdriver.base.model.DbTableField;
@@ -26,7 +27,7 @@ public interface DsService {
     /**
      * 分页查询
      */
-    PageVo<List<DsBean>> dsPage(DsForm.DataSourcePageForm dataSourcePageForm);
+    PageVo<List<DsVo>> dsPage(DsForm.DataSourcePageForm dataSourcePageForm);
 
     /**
      * 数据源删除
@@ -57,4 +58,6 @@ public interface DsService {
     List<DbTableField> fetchFields(String dsId, String tbName);
 
     List<Map<String, Object>> getTableData(String dsId, String tableName) throws UnsupportedEncodingException;
+
+    String test(String dsId);
 }

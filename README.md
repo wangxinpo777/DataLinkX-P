@@ -7,7 +7,6 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 ### 前端：
 
 ### 1.添加仪表盘
-
 ![输入图片说明](datalinkx-server/src/main/resources/readme/dashboard.png)
 
 ### 2.添加DeepSeek大模型（支持文件上传、模型切换`DeepSeek-R1`、`DeepSeek-V3`））
@@ -18,8 +17,11 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 
 ![输入图片说明](datalinkx-server/src/main/resources/readme/Python.png)
 
-### 4.错误日志大模型自动分析
+### 4.错误日志、系统状态大模型自动分析
 ![输入图片说明](datalinkx-server/src/main/resources/readme/errorlog.png)
+
+### 5.添加数据源心跳检测
+![img.png](datalinkx-server/src/main/resources/readme/ds_status.png)
 
 ### 5.添加可视化BI,支持`上传数据`、`从数据库读取`、`自定义可视化`、`动态编辑`、`保存图片`、`恢复编辑`
 
@@ -53,8 +55,10 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 - DeepSeek大模型模块
 
 ### 3.添加可视化BI模块`datalinkx-visualization`
-接入ECharts，通过拖拽式编辑器实现了可视化BI功能，支持保存图片并读取再编辑
+- 支持保存图片并读取再编辑
 
+### 4.数据源心跳检测
+- 支持对数据源的心跳检测
 ## 项目启动
 
 ### 数据库准备
@@ -92,7 +96,7 @@ datasource:
 deepseek:
   #  [deepseek-chat, deepseek-reasoner]
   model: "deepseek-chat"
-  api_key: "sk-XXXXXXXXXXXXXXXXX"
+  api_key: "sk-ab0baa4537b94b92a115cdf0d60cfc53"
   system_content: |
     角色：你是一名数据分析助手，专注于用简洁的语言解释复杂的数据分析结果。
     如果用户要求你进行可视化分析，请尽量通过生成一个完整的 HTML 页面，使用 ECharts 进行销售数据可视化展示，具体要求如下：
@@ -104,13 +108,23 @@ deepseek:
       - 根据数据特点（例如条形图、折线图、饼图等）选择合适的图表类型。
       - 提供基本的图表样式和配置，确保图表在不同设备和屏幕尺寸下的良好展示。
       5. 可视化展示内容应清晰、直观，并适合用户的数据分析需求。
+      6. 用户会直接运行你生成的 HTML 代码，请确保代码的正确性和完整性。
     如果用户要求你进行数据分析，请尽量通过生成一个完整的可以直接运行的 Python 脚本进行数据分析，具体要求如下：
       1. 可以使用的库包括 micropip, numpy, scikit-learn, scipy, pandas以及Python的基本库（不用考虑安装问题，请直接使用）。
       2. 任务目标（在用户没有特别强调情况下）：
       - 根据提供的数据集，进行数据清洗、特征工程、模型训练等数据分析任务。具体任务可以根据数据集的特点自行决定。
       - 提供完整的数据分析过程，包括数据预处理、特征工程、模型训练、模型评估等步骤。
       - 提供清晰的数据分析结果，包括数据摘要、模型评估结果等。
-      3. 输出格式要求所有的打印输出部分（如数据摘要、模型评估结果等）需合并成一个字符串作为结果返回，不用打印输出。
+      3. 输出格式要求所有的打印输出部分（如数据摘要、模型评估结果等）需合并成一个字符串并且保留换行作为结果返回，不用打印输出。
+      4. 生成的代码用户会通过第三方JS（Pyodide）运行，具体如下：
+        ```javascript
+        const result = pyodide.runPython(pythonCode)
+        // 转换为可序列化的 JavaScript 数据
+        self.postMessage({ result: result.toString() ? result.toString() : result })  //将结果转换为字符串，展示在页面上
+        ```
+         其中pythonCode是你生成的代码，请确保代码的正确性和完整性，result是你按照第3点要求返回的结果。
+  error_analysis_content: 请你帮我分析一下这段报错信息，给出详细的错误分析和解决方案,使用中文回答
+  system_analysis_content: 请你帮我分析一下系统运行状态，只需要输出展示给用户的部分，使用中文回答
 ```
 
 ### 前端
