@@ -122,10 +122,11 @@ public class DsServiceImpl implements DsService {
 		try {
 			this.checkConnect(dsBean);
 			redisCache.setCacheObject(DB_CONNECTION_STATUS + dsId, "SUCCESS");
+			return "SUCCESS";
 		} catch (Exception e) {
 			redisCache.setCacheObject(DB_CONNECTION_STATUS + dsId, "ERROR");
+			throw new DatalinkXServerException(e);
 		}
-		return dsBean.getDsId();
 	}
 
 	private void checkConfigFormat(DsBean dsBean) {
