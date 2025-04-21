@@ -23,27 +23,41 @@ export default {
     }
   },
   mounted () {
-    this.loading = true
-    getSystemVisitStats().then((res) => {
-      this.systemVisitStats = res.result.map((item) => {
-        return {
-          x: item.date,
-          y: parseInt(item.count)
-        }
-      })
-      if (res.result.length === 1) {
-        this.systemVisitStats.push({
-          x: moment().subtract(1, 'days').format('YYYY-MM-DD'),
+    this.initData()
+  },
+  methods: {
+    initData () {
+      this.loading = true
+      const startOfMonth = moment().startOf('month')
+      const endOfMonth = moment().endOf('month')
+
+      const fullDateList = []
+      const current = startOfMonth.clone()
+
+      while (current.isSameOrBefore(endOfMonth, 'day')) {
+        fullDateList.push({
+          x: current.format('YYYY-MM-DD'),
           y: 0
         })
+        current.add(1, 'day')
       }
-      this.loading = false
-    })
-      .catch((error) => {
-        // Handle any errors
-        console.error(error)
+      getSystemVisitStats().then((res) => {
+        // 合并后端数据
+        this.systemVisitStats = fullDateList.map(item => {
+          const match = res.result.find(d => d.date === item.x)
+          return {
+            ...item,
+            y: match ? parseInt(match.count) : item.y
+          }
+        })
         this.loading = false
       })
+        .catch((error) => {
+          // Handle any errors
+          console.error(error)
+          this.loading = false
+        })
+    }
   },
   computed: {
     // Define your computed properties here
@@ -51,7 +65,7 @@ export default {
       return this.systemVisitStats.reduce((acc, item) => acc + item.y, 0)
     },
     avgerage () {
-      return this.systemVisitStats.length > 0 ? (this.total / this.systemVisitStats.length) : 0
+      return this.systemVisitStats.length > 0 ? (this.total / this.systemVisitStats.length).toFixed(2) : 0
     }
   }
 }
