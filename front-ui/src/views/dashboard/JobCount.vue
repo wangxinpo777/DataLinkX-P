@@ -161,20 +161,32 @@ export default {
       this.loading = true
       const dateFrom = this.pickDate[0].format('YYYY-MM-DD')
       const dateTo = this.pickDate[1].format('YYYY-MM-DD')
+      // 生成日期范围的完整数据
+      const fullDateList = []
+      const current = moment(dateFrom)
+
+      while (current.isSameOrBefore(moment(dateTo), 'day')) {
+        fullDateList.push({
+          date: current.format('YYYY-MM-DD'),
+          success: 0,
+          failed: 0
+        })
+        current.add(1, 'day')
+      }
+      // 使用 moment 生成日期范围
       jobCount({ dateFrom, dateTo }).then(res => {
-        this.areaChartData = res.result
-        if (this.areaChartData.length === 0) {
-          this.areaChartData = [
-            { date: moment().subtract(1, 'days').format('YYYY-MM-DD'), success: 0, failed: 0 },
-            { date: moment().format('YYYY-MM-DD'), success: 0, failed: 0 }
-          ]
-          this.pieChartData = []
-        } else {
-          this.pieChartData = [
-            { type: '成功任务', value: this.successJobs },
-            { type: '失败任务', value: this.failedJobs }
-          ]
-        }
+        this.areaChartData = fullDateList.map(item => {
+          const match = res.result.find(d => d.date === item.date)
+          return {
+            ...item,
+            success: match ? match.success : item.success,
+            failed: match ? match.failed : item.failed
+          }
+        })
+        this.pieChartData = [
+          { type: '成功任务', value: this.successJobs },
+          { type: '失败任务', value: this.failedJobs }
+        ]
         this.pieHeight()
         this.loading = false
       }).catch(err => {
@@ -214,28 +226,32 @@ export default {
       }, 0) // 初始值为 0
     },
     computeSuccessJobCount () {
-      if (this.areaChartData.length > 1) {
-        return this.areaChartData[0].success - this.areaChartData[1].success
+      const today = moment().format('YYYY-MM-DD')
+      const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD')
+
+      const todayData = this.areaChartData.find(item => item.date === today)
+      const yesterdayData = this.areaChartData.find(item => item.date === yesterday)
+
+      // 确保找到今天和昨天的数据
+      if (todayData && yesterdayData) {
+        return todayData.success - yesterdayData.success
+      } else {
+        return 0 // 如果没有找到对应的数据，返回 0
       }
-      if (this.areaChartData.length === 1) {
-        return this.areaChartData[0].success
-      }
-      if (this.areaChartData.length === 0) {
-        return 0
-      }
-      return 0
     },
     computeFailedJobCount () {
-      if (this.areaChartData.length > 1) {
-        return this.areaChartData[0].failed - this.areaChartData[1].failed
+      const today = moment().format('YYYY-MM-DD')
+      const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD')
+
+      const todayData = this.areaChartData.find(item => item.date === today)
+      const yesterdayData = this.areaChartData.find(item => item.date === yesterday)
+
+      // 确保找到今天和昨天的数据
+      if (todayData && yesterdayData) {
+        return todayData.failed - yesterdayData.failed
+      } else {
+        return 0 // 如果没有找到对应的数据，返回 0
       }
-      if (this.areaChartData.length === 1) {
-        return this.areaChartData[0].failed
-      }
-      if (this.areaChartData.length === 0) {
-        return 0
-      }
-      return 0
     },
     compareJobCount () {
       return this.computeSuccessJobCount + this.computeFailedJobCount
@@ -244,6 +260,18 @@ export default {
 }
 </script>
 <style scoped lang="less">
+/* 针对 data-icon="caret-down" 的样式 */
+::v-deep [data-icon="caret-down"] {
+  color: red; /* 设置颜色为红色 */
+
+}
+/* 针对 data-icon="caret-up" 的样式 */
+::v-deep [data-icon="caret-up"] {
+  color: green; /* 设置颜色为绿色 */
+}
+li.ant-menu-item.ant-menu-item-selected{
+  box-shadow: none;
+}
 ul.ant-menu.ant-menu-horizontal.ant-menu-root.ant-menu-light {
   background-color: initial;
 }

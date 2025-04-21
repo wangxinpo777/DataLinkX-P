@@ -22,32 +22,49 @@ export default {
     }
   },
   mounted () {
-    getImageCountByDate()
-      .then((res) => {
-        this.chartImagesCount = res.result.map((item) => {
-          return {
-            x: item.date,
-            y: parseInt(item.count)
-          }
+      this.initData()
+  },
+  methods: {
+    initData () {
+      this.loading = true
+      const startOfMonth = moment().startOf('month')
+      const endOfMonth = moment().endOf('month')
+
+      const fullDateList = []
+      const current = startOfMonth.clone()
+
+      while (current.isSameOrBefore(endOfMonth, 'day')) {
+        fullDateList.push({
+          x: current.format('YYYY-MM-DD'),
+          y: 0
         })
-        if (res.result.length === 1) {
-          this.chartImagesCount.push({
-            x: moment().subtract(1, 'days').format('YYYY-MM-DD'),
-            y: 0
+        current.add(1, 'day')
+      }
+      getImageCountByDate()
+        .then((res) => {
+          // 合并后端数据（以日期为键）
+          this.chartImagesCount = fullDateList.map(item => {
+            const match = res.result.find(d => d.date === item.x)
+            return {
+              ...item,
+              y: match ? parseInt(match.count) : item.y
+            }
           })
-        }
-      })
-      .catch((error) => {
-        // Handle any errors
-        console.error(error)
-      })
+          this.loading = false
+        })
+        .catch((error) => {
+          // Handle any errors
+          this.loading = false
+          console.error(error)
+        })
+    }
   },
   computed: {
     total () {
       return this.chartImagesCount.reduce((acc, item) => acc + item.y, 0)
     },
     avgerage () {
-      return this.chartImagesCount.length > 0 ? (this.total / this.chartImagesCount.length) : 0
+      return this.chartImagesCount.length > 0 ? (this.total / this.chartImagesCount.length).toFixed(2) : 0
     }
   }
 }

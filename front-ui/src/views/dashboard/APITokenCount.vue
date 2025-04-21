@@ -227,6 +227,34 @@ export default {
       this.loading = true
       const dateFrom = this.pickDate[0].format('YYYY-MM-DD')
       const dateTo = this.pickDate[1].format('YYYY-MM-DD')
+      this.deepseekChatApiCountData = []
+      this.deepseekChatTokenCountData = []
+      this.deepseekReasonerApiCountData = []
+      this.deepseekReasonerTokenCountData = []
+
+      // 使用 moment 生成日期范围
+      const currentDate = this.pickDate[0].clone()
+      while (currentDate.isSameOrBefore(this.pickDate[1], 'day')) {
+        const formattedDate = currentDate.format('YYYY-MM-DD')
+        this.deepseekChatApiCountData.push({ date: formattedDate, count: 0, model: 'deepseek-chat' })
+        this.deepseekChatTokenCountData.push({
+          date: formattedDate,
+          promptCacheHitTokens: 0,
+          promptCacheMissTokens: 0,
+          completionTokens: 0,
+          model: 'deepseek-chat'
+        })
+        this.deepseekReasonerApiCountData.push({ date: formattedDate, count: 0, model: 'deepseek-reasoner' })
+        this.deepseekReasonerTokenCountData.push({
+          date: formattedDate,
+          promptCacheHitTokens: 0,
+          promptCacheMissTokens: 0,
+          completionTokens: 0,
+          model: 'deepseek-reasoner'
+        })
+        currentDate.add(1, 'day')
+      }
+
       // 发送多个 API 请求并等待它们全部完成
       Promise.all([
         this.deepseekApiCount(this.deepseekChat, dateFrom, dateTo),
@@ -242,104 +270,124 @@ export default {
     },
     deepseekApiCount (model, dateFrom, dateTo) {
       return deepseekApiCount({ model: model, dateFrom: dateFrom, dateTo: dateTo }).then((res) => {
-        const list = res.result
-        if (list.length === 0) {
-          list.push({
-            date: moment().subtract(1, 'days').format('YYYY-MM-DD'),
-            count: 0,
-            model: model
-          })
-          list.push({
-            date: moment().format('YYYY-MM-DD'),
-            count: 0,
-            model: model
-          })
-        }
         if (model === 'deepseek-chat') {
-          this.deepseekChatApiCountData = list
+          this.deepseekChatApiCountData = this.deepseekChatApiCountData.map(item => {
+            return res.result.find(d => d.date === item.date) || item
+          }) // 数据源：长表格式，每个日期对应多个类型和值
         } else {
-          this.deepseekReasonerApiCountData = list
+          this.deepseekReasonerApiCountData = this.deepseekReasonerApiCountData.map(item => {
+            return res.result.find(d => d.date === item.date) || item
+          }) // 数据源：长表格式，每个日期对应多个类型和值
         }
       })
     },
     deepseekTokenCount (model, dateFrom, dateTo) {
       return deepseekTokenCount({ model: model, dateFrom: dateFrom, dateTo: dateTo }).then((res) => {
-        let list = res.result
-        if (list.length === 0) {
-          list.push({
-            date: moment().subtract(1, 'days').format('YYYY-MM-DD'),
-            promptCacheHitTokens: 0,
-            promptCacheMissTokens: 0,
-            completionTokens: 0,
-            model: model
-          })
-          list.push({
-            date: moment().format('YYYY-MM-DD'),
-            promptCacheHitTokens: 0,
-            promptCacheMissTokens: 0,
-            completionTokens: 0,
-            model: model
-          })
-        }
-        // 数据源：长表格式，每个日期对应多个类型和值
-        list = list.reduce((acc, cur) => {
-          acc.push({
-            date: cur.date,
-            type: '输入（命中缓存）',
-            value: cur.promptCacheHitTokens
-          })
-          acc.push({
-            date: cur.date,
-            type: '输入（未命中缓存）',
-            value: cur.promptCacheMissTokens
-          })
-          acc.push({
-            date: cur.date,
-            type: '输出',
-            value: cur.completionTokens
-          })
-          return acc
-        }, [])
+        let list = []
         if (model === 'deepseek-chat') {
+          list = this.deepseekChatTokenCountData.map(item => {
+            return res.result.find(d => d.date === item.date) || item
+          }) // 数据源：长表格式，每个日期对应多个类型和值
+          list = this.customToken(list)
           this.deepseekChatTokenCountData = list
         } else {
+          list = this.deepseekReasonerTokenCountData.map(item => {
+            return res.result.find(d => d.date === item.date) || item
+          }) // 数据源：长表格式，每个日期对应多个类型和值
+          list = this.customToken(list)
           this.deepseekReasonerTokenCountData = list
         }
       })
+    },
+    customToken (list) {
+      return list.reduce((acc, cur) => {
+        acc.push({
+          date: cur.date,
+          type: '输入（命中缓存）',
+          value: cur.promptCacheHitTokens
+        })
+        acc.push({
+          date: cur.date,
+          type: '输入（未命中缓存）',
+          value: cur.promptCacheMissTokens
+        })
+        acc.push({
+          date: cur.date,
+          type: '输出',
+          value: cur.completionTokens
+        })
+        return acc
+      }, [])
     }
   },
   computed: {
     sumChatApiCount () {
       return this.deepseekChatApiCountData.reduce((acc, cur) => acc + cur.count, 0)
     },
-    // 计算和昨天相比的增长
     compareChatApiCount () {
-      return this.deepseekChatApiCountData.length > 1 && this.deepseekChatApiCountData[0].count - this.deepseekChatApiCountData[1].count
+      const today = moment().format('YYYY-MM-DD')
+      const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD')
+
+      const todayData = this.deepseekChatApiCountData.find(item => item.date === today)
+      const yesterdayData = this.deepseekChatApiCountData.find(item => item.date === yesterday)
+
+      // 确保找到今天和昨天的数据
+      if (todayData && yesterdayData) {
+        return todayData.count - yesterdayData.count
+      } else {
+        return 0 // 如果没有找到对应的数据，返回 0
+      }
     },
     sumChatTokenCount () {
       return this.deepseekChatTokenCountData.reduce((acc, cur) => acc + cur.value, 0)
     },
     compareChatTokenCount () {
-      return this.deepseekChatTokenCountData.reduce(
-        (acc, cur) => cur.date === moment().subtract().format('YYYY-MM-DD') ? acc + cur.value : acc, 0) -
-        this.deepseekChatTokenCountData.reduce((acc, cur) => cur.date === moment().subtract(1, 'days').format('YYYY-MM-DD') ? acc + cur.value : acc,
-        0
-      )
+      const today = moment().format('YYYY-MM-DD')
+      const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD')
+
+      const todayTotal = this.deepseekChatTokenCountData.reduce((acc, cur) => {
+        return cur.date === today ? acc + cur.value : acc
+      }, 0)
+
+      const yesterdayTotal = this.deepseekChatTokenCountData.reduce((acc, cur) => {
+        return cur.date === yesterday ? acc + cur.value : acc
+      }, 0)
+
+      return todayTotal - yesterdayTotal
     },
     sumReasonerApiCount () {
       return this.deepseekReasonerApiCountData.reduce((acc, cur) => acc + cur.count, 0)
     },
     compareReasonerApiCount () {
-      return this.deepseekReasonerApiCountData.length > 1 && this.deepseekReasonerApiCountData[0].count - this.deepseekReasonerApiCountData[1].count
+      const today = moment().format('YYYY-MM-DD')
+      const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD')
+
+      const todayData = this.deepseekReasonerApiCountData.find(item => item.date === today)
+      const yesterdayData = this.deepseekReasonerApiCountData.find(item => item.date === yesterday)
+
+      // 确保找到今天和昨天的数据
+      if (todayData && yesterdayData) {
+        return todayData.count - yesterdayData.count
+      } else {
+        return 0 // 如果没有找到对应的数据，返回 0
+      }
     },
     sumReasonerTokenCount () {
       return this.deepseekReasonerTokenCountData.reduce((acc, cur) => acc + cur.value, 0)
     },
     compareReasonerTokenCount () {
-      return this.deepseekReasonerTokenCountData.reduce(
-          (acc, cur) => cur.date === moment().subtract().format('YYYY-MM-DD') ? acc + cur.value : acc, 0) -
-        this.deepseekReasonerTokenCountData.reduce((acc, cur) => cur.date === moment().subtract(1, 'days').format('YYYY-MM-DD') ? acc + cur.value : acc, 0
-        )
+      const today = moment().format('YYYY-MM-DD')
+      const yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD')
+
+      const todayTotal = this.deepseekReasonerTokenCountData.reduce((acc, cur) => {
+        return cur.date === today ? acc + cur.value : acc
+      }, 0)
+
+      const yesterdayTotal = this.deepseekReasonerTokenCountData.reduce((acc, cur) => {
+        return cur.date === yesterday ? acc + cur.value : acc
+      }, 0)
+
+      return todayTotal - yesterdayTotal
     }
   }
 }
