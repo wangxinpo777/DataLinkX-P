@@ -616,6 +616,7 @@ export default {
 .message-content {
   padding: 14px 12px;
   position: relative;
+  word-wrap:break-word;
   background: #f5f5f5 !important;
   color: #333 !important;
   border-radius: 12px;

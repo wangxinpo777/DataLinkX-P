@@ -83,6 +83,7 @@ import { getSmsCaptcha, register } from '@/api/login'
 import { deviceMixin } from '@/store/device-mixin'
 import { encrypt } from '@/utils/encrypt'
 import Password from '@/views/user/password.vue'
+
 export default {
   name: 'Register',
   components: {
@@ -240,4 +241,7 @@ export default {
       text-shadow: 0 0 0.25px currentColor;
     }
   }
+::v-deep input {
+  border-radius: 8px;
+}
 </style>

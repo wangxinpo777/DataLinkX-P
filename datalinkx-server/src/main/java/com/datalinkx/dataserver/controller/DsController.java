@@ -90,9 +90,9 @@ public class DsController {
 		return WebResult.of(dsServiceImpl.fetchTables(dsId));
 	}
 
-	@GetMapping("/tables/{dsId}/{tableName}")
-	public WebResult<List<Map<String, Object>>> getTableData(@PathVariable String dsId, @PathVariable String tableName) throws UnsupportedEncodingException {
-		return WebResult.of(dsServiceImpl.getTableData(dsId, tableName));
+	@GetMapping("/tables/{dsId}/{tableName}/{dataLength}")
+	public WebResult<List<Map<String, Object>>> getTableData(@PathVariable String dsId, @PathVariable String tableName, @PathVariable Integer dataLength) throws UnsupportedEncodingException {
+		return WebResult.of(dsServiceImpl.getTableData(dsId, tableName,dataLength));
 	}
 
 	@GetMapping("/field/info")

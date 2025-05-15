@@ -236,6 +236,9 @@ public class DsServiceImpl implements DsService {
 	public void modify(DsForm.DsCreateForm form) {
 		Optional<DsBean> dsCheck = dsRepository.findByDsId(form.getDsId());
 		DsBean dsBean = dsCheck.orElseThrow(() -> new DatalinkXServerException(StatusCode.DS_NOT_EXISTS, "ds not exist"));
+		if (MetaConstants.DsType.ORACLE.equals(form.getType())) {
+			dsBean.setSchema(form.getDatabase());
+		}
 		dsBean.setUsername(form.getUsername());
 		dsBean.setHost(form.getHost());
 		dsBean.setPort(form.getPort());
@@ -285,7 +288,7 @@ public class DsServiceImpl implements DsService {
 	}
 
 	@Override
-	public List<Map<String, Object>> getTableData(String dsId, String tableName) throws UnsupportedEncodingException {
+	public List<Map<String, Object>> getTableData(String dsId, String tableName,Integer dataLength) throws UnsupportedEncodingException {
 		DsBean dsBean = dsRepository.findByDsId(dsId).orElseThrow(() -> new DatalinkXServerException(StatusCode.DS_NOT_EXISTS));
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
 		dataSource.setDriverClassName("com.mysql.jdbc.Driver");
@@ -297,7 +300,7 @@ public class DsServiceImpl implements DsService {
 		dataSource.setPassword(dsBean.getPassword());
 		List<Map<String, Object>> tableData = new ArrayList<>();
 		try (Connection connection = dataSource.getConnection()) {
-			String sql = "SELECT * FROM " + tableName;
+			String sql = "SELECT * FROM " + tableName + " LIMIT " + dataLength;
 			Statement statement = connection.createStatement();
 			ResultSet resultSet = statement.executeQuery(sql);
 

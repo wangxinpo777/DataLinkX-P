@@ -129,7 +129,7 @@
           type="text"
           v-decorator="['schedulerConf', {rules: [{required: true, message: '请输入crontab表达式', trigger: 'blur'}],initialValue: schedulerConf}]"/>
       </a-form-item>
-      <a-form-item label="字段映射关系">
+      <a-form-item label="字段映射关系" v-show="!isRedisTo">
         <a-row :gutter="16">
           <a-col :span="8">
             <span>来源字段</span>
@@ -176,11 +176,12 @@
 </template>
 
 <script>
-  import { fetchTables, getDsTbFieldsInfo, listQuery } from '@/api/datasource/datasource'
-  import { addObj, getObj, modifyObj } from '@/api/job/job'
-  import LoadingDx from './../../components/common/loading-dx.vue'
-  import { RedisTypes, dsImgObj } from './../datasource/const'
-  export default {
+import { fetchTables, getDsTbFieldsInfo, listQuery } from '@/api/datasource/datasource'
+import { addObj, getObj, modifyObj } from '@/api/job/job'
+import LoadingDx from './../../components/common/loading-dx.vue'
+import { dsImgObj, RedisTypes } from './../datasource/const'
+
+export default {
     components: {
       LoadingDx
     },

@@ -13,6 +13,7 @@ import java.util.List;
 @Builder
 public class ChatReq {
     private String model;
+    private Integer maxTokens=8192;
     private List<Content> messages;
     private Double temperature;
     private Boolean stream;
