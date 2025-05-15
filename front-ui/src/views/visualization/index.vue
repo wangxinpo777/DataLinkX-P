@@ -193,11 +193,27 @@
                   <a-col :span="10">
                     <a-form-item label="来源数据源表" class="data-source-item">
                       <a-select
-                        @change="handleFromTbChange"
                         v-decorator="['selectedSourceTable', { rules: [{ required: true, message: '请选择来源数据源表' }] }]">
                         <a-select-option v-for="table in sourceTables" :value="table" :key="table">
                           {{ table }}
                         </a-select-option>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+                <a-row type="flex" justify="space-around" style="margin-top: 24px;">
+                  <!--选择获取数据长度-->
+                  <a-col :span="24" style="margin-left: 24px">
+                    <a-form-item label="获取数据条数">
+                      <a-select
+                        @change="handleFromTbChange"
+                        v-decorator="['selectedDataLength', { rules: [{ required: true, message: '请选择获取数据条数' }] }]"
+                        style="width: 200px"
+                      >
+                        <a-select-option :value="100">100</a-select-option>
+                        <a-select-option :value="500">500</a-select-option>
+                        <a-select-option :value="1000">1000</a-select-option>
+                        <a-select-option :value="5000">5000</a-select-option>
                       </a-select>
                     </a-form-item>
                   </a-col>
@@ -507,6 +523,7 @@ export default {
     },
     changeXIndex () {
       this.chartData = this.convertJsonToObject()
+      this.xAxisData = Object.keys(this.chartData)
     },
     renderChart () {
       renderChart(this)
@@ -523,7 +540,8 @@ export default {
     handleFromTbChange (value) {
       getTableData({
         dsId: this.form.getFieldValue('selectedDataSource'),
-        tableName: value
+        tableName: this.form.getFieldValue('selectedSourceTable'),
+        dataLength: value
       }).then(res => {
         if (res.result.length === 0) {
           this.$message.error('数据源表无数据')

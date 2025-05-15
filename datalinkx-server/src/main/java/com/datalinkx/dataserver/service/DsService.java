@@ -57,7 +57,7 @@ public interface DsService {
      */
     List<DbTableField> fetchFields(String dsId, String tbName);
 
-    List<Map<String, Object>> getTableData(String dsId, String tableName) throws UnsupportedEncodingException;
+    List<Map<String, Object>> getTableData(String dsId, String tableName,Integer dataLength) throws UnsupportedEncodingException;
 
     String test(String dsId);
 }

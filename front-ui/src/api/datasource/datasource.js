@@ -42,9 +42,9 @@ export function fetchTables (id) {
   })
 }
 
-export function getTableData ({ dsId, tableName }) {
+export function getTableData ({ dsId, tableName, dataLength }) {
   return axios({
-    url: `/api/ds/tables/${dsId}/${tableName}`,
+    url: `/api/ds/tables/${dsId}/${tableName}/${dataLength}`,
     method: 'GET'
   })
 }
