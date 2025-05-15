@@ -248,7 +248,11 @@ export default {
               if (i.job_id === flashData.job_id) {
                 if (flashData.status === 1) {
                   i.status = flashData.status
-                  i.progress = `${flashData.write_records}/${flashData.read_records}`
+                  if (flashData.write_records === undefined || flashData.read_records === undefined) {
+                    i.progress = '0/0'
+                  } else {
+                    i.progress = `${flashData.write_records}/${flashData.read_records}`
+                  }
                 } else {
                   // 防止消息先到前端，后端未入库
                   i.status = flashData.status
