@@ -203,13 +203,11 @@
                 </a-row>
                 <a-row type="flex" justify="space-around" style="margin-top: 24px;">
                   <!--选择获取数据长度-->
-                  <a-col :span="24" style="margin-left: 24px">
-                    <a-form-item label="获取数据条数">
+                  <a-col :span="10">
+                    <a-form-item label="获取数据条数" class="data-source-item">
                       <a-select
                         @change="handleFromTbChange"
-                        v-decorator="['selectedDataLength', { rules: [{ required: true, message: '请选择获取数据条数' }] }]"
-                        style="width: 200px"
-                      >
+                        v-decorator="['selectedDataLength', { rules: [{ required: true, message: '请选择获取数据条数' }] }]">
                         <a-select-option :value="100">100</a-select-option>
                         <a-select-option :value="500">500</a-select-option>
                         <a-select-option :value="1000">1000</a-select-option>
@@ -217,6 +215,7 @@
                       </a-select>
                     </a-form-item>
                   </a-col>
+                  <a-col :span="10"></a-col>
                 </a-row>
               </a-form>
             </div>
