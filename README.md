@@ -1,7 +1,7 @@
 在作者（SplitfireUptown）原项目<a href=https://github.com/SplitfireUptown/datalinkx>DatalinkX</a>
 基础上深度融合安全管控与AI能力，构建了包含用户权限管理、多模型智能对话、可视化BI分析的全栈解决方案。通过Spring
 Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对话与文件解析，创新性拓展Python/HTML脚本执行环境，并打造拖拽式数据看板实现多源数据动态可视化
-## DataLinkx-P Stars
+## DataLinkX-P Stars
 [![Stargazers over time](https://starchart.cc/wangxinpostar/datalinkx-pro.svg?variant=adaptive)](https://starchart.cc/wangxinpostar/datalinkx-pro)
 ## 扩展点
 
