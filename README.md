@@ -150,7 +150,7 @@ deepseek:
         job:
           accessToken:
           admin:
-            addresses: http://127.0.0.1:8080/xxl-job-admin
+            addresses: http://127.0.0.1:8080/xxl-job-admin # xxl-job 管理端服务地址
           executor:
             address: ''
             appname: datalinkx
@@ -173,29 +173,29 @@ deepseek:
         misfire-strategy: DO_NOTHING
         executor-blockStrategy: SERIAL_EXECUTION
         client:
-          url: http://127.0.0.1:8080
+          url: http://127.0.0.1:8080 # xxl-job 服务地址
           logging: true
       ```
 
     2. 搭建 [flink 1.10.3](https://archive.apache.org/dist/flink/flink-1.10.3/)
     3. 进入到 `datalinkx/flinkx` 目录下执行打包命令。编译过程中出现依赖不存在问题，先执行bin目录下install_jars脚本，如果还存在依赖问题，检查配置的maven环境是否可用，是否修改了项目pom文件。
 
-    ```powershell
-    mvn clean install -U '-Dmaven.test.skip=true' '-Dcheckstyle.skip=true'
-    ```
+      ```powershell
+      mvn clean install -U '-Dmaven.test.skip=true' '-Dcheckstyle.skip=true'
+      ```
 
     4. 修改datalinkx/flinkx/flinkconf/flink-conf.yaml
 
-    ```yaml
-    # Web 界面监听地址
-    rest.address: 0.0.0.0
-    # Web 界面监听端口
-    #rest.bind-port: 8888 # 注释掉
-    # JobManager 的 IP 地址，flink部署地址按需修改
-    jobmanager.rpc.address: localhost
-    # JobManager 的 端口 ，flink服务端口按需修改
-    rest.port: 8081
-    ```
+      ```yaml
+      # Web 界面监听地址
+      rest.address: 0.0.0.0
+      # Web 界面监听端口
+      #rest.bind-port: 8888 # 注释掉
+      # JobManager 的 IP 地址，flink部署地址按需修改
+      jobmanager.rpc.address: localhost
+      # JobManager 的 端口 ，flink服务端口按需修改
+      rest.port: 8081
+      ```
 
 ### 前端
 
