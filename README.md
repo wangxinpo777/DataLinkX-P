@@ -83,61 +83,61 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
 
 - 修改`redis`密码`password`为自己的密码
 
-```yml
-redis:
-  database: 0       # Redis数据库索引（默认为0）,如果设置为1，那么存入的key-value都存放在select 1中
-  host: ${REDIS_HOST:127.0.0.1}
-  port: ${REDIS_PORT:6379}
-  password: ${REDIS_PASSWORD:123456}
-  timeout: 10000
-```
+  ```yml
+  redis:
+    database: 0       # Redis数据库索引（默认为0）,如果设置为1，那么存入的key-value都存放在select 1中
+    host: ${REDIS_HOST:127.0.0.1}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:123456}
+    timeout: 10000
+  ```
 
 - 修改`MySQL`数据库`url`中的`datalinkx`为自己的数据库（默认可以不用更换），`password`为自己的密码
 
-```yml
-datasource:
-  driver-class-name: com.mysql.cj.jdbc.Driver
-  username: ${MYSQL_USERNAME:root}
-  password: ${MYSQL_PASSWORD:123456}
-  url: jdbc:mysql://${MYSQL_URL:127.0.0.1}:3306/datalinkx?characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
-```
+  ```yml
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:123456}
+    url: jdbc:mysql://${MYSQL_URL:127.0.0.1}:3306/datalinkx?characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull
+  ```
 
 - 配置`DeepSeek`,修改`api_key`为自己申请到的`Key`,`system_content`是模型系统提示词可按自己需求修改，`model`为选择的模型，`deepseek-chat`是`DeepSeek V3`,`deepseek-reasoner`是`DeepSeek R1`
 
-```yml
-deepseek:
-  #  [deepseek-chat, deepseek-reasoner]
-  model: "deepseek-chat"
-  api_key: "sk-ab0baa4537b94b92a115cdf0d60cfc53"
-  system_content: |
-    角色：你是一名数据分析助手，专注于用简洁的语言解释复杂的数据分析结果。
-    如果用户要求你进行可视化分析，请尽量通过生成一个完整的 HTML 页面，使用 ECharts 进行销售数据可视化展示，具体要求如下：
-      1. 页面结构包括 `<!DOCTYPE html>`, `<html>`, `<head>`, `<body>`。
-      2. 引入 ECharts 库，使用 CDN 链接（例如 https://cdn.jsdelivr.net/npm/echarts）。
-      3. 页面中包含一个 `<div id="chart">` 容器，用于渲染图表。
-      4. 图表配置（在用户没有特别强调情况下）：
-      - 可以根据数据类型（如时间、类别、数值等）设置适当的 X 轴和 Y 轴类型。
-      - 根据数据特点（例如条形图、折线图、饼图等）选择合适的图表类型。
-      - 提供基本的图表样式和配置，确保图表在不同设备和屏幕尺寸下的良好展示。
-      5. 可视化展示内容应清晰、直观，并适合用户的数据分析需求。
-      6. 用户会直接运行你生成的 HTML 代码，请确保代码的正确性和完整性。
-    如果用户要求你进行数据分析，请尽量通过生成一个完整的可以直接运行的 Python 脚本进行数据分析，具体要求如下：
-      1. 可以使用的库包括 micropip, numpy, scikit-learn, scipy, pandas以及Python的基本库（不用考虑安装问题，请直接使用）。
-      2. 任务目标（在用户没有特别强调情况下）：
-      - 根据提供的数据集，进行数据清洗、特征工程、模型训练等数据分析任务。具体任务可以根据数据集的特点自行决定。
-      - 提供完整的数据分析过程，包括数据预处理、特征工程、模型训练、模型评估等步骤。
-      - 提供清晰的数据分析结果，包括数据摘要、模型评估结果等。
-      3. 输出格式要求所有的打印输出部分（如数据摘要、模型评估结果等）需合并成一个字符串并且保留换行作为结果返回，不用打印输出。
-      4. 生成的代码用户会通过第三方JS（Pyodide）运行，具体如下：
-        ```javascript
-        const result = pyodide.runPython(pythonCode)
-        // 转换为可序列化的 JavaScript 数据
-        self.postMessage({ result: result.toString() ? result.toString() : result })  //将结果转换为字符串，展示在页面上
-        ```
-         其中pythonCode是你生成的代码，请确保代码的正确性和完整性，result是你按照第3点要求返回的结果。
-  error_analysis_content: 请你帮我分析一下这段报错信息，给出详细的错误分析和解决方案,使用中文回答
-  system_analysis_content: 请你帮我分析一下系统运行状态，只需要输出展示给用户的部分，使用中文回答
-```
+  ```yml
+  deepseek:
+    #  [deepseek-chat, deepseek-reasoner]
+    model: "deepseek-chat"
+    api_key: "sk-ab0baa4537b94b92a115cdf0d60cfc53"
+    system_content: |
+      角色：你是一名数据分析助手，专注于用简洁的语言解释复杂的数据分析结果。
+      如果用户要求你进行可视化分析，请尽量通过生成一个完整的 HTML 页面，使用 ECharts 进行销售数据可视化展示，具体要求如下：
+        1. 页面结构包括 `<!DOCTYPE html>`, `<html>`, `<head>`, `<body>`。
+        2. 引入 ECharts 库，使用 CDN 链接（例如 https://cdn.jsdelivr.net/npm/echarts）。
+        3. 页面中包含一个 `<div id="chart">` 容器，用于渲染图表。
+        4. 图表配置（在用户没有特别强调情况下）：
+        - 可以根据数据类型（如时间、类别、数值等）设置适当的 X 轴和 Y 轴类型。
+        - 根据数据特点（例如条形图、折线图、饼图等）选择合适的图表类型。
+        - 提供基本的图表样式和配置，确保图表在不同设备和屏幕尺寸下的良好展示。
+        5. 可视化展示内容应清晰、直观，并适合用户的数据分析需求。
+        6. 用户会直接运行你生成的 HTML 代码，请确保代码的正确性和完整性。
+      如果用户要求你进行数据分析，请尽量通过生成一个完整的可以直接运行的 Python 脚本进行数据分析，具体要求如下：
+        1. 可以使用的库包括 micropip, numpy, scikit-learn, scipy, pandas以及Python的基本库（不用考虑安装问题，请直接使用）。
+        2. 任务目标（在用户没有特别强调情况下）：
+        - 根据提供的数据集，进行数据清洗、特征工程、模型训练等数据分析任务。具体任务可以根据数据集的特点自行决定。
+        - 提供完整的数据分析过程，包括数据预处理、特征工程、模型训练、模型评估等步骤。
+        - 提供清晰的数据分析结果，包括数据摘要、模型评估结果等。
+        3. 输出格式要求所有的打印输出部分（如数据摘要、模型评估结果等）需合并成一个字符串并且保留换行作为结果返回，不用打印输出。
+        4. 生成的代码用户会通过第三方JS（Pyodide）运行，具体如下：
+          ```javascript
+          const result = pyodide.runPython(pythonCode)
+          // 转换为可序列化的 JavaScript 数据
+          self.postMessage({ result: result.toString() ? result.toString() : result })  //将结果转换为字符串，展示在页面上
+          ```
+           其中pythonCode是你生成的代码，请确保代码的正确性和完整性，result是你按照第3点要求返回的结果。
+    error_analysis_content: 请你帮我分析一下这段报错信息，给出详细的错误分析和解决方案,使用中文回答
+    system_analysis_content: 请你帮我分析一下系统运行状态，只需要输出展示给用户的部分，使用中文回答
+  ```
 
 2. ### 数据流转与同步
 
@@ -180,22 +180,22 @@ deepseek:
     2. 搭建 [flink 1.10.3](https://archive.apache.org/dist/flink/flink-1.10.3/)
     3. 进入到 `datalinkx/flinkx` 目录下执行打包命令。编译过程中出现依赖不存在问题，先执行bin目录下install_jars脚本，如果还存在依赖问题，检查配置的maven环境是否可用，是否修改了项目pom文件。
 
-      ```powershell
-      mvn clean install -U '-Dmaven.test.skip=true' '-Dcheckstyle.skip=true'
-      ```
+        ```powershell
+        mvn clean install -U '-Dmaven.test.skip=true' '-Dcheckstyle.skip=true'
+        ```
 
     4. 修改datalinkx/flinkx/flinkconf/flink-conf.yaml
 
-      ```yaml
-      # Web 界面监听地址
-      rest.address: 0.0.0.0
-      # Web 界面监听端口
-      #rest.bind-port: 8888 # 注释掉
-      # JobManager 的 IP 地址，flink部署地址按需修改
-      jobmanager.rpc.address: localhost
-      # JobManager 的 端口 ，flink服务端口按需修改
-      rest.port: 8081
-      ```
+        ```yaml
+        # Web 界面监听地址
+        rest.address: 0.0.0.0
+        # Web 界面监听端口
+        #rest.bind-port: 8888 # 注释掉
+        # JobManager 的 IP 地址，flink部署地址按需修改
+        jobmanager.rpc.address: localhost
+        # JobManager 的 端口 ，flink服务端口按需修改
+        rest.port: 8081
+        ```
 
 ### 前端
 
