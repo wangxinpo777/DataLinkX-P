@@ -178,11 +178,11 @@ Security+JWT实现细粒度权限控制，集成DeepSeek大模型支持流式对
       ```
 
     2. 搭建 [flink 1.10.3](https://archive.apache.org/dist/flink/flink-1.10.3/)
-    3. 进入到 `datalinkx/flinkx` 目录下执行打包命令。编译过程中出现依赖不存在问题，先执行bin目录下install_jars脚本，如果还存在依赖问题，检查配置的maven环境是否可用，是否修改了项目pom文件。
-
+    3. 进入到 `datalinkx/flinkx` 目录下并且清空`datalinkx/flinkx/lib`下的文件（如果存在），执行打包命令。
         ```powershell
         mvn clean install -U '-Dmaven.test.skip=true' '-Dcheckstyle.skip=true'
         ```
+        编译过程中出现依赖不存在问题，先执行`bin`目录下`install_jars`脚本，如果还存在依赖问题，检查配置的maven环境是否可用，是否修改了项目pom文件。打包后请检查目录`datalinkx/flinkx/flinkx-launcher`下是否存在`com.dtstack.flinkx.launcher.Launcher`类。
 
     4. 修改datalinkx/flinkx/flinkconf/flink-conf.yaml
 
